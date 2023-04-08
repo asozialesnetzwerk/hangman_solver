@@ -1,8 +1,8 @@
 use std::char;
 use std::fs::File;
-use std::process::exit;
-use std::io::{ self, BufRead, BufReader };
+use std::io::{self, BufRead, BufReader};
 use std::iter::zip;
+use std::process::exit;
 
 struct HangmanResult {
     input: String,
@@ -10,12 +10,13 @@ struct HangmanResult {
     possible_words: Vec<String>,
 }
 
-fn read_words(language: String, word_length: usize) -> impl Iterator<Item=String> {
+fn read_words(language: String, word_length: usize) -> impl Iterator<Item = String> {
     let file = File::open("words/".to_owned() + &language + ".txt").unwrap();
 
-    return BufReader::new(file).lines()
+    BufReader::new(file)
+        .lines()
         .filter_map(|line| line.ok())
-        .filter(move |line| line.len() == word_length);
+        .filter(move |line| line.len() == word_length)
 }
 
 struct Pattern {
@@ -46,20 +47,23 @@ impl Pattern {
                 return false;
             }
         }
-        return true;
+        true
     }
 }
 
-
 fn solve_hangman_puzzle(
-    pattern_string: String, invalid_letters: Vec<char>, language: String
+    pattern_string: String,
+    invalid_letters: Vec<char>,
+    language: String,
 ) -> HangmanResult {
-    let invalid: Vec<char> = pattern_string.chars().chain(invalid_letters.clone()).collect();
-    let pattern = Pattern{
+    let invalid: Vec<char> = pattern_string
+        .chars()
+        .chain(invalid_letters.clone())
+        .collect();
+    let pattern = Pattern {
         invalid_letters: invalid,
         pattern: pattern_string.to_string(),
     };
-
 
     HangmanResult {
         input: pattern_string.clone(),
@@ -70,7 +74,6 @@ fn solve_hangman_puzzle(
             .collect(),
     }
 }
-
 
 fn main() {
     let mut buffer = String::new();
@@ -84,11 +87,11 @@ fn main() {
             if buffer.is_empty() {
                 exit(result.unwrap() as i32);
             }
-            let input: Vec<&str> = buffer.splitn(2, " ").collect();
+            let input: Vec<&str> = buffer.splitn(2, ' ').collect();
             let hr = solve_hangman_puzzle(
                 input[0].to_string(),
                 input[1].chars().collect(),
-                "de".to_string()
+                "de".to_string(),
             );
             for w in hr.possible_words {
                 print!("{}, ", w);
