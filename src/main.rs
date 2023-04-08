@@ -1,4 +1,5 @@
 use std::char;
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::iter::zip;
@@ -10,22 +11,35 @@ struct HangmanResult {
     possible_words: Vec<String>,
 }
 
-fn read_words(language: String, word_length: usize) -> impl Iterator<Item = String> {
+fn read_words(language: String) -> impl Iterator<Item = String> {
     let file = File::open("words/".to_owned() + &language + ".txt").unwrap();
 
-    BufReader::new(file)
-        .lines()
-        .filter_map(|line| line.ok())
-        .filter(move |line| line.len() == word_length)
+    BufReader::new(file).lines().filter_map(|line| line.ok())
 }
 
 struct Pattern {
-    invalid_letters: Vec<char>,
+    invalid_letters: HashSet<char>,
     pattern: String,
 }
 
 impl Pattern {
-    fn first_letter_matches(&self, word: &String) -> bool {
+    fn create(pattern: String, invalid_letters: Vec<char>) -> Pattern {
+        let mut invalid_letters_set: HashSet<char> = HashSet::new();
+        for l in pattern
+            .chars()
+            .filter(|ch| *ch != '_')
+            .chain(invalid_letters)
+        {
+            invalid_letters_set.insert(l);
+        }
+
+        Pattern {
+            invalid_letters: invalid_letters_set,
+            pattern,
+        }
+    }
+
+    fn first_letter_matches_and_is_no_wildcard(&self, word: &String) -> bool {
         let first_pattern_char = self.pattern.chars().next().unwrap();
         if first_pattern_char == '_' {
             true
@@ -56,20 +70,13 @@ fn solve_hangman_puzzle(
     invalid_letters: Vec<char>,
     language: String,
 ) -> HangmanResult {
-    let invalid: Vec<char> = pattern_string
-        .chars()
-        .chain(invalid_letters.clone())
-        .collect();
-    let pattern = Pattern {
-        invalid_letters: invalid,
-        pattern: pattern_string.to_string(),
-    };
+    let pattern = Pattern::create(pattern_string.clone(), invalid_letters.clone());
 
     HangmanResult {
-        input: pattern_string.clone(),
+        input: pattern_string,
         invalid: invalid_letters,
-        possible_words: read_words(language, pattern_string.len())
-            .take_while(|word| pattern.first_letter_matches(word))
+        possible_words: read_words(language)
+            .take_while(|word| pattern.first_letter_matches_and_is_no_wildcard(word))
             .filter(|word| pattern.matches(word))
             .collect(),
     }
@@ -79,7 +86,7 @@ fn main() {
     let mut buffer = String::new();
     let stdin = io::stdin();
 
-    while 1 == 1 {
+    loop {
         let mut handle = stdin.lock();
         let result = handle.read_line(&mut buffer);
 
