@@ -1,21 +1,73 @@
 use std::char;
-use std::io::{self, BufRead};
+use std::fs::File;
 use std::process::exit;
+use std::io::{ self, BufRead, BufReader };
+use std::iter::zip;
 
 struct HangmanResult {
     input: String,
-    invalid: String,
+    invalid: Vec<char>,
     possible_words: Vec<String>,
+}
+
+fn read_words(language: String, word_length: usize) -> impl Iterator<Item=String> {
+    let file = File::open("words/".to_owned() + &language + ".txt").unwrap();
+
+    return BufReader::new(file).lines()
+        .filter_map(|line| line.ok())
+        .filter(move |line| line.len() == word_length);
+}
+
+struct Pattern {
+    invalid_letters: Vec<char>,
+    pattern: String,
+}
+
+impl Pattern {
+    fn first_letter_matches(&self, word: &String) -> bool {
+        let first_pattern_char = self.pattern.chars().next().unwrap();
+        if first_pattern_char == '_' {
+            true
+        } else {
+            first_pattern_char == word.chars().next().unwrap()
+        }
+    }
+
+    fn matches(&self, word: &String) -> bool {
+        if word.len() != self.pattern.len() {
+            return false;
+        }
+        for (p, w) in zip(self.pattern.chars(), word.chars()) {
+            if p == '_' {
+                if self.invalid_letters.contains(&w) {
+                    return false;
+                }
+            } else if p != w {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 
 fn solve_hangman_puzzle(
-    puzzle: String, invalid_letters: Vec<char>, language: String
+    pattern_string: String, invalid_letters: Vec<char>, language: String
 ) -> HangmanResult {
+    let invalid: Vec<char> = pattern_string.chars().chain(invalid_letters.clone()).collect();
+    let pattern = Pattern{
+        invalid_letters: invalid,
+        pattern: pattern_string.to_string(),
+    };
+
+
     HangmanResult {
-        input: "".to_string(),
-        invalid: "".to_string(),
-        possible_words: vec![],
+        input: pattern_string.clone(),
+        invalid: invalid_letters,
+        possible_words: read_words(language, pattern_string.len())
+            .take_while(|word| pattern.first_letter_matches(word))
+            .filter(|word| pattern.matches(word))
+            .collect(),
     }
 }
 
@@ -33,12 +85,15 @@ fn main() {
                 exit(result.unwrap() as i32);
             }
             let input: Vec<&str> = buffer.splitn(2, " ").collect();
-            solve_hangman_puzzle(
+            let hr = solve_hangman_puzzle(
                 input[0].to_string(),
                 input[1].chars().collect(),
                 "de".to_string()
             );
-            println!("{}", buffer);
+            for w in hr.possible_words {
+                print!("{}, ", w);
+            }
+            println!();
         } else {
             eprintln!("{}", result.unwrap_err());
             exit(1)
