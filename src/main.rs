@@ -19,49 +19,58 @@ fn read_words(language: String) -> impl Iterator<Item = String> {
 
 struct Pattern {
     invalid_letters: HashSet<char>,
-    pattern: String,
+    pattern: Vec<char>,
+    first_letter: char,
 }
 
 impl Pattern {
     fn create(pattern: String, invalid_letters: Vec<char>) -> Pattern {
-        let mut invalid_letters_set: HashSet<char> = HashSet::new();
-        for l in pattern
+        let pattern_as_chars: Vec<char> = pattern
+            .to_lowercase()
             .chars()
-            .filter(|ch| *ch != '_')
-            .chain(invalid_letters)
+            .filter(|ch| *ch != ' ')
+            .collect();
+
+        let mut invalid_letters_set: HashSet<char> = HashSet::new();
+
+        for l in pattern_as_chars
+            .iter()
+            .filter(|ch| **ch != '_')
+            .chain(invalid_letters.iter())
         {
-            invalid_letters_set.insert(l);
+            invalid_letters_set.insert(*l);
         }
 
         Pattern {
             invalid_letters: invalid_letters_set,
-            pattern,
+            pattern: pattern_as_chars.clone(),
+            first_letter: *pattern_as_chars.first().unwrap_or(&'_'),
         }
     }
 
-    fn first_letter_matches_and_is_no_wildcard(&self, word: &String) -> bool {
-        let first_pattern_char = self.pattern.chars().next().unwrap();
-        if first_pattern_char == '_' {
-            true
-        } else {
-            first_pattern_char == word.chars().next().unwrap()
-        }
+    fn length_matches(&self, word: &String) -> bool {
+        word.len() == self.pattern.len()
+    }
+
+    fn first_letter_matches_or_is_wildcard(&self, word: &String) -> bool {
+        self.first_letter == '_' || self.first_letter == word.chars().next().unwrap_or('_')
     }
 
     fn matches(&self, word: &String) -> bool {
-        if word.len() != self.pattern.len() {
-            return false;
-        }
-        for (p, w) in zip(self.pattern.chars(), word.chars()) {
-            if p == '_' {
+        for (p, w) in zip(self.pattern.iter(), word.chars()) {
+            if *p == '_' {
                 if self.invalid_letters.contains(&w) {
                     return false;
                 }
-            } else if p != w {
+            } else if *p != w {
                 return false;
             }
         }
         true
+    }
+
+    fn contains_wildcard(&self) -> bool {
+        self.pattern.contains(&'_')
     }
 }
 
@@ -72,13 +81,24 @@ fn solve_hangman_puzzle(
 ) -> HangmanResult {
     let pattern = Pattern::create(pattern_string.clone(), invalid_letters.clone());
 
+    let possible_words = if pattern.first_letter == '_' {
+        read_words(language)
+            .filter(|word| pattern.length_matches(word))
+            .filter(|word| pattern.matches(word))
+            .collect()
+    } else {
+        read_words(language)
+            .skip_while(|word| !pattern.first_letter_matches_or_is_wildcard(word))
+            .take_while(|word| pattern.first_letter_matches_or_is_wildcard(word))
+            .filter(|word| pattern.length_matches(word))
+            .filter(|word| pattern.matches(word))
+            .collect()
+    };
+
     HangmanResult {
         input: pattern_string,
         invalid: invalid_letters,
-        possible_words: read_words(language)
-            .take_while(|word| pattern.first_letter_matches_and_is_no_wildcard(word))
-            .filter(|word| pattern.matches(word))
-            .collect(),
+        possible_words,
     }
 }
 
@@ -100,10 +120,14 @@ fn main() {
                 input[1].chars().collect(),
                 "de".to_string(),
             );
-            for w in hr.possible_words {
-                print!("{}, ", w);
+            if hr.possible_words.len() == 0 {
+                print!("Nothing found")
+            } else {
+                for w in hr.possible_words {
+                    print!("{}, ", w);
+                }
+                println!();
             }
-            println!();
         } else {
             eprintln!("{}", result.unwrap_err());
             exit(1)
