@@ -1,5 +1,6 @@
 use std::char;
 use std::collections::{HashMap, HashSet};
+use std::fmt::Write;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::iter::zip;
@@ -52,15 +53,15 @@ impl Pattern {
         let pattern_as_chars: Vec<char> = pattern
             .to_lowercase()
             .chars()
-            .filter(|ch| *ch != ' ')
+            .filter(|ch| (*ch != ' '))
             .collect();
 
         let mut invalid_letters_set: HashSet<char> = HashSet::new();
 
         for l in pattern_as_chars
             .iter()
-            .filter(|ch| **ch != '_')
             .chain(invalid_letters.iter())
+            .filter(|ch| **ch != '_' && !(**ch).is_whitespace())
         {
             invalid_letters_set.insert(*l);
         }
@@ -119,9 +120,19 @@ fn solve_hangman_puzzle(
             .collect()
     };
 
+    let mut input_as_string = String::new();
+    for ch in pattern.pattern {
+        input_as_string.write_char(ch);
+    }
+    let invalid_in_result = pattern
+        .invalid_letters
+        .iter()
+        .filter(|ch| !input_as_string.contains(**ch))
+        .map(|ch| *ch)
+        .collect();
     HangmanResult {
-        input: pattern_string,
-        invalid: invalid_letters,
+        input: input_as_string,
+        invalid: invalid_in_result,
         possible_words,
     }
 }
@@ -145,19 +156,33 @@ fn main() {
                 "de".to_string(),
             );
             if hr.possible_words.len() == 0 {
-                print!("Nothing found")
+                println!("Nothing found")
             } else {
-                for w in hr.possible_words.iter() {
+                print!(
+                    "Found {} words (input: {}, invalid: ",
+                    hr.possible_words.len(),
+                    hr.input
+                );
+                hr.invalid
+                    .iter()
+                    .for_each(|ch| print!("{}", ch.escape_debug()));
+                println!(")\n");
+                let print_count = 10;
+                for w in hr.possible_words.iter().take(print_count) {
                     print!("{}, ", w);
                 }
-                println!();
+                if print_count < hr.possible_words.len() {
+                    println!("...")
+                } else {
+                    println!();
+                }
                 let mut letters: Vec<(char, u32)> = hr.get_letter_frequency().into_iter().collect();
                 letters.sort_by_key(|tuple| (*tuple).1);
                 letters.reverse();
                 for (ch, freq) in letters {
                     print!("{}: {}, ", ch, freq);
                 }
-                println!();
+                println!()
             }
         } else {
             eprintln!("{}", result.unwrap_err());
