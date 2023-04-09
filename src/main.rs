@@ -106,11 +106,11 @@ impl Pattern {
         word.len() == self.pattern.len()
     }
 
-    fn first_letter_matches_or_is_wildcard(&self, word: &String) -> bool {
+    fn first_letter_matches_or_is_wildcard(&self, word: &str) -> bool {
         self.first_letter == '_' || self.first_letter == word.chars().next().unwrap_or('_')
     }
 
-    fn matches(&self, word: &String) -> bool {
+    fn matches(&self, word: &str) -> bool {
         for (p, w) in zip(self.pattern.iter(), word.chars()) {
             if *p == '_' {
                 if self.invalid_letters.contains(&w) {
