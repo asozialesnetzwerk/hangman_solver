@@ -56,7 +56,7 @@ impl HangmanResult {
             writeln!(file).unwrap();
         }
         let mut letters: Vec<(char, u32)> = self.get_letter_frequency().into_iter().collect();
-        letters.sort_by_key(|tuple| (*tuple).1);
+        letters.sort_by_key(|tuple| tuple.1);
         letters.reverse();
         for (ch, freq) in letters {
             write!(file, "{}: {}, ", ch, freq).unwrap();
@@ -129,7 +129,7 @@ fn solve_hangman_puzzle(
     invalid_letters: Vec<char>,
     language: String,
 ) -> HangmanResult {
-    let pattern = Pattern::create(pattern_string.clone(), invalid_letters.clone());
+    let pattern = Pattern::create(pattern_string, invalid_letters);
 
     let possible_words = if pattern.first_letter == '_' {
         read_words(language)
@@ -152,8 +152,7 @@ fn solve_hangman_puzzle(
     let invalid_in_result = pattern
         .invalid_letters
         .iter()
-        .filter(|ch| !input_as_string.contains(**ch))
-        .map(|ch| *ch)
+        .filter(|ch| !input_as_string.contains(**ch)).copied()
         .collect();
     HangmanResult {
         input: input_as_string,
@@ -180,7 +179,7 @@ fn main() {
                 input[1].chars().collect(),
                 "de".to_string(),
             );
-            if hr.possible_words.len() == 0 {
+            if hr.possible_words.is_empty() {
                 println!("Nothing found");
             } else {
                 hr.print(10, io::stdout());
