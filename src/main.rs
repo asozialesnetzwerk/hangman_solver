@@ -152,7 +152,8 @@ fn solve_hangman_puzzle(
     let invalid_in_result = pattern
         .invalid_letters
         .iter()
-        .filter(|ch| !input_as_string.contains(**ch)).copied()
+        .filter(|ch| !input_as_string.contains(**ch))
+        .copied()
         .collect();
     HangmanResult {
         input: input_as_string,
