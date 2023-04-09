@@ -122,10 +122,6 @@ impl Pattern {
         }
         true
     }
-
-    fn contains_wildcard(&self) -> bool {
-        self.pattern.contains(&'_')
-    }
 }
 
 fn solve_hangman_puzzle(
@@ -151,7 +147,7 @@ fn solve_hangman_puzzle(
 
     let mut input_as_string = String::new();
     for ch in pattern.pattern {
-        input_as_string.write_char(ch);
+        input_as_string.write_char(ch).unwrap();
     }
     let invalid_in_result = pattern
         .invalid_letters
