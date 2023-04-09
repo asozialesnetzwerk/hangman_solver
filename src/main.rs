@@ -2,7 +2,7 @@ use std::char;
 use std::collections::{HashMap, HashSet};
 use std::fmt::Write;
 use std::fs::File;
-use std::io::{self, BufRead, BufReader};
+use std::io::{self, BufRead, BufReader, Write as IoWrite};
 use std::iter::zip;
 use std::process::exit;
 
@@ -35,31 +35,33 @@ impl HangmanResult {
         map
     }
 
-    fn print(&self, print_count: usize) {
-        print!(
+    fn print(&self, print_count: usize, mut file: impl IoWrite) {
+        write!(
+            file,
             "Found {} words (input: {}, invalid: ",
             self.possible_words.len(),
             self.input
-        );
+        )
+        .unwrap();
         self.invalid
             .iter()
-            .for_each(|ch| print!("{}", ch.escape_debug()));
-        println!(")\n");
+            .for_each(|ch| write!(file, "{}", ch.escape_debug()).unwrap());
+        writeln!(file, ")\n").unwrap();
         for w in self.possible_words.iter().take(print_count) {
-            print!("{}, ", w);
+            write!(file, "{}, ", w).unwrap();
         }
         if print_count < self.possible_words.len() {
-            println!("...")
+            writeln!(file, "...").unwrap();
         } else {
-            println!();
+            writeln!(file).unwrap();
         }
         let mut letters: Vec<(char, u32)> = self.get_letter_frequency().into_iter().collect();
         letters.sort_by_key(|tuple| (*tuple).1);
         letters.reverse();
         for (ch, freq) in letters {
-            print!("{}: {}, ", ch, freq);
+            write!(file, "{}: {}, ", ch, freq).unwrap();
         }
-        println!()
+        writeln!(file).unwrap();
     }
 }
 
@@ -185,7 +187,7 @@ fn main() {
             if hr.possible_words.len() == 0 {
                 println!("Nothing found");
             } else {
-                hr.print(10);
+                hr.print(10, io::stdout());
             }
         } else {
             eprintln!("{}", result.unwrap_err());
