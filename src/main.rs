@@ -34,6 +34,33 @@ impl HangmanResult {
         }
         map
     }
+
+    fn print(&self, print_count: usize) {
+        print!(
+            "Found {} words (input: {}, invalid: ",
+            self.possible_words.len(),
+            self.input
+        );
+        self.invalid
+            .iter()
+            .for_each(|ch| print!("{}", ch.escape_debug()));
+        println!(")\n");
+        for w in self.possible_words.iter().take(print_count) {
+            print!("{}, ", w);
+        }
+        if print_count < self.possible_words.len() {
+            println!("...")
+        } else {
+            println!();
+        }
+        let mut letters: Vec<(char, u32)> = self.get_letter_frequency().into_iter().collect();
+        letters.sort_by_key(|tuple| (*tuple).1);
+        letters.reverse();
+        for (ch, freq) in letters {
+            print!("{}: {}, ", ch, freq);
+        }
+        println!()
+    }
 }
 
 fn read_words(language: String) -> impl Iterator<Item = String> {
@@ -156,33 +183,9 @@ fn main() {
                 "de".to_string(),
             );
             if hr.possible_words.len() == 0 {
-                println!("Nothing found")
+                println!("Nothing found");
             } else {
-                print!(
-                    "Found {} words (input: {}, invalid: ",
-                    hr.possible_words.len(),
-                    hr.input
-                );
-                hr.invalid
-                    .iter()
-                    .for_each(|ch| print!("{}", ch.escape_debug()));
-                println!(")\n");
-                let print_count = 10;
-                for w in hr.possible_words.iter().take(print_count) {
-                    print!("{}, ", w);
-                }
-                if print_count < hr.possible_words.len() {
-                    println!("...")
-                } else {
-                    println!();
-                }
-                let mut letters: Vec<(char, u32)> = hr.get_letter_frequency().into_iter().collect();
-                letters.sort_by_key(|tuple| (*tuple).1);
-                letters.reverse();
-                for (ch, freq) in letters {
-                    print!("{}: {}, ", ch, freq);
-                }
-                println!()
+                hr.print(10);
             }
         } else {
             eprintln!("{}", result.unwrap_err());
