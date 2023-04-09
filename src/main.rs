@@ -1,5 +1,5 @@
 use std::char;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use std::iter::zip;
@@ -9,6 +9,30 @@ struct HangmanResult {
     input: String,
     invalid: Vec<char>,
     possible_words: Vec<String>,
+}
+
+fn get_unique_chars_in_word(word: String) -> HashSet<char> {
+    let mut chars = HashSet::new();
+    for ch in word.chars() {
+        chars.insert(ch);
+    }
+    chars
+}
+
+impl HangmanResult {
+    fn get_letter_frequency(&self) -> HashMap<char, u32> {
+        let mut map = HashMap::new();
+        for x in self
+            .possible_words
+            .iter()
+            .flat_map(|word| get_unique_chars_in_word(word.clone()))
+        {
+            if !self.invalid.contains(&x) && !self.input.contains(x) {
+                map.insert(x, map.get(&x).unwrap_or(&0) + 1);
+            }
+        }
+        map
+    }
 }
 
 fn read_words(language: String) -> impl Iterator<Item = String> {
@@ -123,8 +147,15 @@ fn main() {
             if hr.possible_words.len() == 0 {
                 print!("Nothing found")
             } else {
-                for w in hr.possible_words {
+                for w in hr.possible_words.iter() {
                     print!("{}, ", w);
+                }
+                println!();
+                let mut letters: Vec<(char, u32)> = hr.get_letter_frequency().into_iter().collect();
+                letters.sort_by_key(|tuple| (*tuple).1);
+                letters.reverse();
+                for (ch, freq) in letters {
+                    print!("{}: {}, ", ch, freq);
                 }
                 println!();
             }
