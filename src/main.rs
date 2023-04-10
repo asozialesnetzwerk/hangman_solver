@@ -56,7 +56,7 @@ impl HangmanResult {
             writeln!(file).unwrap();
         }
         let mut letters: Vec<(char, u32)> = self.get_letter_frequency().into_iter().collect();
-        if letters.len() == 0 {
+        if letters.is_empty() {
             writeln!(file).unwrap();
         } else {
             letters.sort_by_key(|tuple| tuple.1);
@@ -139,7 +139,8 @@ fn solve_hangman_puzzle(
 ) -> HangmanResult {
     let pattern = Pattern::create(pattern_string, invalid_letters);
 
-    let possible_words = if pattern.known_letters_count() == 0 {
+    let possible_words = if pattern.known_letters_count() == 0 && pattern.invalid_letters.is_empty()
+    {
         read_words(language)
             .filter(|word| pattern.length_matches(word))
             .collect()
