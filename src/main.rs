@@ -46,7 +46,7 @@ impl HangmanResult {
         self.invalid
             .iter()
             .for_each(|ch| write!(file, "{}", ch.escape_debug()).unwrap());
-        writeln!(file, ")\n").unwrap();
+        writeln!(file, ")").unwrap();
         for w in self.possible_words.iter().take(print_count) {
             write!(file, "{}, ", w).unwrap();
         }
@@ -56,12 +56,16 @@ impl HangmanResult {
             writeln!(file).unwrap();
         }
         let mut letters: Vec<(char, u32)> = self.get_letter_frequency().into_iter().collect();
-        letters.sort_by_key(|tuple| tuple.1);
-        letters.reverse();
-        for (ch, freq) in letters {
-            write!(file, "{}: {}, ", ch, freq).unwrap();
+        if letters.len() == 0 {
+            writeln!(file).unwrap();
+        } else {
+            letters.sort_by_key(|tuple| tuple.1);
+            letters.reverse();
+            for (ch, freq) in letters {
+                write!(file, "{}: {}, ", ch, freq).unwrap();
+            }
+            writeln!(file, "\n").unwrap();
         }
-        writeln!(file).unwrap();
     }
 }
 
@@ -122,6 +126,10 @@ impl Pattern {
         }
         true
     }
+
+    fn known_letters_count(&self) -> usize {
+        self.pattern.iter().filter(|ch| **ch != '_').count()
+    }
 }
 
 fn solve_hangman_puzzle(
@@ -131,7 +139,11 @@ fn solve_hangman_puzzle(
 ) -> HangmanResult {
     let pattern = Pattern::create(pattern_string, invalid_letters);
 
-    let possible_words = if pattern.first_letter == '_' {
+    let possible_words = if pattern.known_letters_count() == 0 {
+        read_words(language)
+            .filter(|word| pattern.length_matches(word))
+            .collect()
+    } else if pattern.first_letter == '_' {
         read_words(language)
             .filter(|word| pattern.length_matches(word))
             .filter(|word| pattern.matches(word))
