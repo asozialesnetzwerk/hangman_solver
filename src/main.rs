@@ -17,7 +17,7 @@ enum Language {
 }
 
 impl Language {
-    fn to_string(&self) -> &str {
+    fn as_string(&self) -> &str {
         match self {
             Language::DE => "de",
         }
@@ -88,7 +88,7 @@ impl HangmanResult {
 }
 
 fn get_full_wordlist_file(language: Language) -> String {
-    format!("words/{}.txt", language.to_string())
+    format!("words/{}.txt", language.as_string())
 }
 
 #[memoise(language, length)]
@@ -100,7 +100,7 @@ fn get_wordlist_file(language: Language, length: usize) -> PathBuf {
 
     let hash: String = format!("{:x}", hash_words(read_all_words(language)));
 
-    let lang_words_dir: PathBuf = words_cache_dir.join(language.to_string());
+    let lang_words_dir: PathBuf = words_cache_dir.join(language.as_string());
     let words_dir: PathBuf = lang_words_dir.join(&*hash);
 
     if lang_words_dir.exists() && !words_dir.exists() {
