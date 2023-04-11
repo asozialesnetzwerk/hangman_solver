@@ -1,10 +1,28 @@
-use std::char;
+use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
 use std::fmt::Write;
 use std::fs::File;
+use std::hash::Hasher;
 use std::io::{self, BufRead, BufReader, Write as IoWrite};
 use std::iter::zip;
+use std::path::{Path, PathBuf};
 use std::process::exit;
+use std::{char, fs};
+
+use memoise::memoise;
+
+#[derive(Copy, Clone)]
+enum Language {
+    DE,
+}
+
+impl Language {
+    fn to_string(&self) -> &str {
+        match self {
+            Language::DE => "de",
+        }
+    }
+}
 
 struct HangmanResult {
     input: String,
@@ -69,9 +87,56 @@ impl HangmanResult {
     }
 }
 
-fn read_words(language: String) -> impl Iterator<Item = String> {
-    let file = File::open("words/".to_owned() + &language + ".txt").unwrap();
+fn get_full_wordlist_file(language: Language) -> String {
+    format!("words/{}.txt", language.to_string())
+}
 
+#[memoise(language, length)]
+fn get_wordlist_file(language: Language, length: usize) -> PathBuf {
+    let base_cache_dir_string = std::env::var("XDG_CACHE_HOME")
+        .unwrap_or_else(|_| std::env::var("HOME").unwrap() + "/.cache");
+    let base_cache_dir: &Path = Path::new(base_cache_dir_string.as_str());
+    let words_cache_dir: PathBuf = base_cache_dir.join("hangman_solver/words");
+
+    let hash: String = format!("{:x}", hash_words(read_all_words(language)));
+
+    let lang_words_dir: PathBuf = words_cache_dir.join(language.to_string());
+    let words_dir: PathBuf = lang_words_dir.join(&*hash);
+
+    if lang_words_dir.exists() && !words_dir.exists() {
+        // remove old cache data
+        fs::remove_dir_all(lang_words_dir).expect("Deleting cache dir");
+    }
+    fs::create_dir_all(words_dir.clone()).expect("Create cache dir");
+
+    let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
+
+    if !file_name.exists() {
+        let mut file = File::create(file_name.clone()).unwrap();
+        for word in read_all_words(language).filter(|word| word.len() == length) {
+            file.write_all(word.as_bytes()).expect("writing cache");
+            file.write_all("\n".as_bytes()).expect("writing cache");
+        }
+    }
+
+    file_name
+}
+
+fn read_all_words(language: Language) -> impl Iterator<Item = String> {
+    let file = File::open(get_full_wordlist_file(language)).unwrap();
+    BufReader::new(file).lines().filter_map(|line| line.ok())
+}
+
+fn hash_words(words: impl Iterator<Item = String>) -> u64 {
+    let mut s = DefaultHasher::new();
+    for word in words {
+        s.write(word.as_bytes());
+    }
+    s.finish()
+}
+
+fn read_words(language: Language, length: usize) -> impl Iterator<Item = String> {
+    let file = File::open(get_wordlist_file(language, length)).unwrap();
     BufReader::new(file).lines().filter_map(|line| line.ok())
 }
 
@@ -135,22 +200,22 @@ impl Pattern {
 fn solve_hangman_puzzle(
     pattern_string: String,
     invalid_letters: Vec<char>,
-    language: String,
+    language: Language,
 ) -> HangmanResult {
     let pattern = Pattern::create(pattern_string, invalid_letters);
 
     let possible_words = if pattern.known_letters_count() == 0 && pattern.invalid_letters.is_empty()
     {
-        read_words(language)
+        read_words(language, pattern.pattern.len())
             .filter(|word| pattern.length_matches(word))
             .collect()
     } else if pattern.first_letter == '_' {
-        read_words(language)
+        read_words(language, pattern.pattern.len())
             .filter(|word| pattern.length_matches(word))
             .filter(|word| pattern.matches(word))
             .collect()
     } else {
-        read_words(language)
+        read_words(language, pattern.pattern.len())
             .skip_while(|word| !pattern.first_letter_matches_or_is_wildcard(word))
             .take_while(|word| pattern.first_letter_matches_or_is_wildcard(word))
             .filter(|word| pattern.length_matches(word))
@@ -191,7 +256,7 @@ fn main() {
             let hr = solve_hangman_puzzle(
                 input[0].to_string(),
                 input[1].chars().collect(),
-                "de".to_string(),
+                Language::DE,
             );
             if hr.possible_words.is_empty() {
                 println!("Nothing found");

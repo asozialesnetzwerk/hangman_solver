@@ -12,3 +12,4 @@ strip = true
 lto = true
 
 [dependencies]
+memoise = "0.3.2"
