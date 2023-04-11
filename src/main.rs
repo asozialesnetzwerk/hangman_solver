@@ -91,6 +91,11 @@ fn get_full_wordlist_file(language: Language) -> String {
     format!("words/{}.txt", language.as_string())
 }
 
+#[memoise(language)]
+fn get_full_wordlist_file_hash(language: Language) -> String {
+    format!("{:x}", hash_words(read_all_words(language)))
+}
+
 #[memoise(language, length)]
 fn get_wordlist_file(language: Language, length: usize) -> PathBuf {
     let base_cache_dir_string = std::env::var("XDG_CACHE_HOME")
@@ -98,7 +103,7 @@ fn get_wordlist_file(language: Language, length: usize) -> PathBuf {
     let base_cache_dir: &Path = Path::new(base_cache_dir_string.as_str());
     let words_cache_dir: PathBuf = base_cache_dir.join("hangman_solver/words");
 
-    let hash: String = format!("{:x}", hash_words(read_all_words(language)));
+    let hash: String = get_full_wordlist_file_hash(language);
 
     let lang_words_dir: PathBuf = words_cache_dir.join(language.as_string());
     let words_dir: PathBuf = lang_words_dir.join(&*hash);
