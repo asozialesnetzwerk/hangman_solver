@@ -54,9 +54,9 @@ impl HangmanResult {
         map
     }
 
-    fn print(&self, print_count: usize, mut file: impl IoWrite) {
+    fn print(&self, print_count: usize, letters_print_count: usize, mut file: impl IoWrite) {
         let invalid: String = self.invalid.iter().collect();
-        write!(
+        writeln!(
             file,
             "Found {} words (input: {}, invalid: {})",
             self.possible_words.len(),
@@ -64,24 +64,44 @@ impl HangmanResult {
             invalid,
         )
         .unwrap();
+        if self.possible_words.is_empty() {
+            writeln!(file, "\n").unwrap();
+            return;
+        }
+        write!(file, " words:   ").unwrap();
         for w in self.possible_words.iter().take(print_count) {
             write!(file, "{}, ", w).unwrap();
         }
-        if print_count < self.possible_words.len() {
-            writeln!(file, "...").unwrap();
-        } else {
-            writeln!(file).unwrap();
-        }
+        writeln!(
+            file,
+            "{}",
+            if print_count < self.possible_words.len() {
+                "..."
+            } else {
+                ""
+            }
+        )
+        .unwrap();
         let mut letters: Vec<(char, u32)> = self.get_letter_frequency().into_iter().collect();
         if letters.is_empty() {
             writeln!(file).unwrap();
         } else {
+            write!(file, " letters: ").unwrap();
             letters.sort_by_key(|tuple| (tuple.1, tuple.0));
             letters.reverse();
-            for (ch, freq) in letters {
+            for (ch, freq) in letters.iter().take(letters_print_count) {
                 write!(file, "{}: {}, ", ch, freq).unwrap();
             }
-            writeln!(file, "\n").unwrap();
+            writeln!(
+                file,
+                "{}\n",
+                if letters_print_count < letters.len() {
+                    "..."
+                } else {
+                    ""
+                }
+            )
+            .unwrap();
         }
     }
 }
@@ -285,11 +305,7 @@ fn main() {
                     input[1].chars().collect(),
                     Language::DE,
                 );
-                if hr.possible_words.is_empty() {
-                    println!("Nothing found");
-                } else {
-                    hr.print(10, io::stdout());
-                }
+                hr.print(10, 16, io::stdout());
             }
             Err(error) => {
                 eprintln!("{}", error);
