@@ -176,7 +176,7 @@ impl Pattern {
         }
     }
 
-    fn length_matches(&self, word: &String) -> bool {
+    fn _length_matches(&self, word: &String) -> bool {
         word.len() == self.pattern.len()
     }
 
@@ -211,19 +211,15 @@ fn solve_hangman_puzzle(
 
     let possible_words = if pattern.known_letters_count() == 0 && pattern.invalid_letters.is_empty()
     {
-        read_words(language, pattern.pattern.len())
-            .filter(|word| pattern.length_matches(word))
-            .collect()
+        read_words(language, pattern.pattern.len()).collect()
     } else if pattern.first_letter == '_' {
         read_words(language, pattern.pattern.len())
-            .filter(|word| pattern.length_matches(word))
             .filter(|word| pattern.matches(word))
             .collect()
     } else {
         read_words(language, pattern.pattern.len())
             .skip_while(|word| !pattern.first_letter_matches_or_is_wildcard(word))
             .take_while(|word| pattern.first_letter_matches_or_is_wildcard(word))
-            .filter(|word| pattern.length_matches(word))
             .filter(|word| pattern.matches(word))
             .collect()
     };
