@@ -9,6 +9,7 @@ use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::{char, fs};
 
+use directories::ProjectDirs;
 use memoise::memoise;
 
 #[derive(Copy, Clone)]
@@ -95,13 +96,22 @@ fn get_full_wordlist_file_hash(language: Language) -> String {
     format!("{:x}", hash_words(read_all_words(language)))
 }
 
-#[memoise(language)]
-fn get_words_cache_folder(language: Language) -> PathBuf {
-    let base_cache_dir_string = std::env::var("XDG_CACHE_HOME")
-        .unwrap_or_else(|_| std::env::var("HOME").unwrap() + "/.cache");
-    let base_cache_dir: &Path = Path::new(base_cache_dir_string.as_str());
-    let words_cache_dir: PathBuf = base_cache_dir.join("hangman_solver/words");
+fn get_cache_dir() -> Option<PathBuf> {
+    if let Some(proj_dirs) = ProjectDirs::from("org", "asozial", "hangman_solver") {
+        Some(proj_dirs.cache_dir().to_path_buf())
+    } else {
+        None
+    }
+}
 
+#[memoise(language)]
+fn get_words_cache_folder(language: Language) -> Option<PathBuf> {
+    let words_cache_dir: PathBuf;
+    if let Some(cache_dir) = get_cache_dir() {
+        words_cache_dir = cache_dir.join("words");
+    } else {
+        return None;
+    }
     let hash: String = get_full_wordlist_file_hash(language);
 
     let lang_words_dir: PathBuf = words_cache_dir.join(language.as_string());
@@ -113,22 +123,25 @@ fn get_words_cache_folder(language: Language) -> PathBuf {
     }
     fs::create_dir_all(Path::new(&words_dir)).expect("Create cache dir");
 
-    words_dir
+    Some(words_dir)
 }
 
 #[memoise(language, length)]
-fn get_wordlist_file(language: Language, length: usize) -> PathBuf {
-    let words_dir = get_words_cache_folder(language);
-    let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
-    if !file_name.exists() {
-        let mut file = File::create(Path::new(&file_name)).unwrap();
-        for word in read_all_words(language).filter(|word| word.len() == length) {
-            file.write_all(word.as_bytes()).expect("writing cache");
-            file.write_all("\n".as_bytes()).expect("writing cache");
+fn get_wordlist_file(language: Language, length: usize) -> Option<PathBuf> {
+    if let Some(words_dir) = get_words_cache_folder(language) {
+        let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
+        if !file_name.exists() {
+            let mut file = File::create(Path::new(&file_name)).unwrap();
+            for word in read_all_words(language).filter(|word| word.len() == length) {
+                file.write_all(word.as_bytes()).expect("writing cache");
+                file.write_all("\n".as_bytes()).expect("writing cache");
+            }
         }
-    }
 
-    file_name
+        Some(file_name)
+    } else {
+        None
+    }
 }
 
 fn read_all_words(language: Language) -> impl Iterator<Item = String> {
@@ -144,9 +157,13 @@ fn hash_words(words: impl Iterator<Item = String>) -> u64 {
     s.finish()
 }
 
-fn read_words(language: Language, length: usize) -> impl Iterator<Item = String> {
-    let file = File::open(get_wordlist_file(language, length)).unwrap();
-    BufReader::new(file).lines().filter_map(|line| line.ok())
+fn read_words(language: Language, length: usize) -> Box<dyn Iterator<Item = String>> {
+    if let Some(file_path) = get_wordlist_file(language, length) {
+        let file = File::open(file_path).unwrap();
+        Box::new(BufReader::new(file).lines().filter_map(|line| line.ok()))
+    } else {
+        Box::new(read_all_words(language).filter(move |word| word.len() == length))
+    }
 }
 
 struct Pattern {

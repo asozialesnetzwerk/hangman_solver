@@ -13,3 +13,4 @@ lto = true
 
 [dependencies]
 memoise = "0.3.2"
+directories = "5.0.0"
