@@ -131,13 +131,15 @@ fn get_wordlist_file(language: Language, length: usize) -> Option<PathBuf> {
     if let Some(words_dir) = get_words_cache_folder(language) {
         let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
         if !file_name.exists() {
-            let mut file = File::create(Path::new(&file_name)).unwrap();
-            for word in read_all_words(language).filter(|word| word.len() == length) {
-                file.write_all(word.as_bytes()).expect("writing cache");
-                file.write_all("\n".as_bytes()).expect("writing cache");
+            if let Ok(mut file) = File::create(Path::new(&file_name)) {
+                for word in read_all_words(language).filter(|word| word.len() == length) {
+                    file.write_all(word.as_bytes()).expect("writing cache");
+                    file.write_all("\n".as_bytes()).expect("writing cache");
+                }
+            } else {
+                return None;
             }
         }
-
         Some(file_name)
     } else {
         None
