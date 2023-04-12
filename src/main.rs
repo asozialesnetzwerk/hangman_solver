@@ -55,17 +55,15 @@ impl HangmanResult {
     }
 
     fn print(&self, print_count: usize, mut file: impl IoWrite) {
+        let invalid: String = self.invalid.iter().collect();
         write!(
             file,
-            "Found {} words (input: {}, invalid: ",
+            "Found {} words (input: {}, invalid: {})",
             self.possible_words.len(),
-            self.input
+            self.input,
+            invalid,
         )
         .unwrap();
-        self.invalid
-            .iter()
-            .for_each(|ch| write!(file, "{}", ch.escape_debug()).unwrap());
-        writeln!(file, ")").unwrap();
         for w in self.possible_words.iter().take(print_count) {
             write!(file, "{}, ", w).unwrap();
         }
@@ -78,7 +76,7 @@ impl HangmanResult {
         if letters.is_empty() {
             writeln!(file).unwrap();
         } else {
-            letters.sort_by_key(|tuple| tuple.1);
+            letters.sort_by_key(|tuple| (tuple.1, tuple.0));
             letters.reverse();
             for (ch, freq) in letters {
                 write!(file, "{}: {}, ", ch, freq).unwrap();
@@ -255,12 +253,13 @@ fn solve_hangman_puzzle(
     for ch in pattern.pattern {
         input_as_string.write_char(ch).unwrap();
     }
-    let invalid_in_result = pattern
+    let mut invalid_in_result: Vec<char> = pattern
         .invalid_letters
         .iter()
         .filter(|ch| !input_as_string.contains(**ch))
         .copied()
         .collect();
+    invalid_in_result.sort();
     HangmanResult {
         input: input_as_string,
         invalid: invalid_in_result,
