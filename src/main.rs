@@ -91,13 +91,12 @@ fn get_full_wordlist_file(language: Language) -> String {
     format!("words/{}.txt", language.as_string())
 }
 
-#[memoise(language)]
 fn get_full_wordlist_file_hash(language: Language) -> String {
     format!("{:x}", hash_words(read_all_words(language)))
 }
 
-#[memoise(language, length)]
-fn get_wordlist_file(language: Language, length: usize) -> PathBuf {
+#[memoise(language)]
+fn get_words_cache_folder(language: Language) -> PathBuf {
     let base_cache_dir_string = std::env::var("XDG_CACHE_HOME")
         .unwrap_or_else(|_| std::env::var("HOME").unwrap() + "/.cache");
     let base_cache_dir: &Path = Path::new(base_cache_dir_string.as_str());
@@ -114,8 +113,13 @@ fn get_wordlist_file(language: Language, length: usize) -> PathBuf {
     }
     fs::create_dir_all(Path::new(&words_dir)).expect("Create cache dir");
 
-    let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
+    words_dir
+}
 
+#[memoise(language, length)]
+fn get_wordlist_file(language: Language, length: usize) -> PathBuf {
+    let words_dir = get_words_cache_folder(language);
+    let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
     if !file_name.exists() {
         let mut file = File::create(Path::new(&file_name)).unwrap();
         for word in read_all_words(language).filter(|word| word.len() == length) {
