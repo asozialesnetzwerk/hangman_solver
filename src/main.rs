@@ -30,7 +30,7 @@ struct HangmanResult {
     possible_words: Vec<String>,
 }
 
-fn get_unique_chars_in_word(word: String) -> HashSet<char> {
+fn get_unique_chars_in_word(word: &str) -> HashSet<char> {
     let mut chars = HashSet::new();
     for ch in word.chars() {
         chars.insert(ch);
@@ -44,7 +44,7 @@ impl HangmanResult {
         for x in self
             .possible_words
             .iter()
-            .flat_map(|word| get_unique_chars_in_word(word.clone()))
+            .flat_map(|word| get_unique_chars_in_word(word))
         {
             if !self.invalid.contains(&x) && !self.input.contains(x) {
                 map.insert(x, map.get(&x).unwrap_or(&0) + 1);
@@ -112,12 +112,12 @@ fn get_wordlist_file(language: Language, length: usize) -> PathBuf {
         // remove old cache data
         fs::remove_dir_all(lang_words_dir).expect("Deleting cache dir");
     }
-    fs::create_dir_all(words_dir.clone()).expect("Create cache dir");
+    fs::create_dir_all(Path::new(&words_dir)).expect("Create cache dir");
 
     let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
 
     if !file_name.exists() {
-        let mut file = File::create(file_name.clone()).unwrap();
+        let mut file = File::create(Path::new(&file_name)).unwrap();
         for word in read_all_words(language).filter(|word| word.len() == length) {
             file.write_all(word.as_bytes()).expect("writing cache");
             file.write_all("\n".as_bytes()).expect("writing cache");
@@ -169,10 +169,12 @@ impl Pattern {
             invalid_letters_set.insert(*l);
         }
 
+        let first_letter = *pattern_as_chars.first().unwrap_or(&'_');
+
         Pattern {
             invalid_letters: invalid_letters_set,
-            pattern: pattern_as_chars.clone(),
-            first_letter: *pattern_as_chars.first().unwrap_or(&'_'),
+            pattern: pattern_as_chars,
+            first_letter,
         }
     }
 
