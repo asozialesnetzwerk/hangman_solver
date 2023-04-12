@@ -97,11 +97,8 @@ fn get_full_wordlist_file_hash(language: Language) -> String {
 }
 
 fn get_cache_dir() -> Option<PathBuf> {
-    if let Some(proj_dirs) = ProjectDirs::from("org", "asozial", "hangman_solver") {
-        Some(proj_dirs.cache_dir().to_path_buf())
-    } else {
-        None
-    }
+    ProjectDirs::from("org", "asozial", "hangman_solver")
+        .map(|proj_dirs| proj_dirs.cache_dir().to_path_buf())
 }
 
 #[memoise(language)]
