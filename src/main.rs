@@ -124,22 +124,23 @@ fn get_words_cache_folder(language: Language) -> Option<PathBuf> {
 }
 
 #[memoise(language, length)]
-fn get_wordlist_file(language: Language, length: usize) -> Option<PathBuf> {
+fn get_wordlist_file(language: Language, length: usize) -> Result<PathBuf, String> {
     if let Some(words_dir) = get_words_cache_folder(language) {
         let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
         if !file_name.exists() {
-            if let Ok(mut file) = File::create(Path::new(&file_name)) {
-                for word in read_all_words(language).filter(|word| word.len() == length) {
-                    file.write_all(word.as_bytes()).expect("writing cache");
-                    file.write_all("\n".as_bytes()).expect("writing cache");
+            match File::create(Path::new(&file_name)) {
+                Ok(mut file) => {
+                    for word in read_all_words(language).filter(|word| word.len() == length) {
+                        file.write_all(word.as_bytes()).expect("writing cache");
+                        file.write_all("\n".as_bytes()).expect("writing cache");
+                    }
                 }
-            } else {
-                return None;
+                Err(e) => return Err(e.to_string()),
             }
         }
-        Some(file_name)
+        Ok(file_name)
     } else {
-        None
+        Err("No cache dir".to_string())
     }
 }
 
@@ -157,11 +158,15 @@ fn hash_words(words: impl Iterator<Item = String>) -> u64 {
 }
 
 fn read_words(language: Language, length: usize) -> Box<dyn Iterator<Item = String>> {
-    if let Some(file_path) = get_wordlist_file(language, length) {
-        let file = File::open(file_path).unwrap();
-        Box::new(BufReader::new(file).lines().filter_map(|line| line.ok()))
-    } else {
-        Box::new(read_all_words(language).filter(move |word| word.len() == length))
+    match get_wordlist_file(language, length) {
+        Ok(file_path) => {
+            let file = File::open(file_path).unwrap();
+            Box::new(BufReader::new(file).lines().filter_map(|line| line.ok()))
+        }
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            Box::new(read_all_words(language).filter(move |word| word.len() == length))
+        }
     }
 }
 
