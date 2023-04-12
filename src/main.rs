@@ -249,26 +249,28 @@ fn main() {
 
     loop {
         let mut handle = stdin.lock();
-        let result = handle.read_line(&mut buffer);
 
-        if result.is_ok() {
-            if buffer.is_empty() {
-                exit(result.unwrap() as i32);
+        match handle.read_line(&mut buffer) {
+            Ok(result) => {
+                if buffer.is_empty() {
+                    exit(result as i32);
+                }
+                let input: Vec<&str> = buffer.splitn(2, ' ').collect();
+                let hr = solve_hangman_puzzle(
+                    input[0].to_string(),
+                    input[1].chars().collect(),
+                    Language::DE,
+                );
+                if hr.possible_words.is_empty() {
+                    println!("Nothing found");
+                } else {
+                    hr.print(10, io::stdout());
+                }
             }
-            let input: Vec<&str> = buffer.splitn(2, ' ').collect();
-            let hr = solve_hangman_puzzle(
-                input[0].to_string(),
-                input[1].chars().collect(),
-                Language::DE,
-            );
-            if hr.possible_words.is_empty() {
-                println!("Nothing found");
-            } else {
-                hr.print(10, io::stdout());
+            Err(error) => {
+                eprintln!("{}", error);
+                exit(1)
             }
-        } else {
-            eprintln!("{}", result.unwrap_err());
-            exit(1)
         }
 
         buffer.clear();
