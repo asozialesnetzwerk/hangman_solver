@@ -10,5 +10,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Build project
+        run: cargo build --release --package hangman_solver --bin hangman_solver
+      - name: Run benchmark script
+        run: ./benchmark.sh
       - name: Run benchmark script
         run: ./benchmark.sh
