@@ -16,3 +16,30 @@ jobs:
         run: ./benchmark.sh
       - name: Run benchmark script
         run: ./benchmark.sh
+
+  update_test_output:
+    name: Update test output
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'branch'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Update test output
+        run: ./benchmark.sh --write-out
+      - name: Update env
+        run: |
+          D=$(python -c "print((_dt:=__import__('datetime')).datetime.now(tz=_dt.timezone.utc).replace(minute=0, second=0, microsecond=0).isoformat())")
+          echo "GIT_AUTHOR_DATE=${D}" >> "${GITHUB_ENV}"
+          echo "GIT_COMMITTER_DATE=${D}" >> "${GITHUB_ENV}"
+      - name: Push changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "update test output"
+          commit_user_name: Bot
+          commit_user_email: bot@asozial.org
+          commit_author: Bot <bot@asozial.org>
