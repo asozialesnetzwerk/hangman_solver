@@ -1,0 +1,24 @@
+Found 196959 words (input: _____________, invalid: )
+ words:   aachenerinnen, abaenderungen, abarbeitenden, abarbeitungen, abbauantrages, abbauarbeiten, abbauaufsicht, abbaubereiche, abbaubereichs, abbaubetriebe, ...
+ letters: e: 186052, n: 144367, r: 141083, s: 129804, a: 128500, t: 122374, i: 108185, l: 98821, u: 90025, h: 82411, g: 73769, o: 71266, b: 59375, c: 59105, k: 58870, d: 55787, ...
+
+Found 1848 words (input: __e__________, invalid: )
+ words:   abendauftritt, abendfallwind, abendhorizont, abendjournals, abendmagazins, abendmahlbank, abendmahlbild, abendmahlbrot, abendmahlchor, abendmahlsaal, ...
+ letters: s: 1362, a: 1337, r: 1319, n: 1261, i: 1255, t: 1181, u: 1087, l: 992, o: 891, h: 781, g: 763, k: 679, f: 634, d: 619, b: 612, c: 547, ...
+
+Found 42 words (input: __e______s___, invalid: )
+ words:   abendmahlsaal, abendmahlsamt, abendmahlsitz, abendworkshop, atemdurchsatz, atemgymnastik, bleikorrosion, buerowahnsinn, daempfungsarm, daempfungspol, ...
+ letters: r: 32, i: 32, a: 32, t: 29, n: 29, o: 23, h: 21, u: 18, l: 18, k: 18, m: 16, p: 14, d: 14, z: 13, b: 13, g: 10, ...
+
+Found 10 words (input: __e______s___, invalid: a)
+ words:   bleikorrosion, dreipunktsitz, freilichtstil, grenzdivision, kleinhirnstil, kuehllogistik, opernfrohsinn, opernworkshop, zielkollision, zweitwohnsitz, 
+ letters: i: 9, n: 8, r: 7, o: 7, k: 6, h: 6, t: 5, l: 5, z: 4, p: 3, w: 2, u: 2, g: 2, f: 2, d: 2, v: 1, ...
+
+Found 3 words (input: __ei_____si__, invalid: a)
+ words:   bleikorrosion, dreipunktsitz, zweitwohnsitz, 
+ letters: n: 3, z: 2, t: 2, r: 2, o: 2, k: 2, w: 1, u: 1, p: 1, l: 1, h: 1, d: 1, b: 1, 
+
+Found 1 words (input: __ei____nsi__, invalid: a)
+ words:   zweitwohnsitz, 
+ letters: z: 1, w: 1, t: 1, o: 1, h: 1, 
+

@@ -1,0 +1,16 @@
+Found 116840 words (input: ___________________, invalid: )
+ words:   abaenderungsgesetze, abaenderungsvertrag, abaenderungsvorlage, abarbeitungsprozess, abarbeitungsschritt, abarbeitungsstaende, abbauberechtigungen, abbaubetriebspunkte, abbaugesellschaften, abbaumaechtigkeiten, ...
+ letters: e: 114533, n: 104376, s: 98216, r: 97913, t: 93569, a: 89553, i: 84177, u: 78214, g: 69092, l: 66485, h: 65674, o: 51944, c: 48558, k: 44089, b: 43349, d: 40945, ...
+
+Found 45 words (input: e______e___________, invalid: )
+ words:   einbauverpflichtung, einkommensforschung, einkommensindikator, einkommensschaffung, einkommenssituation, einkommensstandards, einkommensstatistik, einkommensvariation, einkommensvorsprung, einkommenswachstums, ...
+ letters: s: 43, n: 42, a: 42, i: 40, t: 34, u: 32, r: 31, g: 27, o: 24, m: 24, d: 22, h: 21, c: 21, l: 19, k: 18, f: 14, ...
+
+Found 2 words (input: e_s____e___________, invalid: )
+ words:   ersatzteilplattform, ersatzverpflichtung, 
+ letters: z: 2, t: 2, r: 2, p: 2, l: 2, i: 2, f: 2, a: 2, v: 1, u: 1, o: 1, n: 1, m: 1, h: 1, g: 1, c: 1, 
+
+Found 1 words (input: e_s____ei__________, invalid: )
+ words:   ersatzteilplattform, 
+ letters: z: 1, t: 1, r: 1, p: 1, o: 1, m: 1, l: 1, f: 1, a: 1, 
+

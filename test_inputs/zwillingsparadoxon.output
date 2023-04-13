@@ -1,0 +1,20 @@
+Found 139929 words (input: __________________, invalid: )
+ words:   abaenderungsantrag, abaenderungsgesetz, abaenderungsverbot, abarbeitungsstatus, abarbeitungszeiten, abbaueigenschaften, abbauerscheinungen, abbaufoerdermittel, abbaugegenstaenden, abbaugenehmigungen, ...
+ letters: e: 136719, n: 122629, r: 114855, s: 114222, t: 108972, a: 104922, i: 97146, u: 90021, g: 78418, l: 78295, h: 75400, o: 60569, c: 54895, k: 51352, b: 50404, d: 47637, ...
+
+Found 3210 words (input: __________________, invalid: e)
+ words:   abbildungsabstands, abbildungsapparats, abbildungsfunktion, abbildungsmassstab, abbildungsnotation, abbildungsrichtung, abbildungssammlung, abbuchungsauftrags, abdichtungsschicht, abdichtungswirkung, ...
+ letters: s: 2946, a: 2899, t: 2790, n: 2770, i: 2488, u: 2399, o: 2394, r: 2363, l: 1864, h: 1763, k: 1497, g: 1469, c: 1461, m: 1405, f: 1390, d: 1290, ...
+
+Found 19 words (input: ______n__________n, invalid: e)
+ words:   aufstandstradition, buchkunsttradition, dichtungstradition, faschingstradition, fusspunktisolation, hauptanflugstation, hauptanschlussbahn, hochlandpopulation, mischungskorrosion, radtransportwaggon, ...
+ letters: s: 18, o: 17, i: 17, a: 17, u: 16, t: 16, g: 14, r: 11, p: 10, d: 9, l: 8, h: 8, c: 7, f: 5, z: 4, w: 4, ...
+
+Found 2 words (input: ______n_s________n, invalid: e)
+ words:   dichtungstradition, zwillingsparadoxon, 
+ letters: r: 2, o: 2, i: 2, g: 2, d: 2, a: 2, z: 1, x: 1, w: 1, u: 1, t: 1, p: 1, l: 1, h: 1, c: 1, 
+
+Found 1 words (input: ______n_s__r_____n, invalid: e)
+ words:   zwillingsparadoxon, 
+ letters: z: 1, x: 1, w: 1, p: 1, o: 1, l: 1, i: 1, g: 1, d: 1, a: 1, 
+
