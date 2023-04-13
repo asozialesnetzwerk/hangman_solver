@@ -32,13 +32,8 @@ run_all()
   SAVED_HASH=$(cat "${TEST_INPUTS_DIR}"/*output | sha256sum - | cut -d " " -f1)
 
   DIR=${1}
-  run_with_input biergarten "${DIR}"
-  run_with_input ersatzteilplattform "${DIR}"
-  run_with_input wohnungsbaukaufmann "${DIR}"
-  run_with_input zweitwohnsitz "${DIR}"
-  run_with_input zwillingsparadoxon "${DIR}"
-  run_with_input _ "${DIR}"
-  run_with_input _-e "${DIR}"
+
+  ls -1 "${TEST_INPUTS_DIR}" | cut -d "." -f1 | sort -firu  | while read -r LINE ; do run_with_input "${LINE}" "${DIR}" ; done
 
   OUTPUT_HASH=$(cat "${DIR}"/*output | sha256sum - | cut -d " " -f1)
   if [ "${OUTPUT_HASH}" = "${SAVED_HASH}" ] ; then
