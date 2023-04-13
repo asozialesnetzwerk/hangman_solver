@@ -1,0 +1,14 @@
+name: Test
+on: [ push, pull_request ]
+
+jobs:
+
+  test:
+    name: Run with test inputs
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Run benchmark script
+        run: ./benchmark.sh
