@@ -10,19 +10,19 @@ cargo build ${CARGO_ARGS}
 
 run_with_input()
 {
-  if [ -z "${2}" ] ; then
-    OUTPUT_FILE="/dev/null"
-  else
-    OUTPUT_FILE="${2}/${1}.output"
-  fi
   FILE="${TEST_INPUTS_DIR}/${1}.txt"
   START=$(date +%s%N)
-  cargo run -q ${CARGO_ARGS} < "${FILE}" > "${OUTPUT_FILE}"
+  if [ -z "${2:-}" ] ; then
+    cargo run -q ${CARGO_ARGS} < "${FILE}"
+  else
+    OUTPUT_FILE="${2}/${1}.output"
+    cargo run -q ${CARGO_ARGS} < "${FILE}" > "${OUTPUT_FILE}"
+  fi
   END=$(date +%s%N)
   ELAPSED=$((END-START))
   LINES=$(wc -l "${FILE}"  | cut -d " " -f1)
   echo "$((ELAPSED/1000000))ms (${1}, lines: ${LINES}, per line: $((ELAPSED/LINES/1000000))ms)"
-  if [ -n "${2}" ] ; then
+  if [ -n "${2:-}" ] ; then
     diff --color=auto "${TEST_INPUTS_DIR}/${1}.output" "${OUTPUT_FILE}" >&2
   fi
 }
@@ -49,6 +49,5 @@ if [ -z "${1:-}" ] ; then
 elif [ "--write-out" = "${1}" ] ; then
   run_all "${TEST_INPUTS_DIR}" || echo "Updated output"
 else
-  echo "Unexpected argument '${1}'" >&2
-  exit 2
+  run_with_input "${1}"
 fi
