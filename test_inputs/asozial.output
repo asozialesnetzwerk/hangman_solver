@@ -1,0 +1,28 @@
+Found 19014 words (input: _______, invalid: )
+ words:   aachens, abarten, abartig, abbauen, abbaute, abbiege, abbiegt, abbilde, abbilds, abbinde, ...
+ letters: e: 13243, a: 9203, r: 8982, t: 8796, n: 7808, s: 7327, l: 6280, o: 5937, i: 5918, u: 5586, h: 4608, g: 4352, b: 4349, d: 3575, m: 3345, k: 3076, ...
+
+Found 5771 words (input: _______, invalid: e)
+ words:   abartig, abbilds, abbrach, abbrand, abbruch, abbucht, abdankt, abdrift, abdruck, abfahrt, ...
+ letters: a: 3990, t: 2956, o: 2855, r: 2711, s: 2348, u: 2279, n: 2030, l: 1968, h: 1704, b: 1643, i: 1605, m: 1313, g: 1206, d: 1126, f: 1060, k: 1040, ...
+
+Found 60 words (input: a____a_, invalid: e)
+ words:   achsrad, achtbar, achtmal, achtrad, achtsam, achttag, achttal, admiral, advokat, afrikas, ...
+ letters: t: 47, r: 29, s: 27, u: 24, l: 24, o: 21, m: 15, n: 12, g: 12, b: 12, i: 10, h: 9, d: 9, f: 8, c: 8, k: 6, ...
+
+Found 13 words (input: a____a_, invalid: et)
+ words:   achsrad, admiral, afrikas, ahnfrau, ahornau, akkurad, almgras, almpfad, alubias, anormal, ...
+ letters: r: 8, s: 7, l: 7, i: 5, u: 4, o: 4, n: 4, m: 4, d: 4, h: 3, f: 3, k: 2, c: 2, b: 2, z: 1, y: 1, ...
+
+Found 5 words (input: a____a_, invalid: ert)
+ words:   almpfad, alubias, asconas, asozial, asylbai, 
+ letters: s: 4, l: 4, i: 3, o: 2, b: 2, z: 1, y: 1, u: 1, p: 1, n: 1, m: 1, f: 1, d: 1, c: 1, 
+
+Found 2 words (input: as___a_, invalid: ert)
+ words:   asozial, asylbai, 
+ letters: l: 2, i: 2, z: 1, y: 1, o: 1, b: 1, 
+
+Found 1 words (input: as___al, invalid: ert)
+ words:   asozial, 
+ letters: z: 1, o: 1, i: 1, 
+
