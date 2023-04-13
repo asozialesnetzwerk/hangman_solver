@@ -87,8 +87,7 @@ impl HangmanResult {
             writeln!(file).unwrap();
         } else {
             write!(file, " letters: ").unwrap();
-            letters.sort_by_key(|tuple| (tuple.1, tuple.0));
-            letters.reverse();
+            letters.sort_by_key(|tuple| (-(tuple.1 as i64), tuple.0));
             for (ch, freq) in letters.iter().take(letters_print_count) {
                 write!(file, "{}: {}, ", ch, freq).unwrap();
             }

@@ -8,17 +8,17 @@ Found 1848 words (input: __e__________, invalid: )
 
 Found 42 words (input: __e______s___, invalid: )
  words:   abendmahlsaal, abendmahlsamt, abendmahlsitz, abendworkshop, atemdurchsatz, atemgymnastik, bleikorrosion, buerowahnsinn, daempfungsarm, daempfungspol, ...
- letters: r: 32, i: 32, a: 32, t: 29, n: 29, o: 23, h: 21, u: 18, l: 18, k: 18, m: 16, p: 14, d: 14, z: 13, b: 13, g: 10, ...
+ letters: a: 32, i: 32, r: 32, n: 29, t: 29, o: 23, h: 21, k: 18, l: 18, u: 18, m: 16, d: 14, p: 14, b: 13, z: 13, g: 10, ...
 
 Found 10 words (input: __e______s___, invalid: a)
  words:   bleikorrosion, dreipunktsitz, freilichtstil, grenzdivision, kleinhirnstil, kuehllogistik, opernfrohsinn, opernworkshop, zielkollision, zweitwohnsitz, 
- letters: i: 9, n: 8, r: 7, o: 7, k: 6, h: 6, t: 5, l: 5, z: 4, p: 3, w: 2, u: 2, g: 2, f: 2, d: 2, v: 1, ...
+ letters: i: 9, n: 8, o: 7, r: 7, h: 6, k: 6, l: 5, t: 5, z: 4, p: 3, d: 2, f: 2, g: 2, u: 2, w: 2, b: 1, ...
 
 Found 3 words (input: __ei_____si__, invalid: a)
  words:   bleikorrosion, dreipunktsitz, zweitwohnsitz, 
- letters: n: 3, z: 2, t: 2, r: 2, o: 2, k: 2, w: 1, u: 1, p: 1, l: 1, h: 1, d: 1, b: 1, 
+ letters: n: 3, k: 2, o: 2, r: 2, t: 2, z: 2, b: 1, d: 1, h: 1, l: 1, p: 1, u: 1, w: 1, 
 
 Found 1 words (input: __ei____nsi__, invalid: a)
  words:   zweitwohnsitz, 
- letters: z: 1, w: 1, t: 1, o: 1, h: 1, 
+ letters: h: 1, o: 1, t: 1, w: 1, z: 1, 
 

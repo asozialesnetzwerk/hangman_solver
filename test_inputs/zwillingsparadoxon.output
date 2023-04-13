@@ -8,13 +8,13 @@ Found 3210 words (input: __________________, invalid: e)
 
 Found 19 words (input: ______n__________n, invalid: e)
  words:   aufstandstradition, buchkunsttradition, dichtungstradition, faschingstradition, fusspunktisolation, hauptanflugstation, hauptanschlussbahn, hochlandpopulation, mischungskorrosion, radtransportwaggon, ...
- letters: s: 18, o: 17, i: 17, a: 17, u: 16, t: 16, g: 14, r: 11, p: 10, d: 9, l: 8, h: 8, c: 7, f: 5, z: 4, w: 4, ...
+ letters: s: 18, a: 17, i: 17, o: 17, t: 16, u: 16, g: 14, r: 11, p: 10, d: 9, h: 8, l: 8, c: 7, f: 5, w: 4, z: 4, ...
 
 Found 2 words (input: ______n_s________n, invalid: e)
  words:   dichtungstradition, zwillingsparadoxon, 
- letters: r: 2, o: 2, i: 2, g: 2, d: 2, a: 2, z: 1, x: 1, w: 1, u: 1, t: 1, p: 1, l: 1, h: 1, c: 1, 
+ letters: a: 2, d: 2, g: 2, i: 2, o: 2, r: 2, c: 1, h: 1, l: 1, p: 1, t: 1, u: 1, w: 1, x: 1, z: 1, 
 
 Found 1 words (input: ______n_s__r_____n, invalid: e)
  words:   zwillingsparadoxon, 
- letters: z: 1, x: 1, w: 1, p: 1, o: 1, l: 1, i: 1, g: 1, d: 1, a: 1, 
+ letters: a: 1, d: 1, g: 1, i: 1, l: 1, o: 1, p: 1, w: 1, x: 1, z: 1, 
 
