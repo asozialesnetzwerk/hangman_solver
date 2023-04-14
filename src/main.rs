@@ -113,10 +113,7 @@ fn get_full_wordlist_file_hash(language: Language) -> String {
     format!("{:x}", hash_words(read_all_words(language)))
 }
 
-fn get_cache_dir() -> Option<PathBuf> {
-    ProjectDirs::from("org", "asozial", "hangman_solver")
-        .map(|proj_dirs| proj_dirs.cache_dir().to_path_buf())
-}
+fn get_cache_dir() -> Option<PathBuf> {ProjectDirs::from("org", "asozial", "hangman_solver").map(|proj_dirs| proj_dirs.cache_dir().to_path_buf())}
 
 #[memoise(language)]
 fn get_words_cache_folder(language: Language) -> Option<PathBuf> {
