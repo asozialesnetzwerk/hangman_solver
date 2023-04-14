@@ -17,8 +17,18 @@ jobs:
       - name: Run benchmark script
         run: ./benchmark.sh
 
-  update_test_output:
-    name: Update test output
+  lint_code:
+    name: Clippy
+    runs-on: ubuntu-latest
+    permissions: { }
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Run cargo clippy
+        run: cargo clippy
+
+  improve_code:
+    name: Improve and format the code
     runs-on: ubuntu-latest
     if: github.ref_type == 'branch'
     permissions:
@@ -29,8 +39,10 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
-      - name: Update test output
-        run: ./benchmark.sh --write-out
+      - name: Improve the code
+        run: cargo clippy --fix
+      - name: Format the code
+        run: cargo fmt
       - name: Update env
         run: |
           D=$(python -c "print((_dt:=__import__('datetime')).datetime.now(tz=_dt.timezone.utc).replace(minute=0, second=0, microsecond=0).isoformat())")
@@ -39,7 +51,7 @@ jobs:
       - name: Push changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "update test output"
+          commit_message: "format code"
           commit_user_name: Bot
-          commit_user_email: bot@asozial.org
-          commit_author: Bot <bot@asozial.org>
+          commit_user_email:
+          commit_author: Bot <>
