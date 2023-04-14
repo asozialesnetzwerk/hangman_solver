@@ -7,11 +7,19 @@ jobs:
     name: Run with test inputs
     runs-on: ubuntu-latest
     permissions: {}
+    strategy:
+      matrix:
+        toolchain:
+          - stable
+          - beta
+          - nightly
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Update rust
+        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
       - name: Build project
-        run: cargo build --release --package hangman_solver --bin hangman_solver
+        run: cargo build --verbose --release
       - name: Run benchmark script
         run: ./benchmark.sh
       - name: Run benchmark script
