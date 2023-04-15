@@ -1,6 +1,6 @@
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
-use std::fmt::Write;
+use std::fmt::{Formatter, Write};
 use std::fs::File;
 use std::hash::Hasher;
 use std::io::{self, BufRead, BufReader, Write as IoWrite};
@@ -154,25 +154,43 @@ fn get_words_cache_folder(language: Language) -> Option<PathBuf> {
     Some(words_dir)
 }
 
-#[memoise(language, length)]
-fn get_wordlist_file(language: Language, length: usize) -> Result<PathBuf, String> {
-    if let Some(words_dir) = get_words_cache_folder(language) {
-        let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
-        if !file_name.exists() {
-            match File::create(Path::new(&file_name)) {
-                Ok(mut file) => {
-                    for word in read_all_words(language).filter(|word| word.len() == length) {
-                        file.write_all(word.as_bytes()).expect("writing cache");
-                        file.write_all("\n".as_bytes()).expect("writing cache");
-                    }
-                }
-                Err(e) => return Err(e.to_string()),
+#[derive(Debug, Copy, Clone)]
+enum WordListError {
+    NoCacheFolder,
+    Io { kind: io::ErrorKind },
+}
+
+impl From<io::Error> for WordListError {
+    fn from(value: io::Error) -> Self {
+        WordListError::Io { kind: value.kind() }
+    }
+}
+
+impl std::fmt::Display for WordListError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            WordListError::NoCacheFolder => {
+                write!(f, "No cache folder.")
+            }
+            WordListError::Io { kind } => {
+                write!(f, "{}", kind)
             }
         }
-        Ok(file_name)
-    } else {
-        Err("No cache dir".to_string())
     }
+}
+
+#[memoise(language, length)]
+fn get_wordlist_file(language: Language, length: usize) -> Result<PathBuf, WordListError> {
+    let words_dir = get_words_cache_folder(language).ok_or(WordListError::NoCacheFolder)?;
+    let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
+    if !file_name.exists() {
+        let mut file = File::create(Path::new(&file_name))?;
+        for word in read_all_words(language).filter(|word| word.len() == length) {
+            file.write_all(word.as_bytes())?;
+            file.write_all("\n".as_bytes())?;
+        }
+    }
+    Ok(file_name)
 }
 
 fn read_all_words(language: Language) -> impl Iterator<Item = String> {
