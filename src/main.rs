@@ -30,6 +30,7 @@ struct HangmanResult {
     input: String,
     invalid: Vec<char>,
     possible_words: Vec<String>,
+    language: Language,
 }
 
 impl HangmanResult {
@@ -239,15 +240,12 @@ impl Pattern {
             .filter(|ch| (*ch != ' '))
             .collect();
 
-        let mut invalid_letters_set: HashSet<char> = HashSet::new();
-
-        for l in pattern_as_chars
+        let invalid_letters_set: HashSet<char> = pattern_as_chars
             .iter()
             .chain(invalid_letters.iter())
-            .filter(|ch| **ch != '_' && !(**ch).is_whitespace())
-        {
-            invalid_letters_set.insert(*l);
-        }
+            .copied()
+            .filter(|ch| *ch != '_' && !(*ch).is_whitespace())
+            .collect();
 
         let first_letter = *pattern_as_chars.first().unwrap_or(&'_');
 
@@ -258,16 +256,20 @@ impl Pattern {
         }
     }
 
-    fn _length_matches(&self, word: &String) -> bool {
-        word.len() == self.pattern.len()
+    fn first_letter_is_wildcard(&self) -> bool {
+        self.first_letter == '_'
     }
 
-    fn first_letter_matches_or_is_wildcard(&self, word: &str) -> bool {
-        self.first_letter == '_'
-            || self.first_letter == word.chars().next().unwrap_or('_')
+    fn first_letter_matches(&self, word: &str) -> bool {
+        // This only makes sense if first_letter_is_wildcard is false
+        word.chars()
+            .next()
+            .map(|char| self.first_letter == char)
+            .unwrap_or(false)
     }
 
     fn matches(&self, word: &str) -> bool {
+        // This only makes sense if word has the same length as the pattern
         for (p, w) in zip(self.pattern.iter(), word.chars()) {
             if *p == '_' {
                 if self.invalid_letters.contains(&w) {
@@ -296,18 +298,14 @@ fn solve_hangman_puzzle(
         && pattern.invalid_letters.is_empty()
     {
         read_words(language, pattern.pattern.len())?.collect()
-    } else if pattern.first_letter == '_' {
+    } else if pattern.first_letter_is_wildcard() {
         read_words(language, pattern.pattern.len())?
             .filter(|word| pattern.matches(word))
             .collect()
     } else {
         read_words(language, pattern.pattern.len())?
-            .skip_while(|word| {
-                !pattern.first_letter_matches_or_is_wildcard(word)
-            })
-            .take_while(|word| {
-                pattern.first_letter_matches_or_is_wildcard(word)
-            })
+            .skip_while(|word| !pattern.first_letter_matches(word))
+            .take_while(|word| pattern.first_letter_matches(word))
             .filter(|word| pattern.matches(word))
             .collect()
     };
@@ -326,6 +324,7 @@ fn solve_hangman_puzzle(
         input: input_string,
         invalid: invalid_in_result,
         possible_words,
+        language,
     })
 }
 
