@@ -13,7 +13,7 @@ use counter::Counter;
 use directories::ProjectDirs;
 use memoise::memoise;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 enum Language {
     DE,
 }
@@ -192,11 +192,18 @@ fn get_wordlist_file(
     Ok(file_name)
 }
 
+fn read_lines_of_file(
+    path: &Path,
+) -> Result<impl Iterator<Item = String>, io::Error> {
+    Ok(BufReader::new(File::open(path)?)
+        .lines()
+        .filter_map(|line| line.ok()))
+}
+
 fn read_all_words(
     language: Language,
 ) -> Result<impl Iterator<Item = String>, io::Error> {
-    let file = File::open(get_full_wordlist_file(language))?;
-    Ok(BufReader::new(file).lines().filter_map(|line| line.ok()))
+    read_lines_of_file(Path::new(&get_full_wordlist_file(language)))
 }
 
 fn hash_words(words: impl Iterator<Item = String>) -> u64 {
@@ -212,10 +219,7 @@ fn read_words(
     length: usize,
 ) -> Result<Box<dyn Iterator<Item = String>>, io::Error> {
     Ok(match get_wordlist_file(language, length) {
-        Ok(file_path) => {
-            let file = File::open(file_path)?;
-            Box::new(BufReader::new(file).lines().filter_map(|line| line.ok()))
-        }
+        Ok(file_path) => Box::new(read_lines_of_file(&file_path)?),
         Err(e) => {
             eprintln!("Error: {}", e);
             Box::new(
@@ -332,6 +336,8 @@ fn main() {
     let mut buffer = String::new();
     let stdin = io::stdin();
 
+    let lang = Language::DE;
+
     loop {
         let mut handle = stdin.lock();
 
@@ -344,9 +350,10 @@ fn main() {
                 let hr = solve_hangman_puzzle(
                     input[0].to_string(),
                     input.get(1).unwrap_or(&"").chars().collect(),
-                    Language::DE,
+                    lang,
                 )
                 .expect("Solving should be possible.");
+                assert!(hr.language == lang);
                 hr.print(10, 16, io::stdout()).expect("Printing to stdout");
             }
             Err(error) => {
