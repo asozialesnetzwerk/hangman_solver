@@ -123,22 +123,33 @@ fn get_cache_dir() -> Option<PathBuf> {
 
 #[memoise(language)]
 fn get_words_cache_folder(language: Language) -> Option<PathBuf> {
-    let words_cache_dir: PathBuf;
-    if let Some(cache_dir) = get_cache_dir() {
-        words_cache_dir = cache_dir.join("words");
-    } else {
-        return None;
-    }
+    let words_cache_dir: PathBuf = get_cache_dir()?.join("words");
     let hash: String = get_full_wordlist_file_hash(language);
 
     let lang_words_dir: PathBuf = words_cache_dir.join(language.as_string());
     let words_dir: PathBuf = lang_words_dir.join(&*hash);
 
-    if lang_words_dir.exists() && !words_dir.exists() {
+    if lang_words_dir.exists() {
         // remove old cache data
-        fs::remove_dir_all(lang_words_dir).expect("Deleting cache dir");
+        for entry in fs::read_dir(&lang_words_dir).ok()?.filter_map(|e| e.ok()) {
+            if entry.path() == words_dir && entry.path().is_dir() {
+                continue;
+            }
+            if fs::remove_dir_all(entry.path()).is_err() {
+                eprintln!(
+                    "Warning: Deleting old data in {} failed.",
+                    entry.path().to_str().unwrap_or("")
+                );
+            }
+        }
     }
-    fs::create_dir_all(Path::new(&words_dir)).expect("Create cache dir");
+    if fs::create_dir_all(&words_dir).is_err() {
+        eprintln!(
+            "Failed to create {}",
+            words_dir.to_str().unwrap_or("cache dir")
+        );
+        return None;
+    }
 
     Some(words_dir)
 }
