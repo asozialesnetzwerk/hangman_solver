@@ -241,14 +241,14 @@ impl Pattern {
         let pattern_as_chars: Vec<char> = pattern
             .to_lowercase()
             .chars()
-            .filter(|ch| (*ch != ' '))
+            .filter(|ch| !ch.is_whitespace())
             .collect();
 
         let invalid_letters_set: HashSet<char> = pattern_as_chars
             .iter()
             .chain(invalid_letters.iter())
             .copied()
-            .filter(|ch| *ch != '_' && !(*ch).is_whitespace())
+            .filter(|ch| *ch != '_' && !ch.is_whitespace())
             .collect();
 
         let first_letter = *pattern_as_chars.first().unwrap_or(&'_');
