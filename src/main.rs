@@ -351,11 +351,17 @@ fn main() {
     let lang = if args.is_empty() {
         Language::DE
     } else if args.len() == 1 {
-        args.get(0)
-            .and_then(|lang| Language::from_string(lang))
-            .expect("Invalid language")
+        if let Some(x) =
+            args.get(0).and_then(|lang| Language::from_string(lang))
+        {
+            x
+        } else {
+            eprintln!("Invalid language");
+            exit(1);
+        }
     } else {
-        panic!("Too many arguments");
+        eprintln!("Too many arguments");
+        exit(1);
     };
 
     let mut buffer = String::new();
@@ -380,7 +386,6 @@ fn main() {
             }
             Err(error) => {
                 eprintln!("{}", error);
-                exit(1)
             }
         }
 
