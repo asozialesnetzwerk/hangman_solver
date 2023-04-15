@@ -38,9 +38,7 @@ impl HangmanResult {
         self.possible_words
             .iter()
             .flat_map(|word| word.chars().collect::<HashSet<char>>())
-            .filter(|ch| !{
-                self.invalid.contains(ch) || input_chars.contains(ch)
-            })
+            .filter(|ch| !input_chars.contains(ch))
             .collect::<Counter<char, u32>>()
     }
 
