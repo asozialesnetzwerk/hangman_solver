@@ -85,7 +85,8 @@ impl HangmanResult {
                 ""
             }
         )?;
-        let mut letters: Vec<(char, u32)> = self.get_letter_frequency().into_iter().collect();
+        let mut letters: Vec<(char, u32)> =
+            self.get_letter_frequency().into_iter().collect();
         if letters.is_empty() {
             writeln!(file)?;
         } else {
@@ -131,7 +132,8 @@ fn get_words_cache_folder(language: Language) -> Option<PathBuf> {
 
     if lang_words_dir.exists() {
         // remove old cache data
-        for entry in fs::read_dir(&lang_words_dir).ok()?.filter_map(|e| e.ok()) {
+        for entry in fs::read_dir(&lang_words_dir).ok()?.filter_map(|e| e.ok())
+        {
             if entry.path() == words_dir && entry.path().is_dir() {
                 continue;
             }
@@ -180,12 +182,17 @@ impl std::fmt::Display for WordListError {
 }
 
 #[memoise(language, length)]
-fn get_wordlist_file(language: Language, length: usize) -> Result<PathBuf, WordListError> {
-    let words_dir = get_words_cache_folder(language).ok_or(WordListError::NoCacheFolder)?;
+fn get_wordlist_file(
+    language: Language,
+    length: usize,
+) -> Result<PathBuf, WordListError> {
+    let words_dir =
+        get_words_cache_folder(language).ok_or(WordListError::NoCacheFolder)?;
     let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
     if !file_name.exists() {
         let mut file = File::create(Path::new(&file_name))?;
-        for word in read_all_words(language).filter(|word| word.len() == length) {
+        for word in read_all_words(language).filter(|word| word.len() == length)
+        {
             file.write_all(word.as_bytes())?;
             file.write_all("\n".as_bytes())?;
         }
@@ -206,7 +213,10 @@ fn hash_words(words: impl Iterator<Item = String>) -> u64 {
     s.finish()
 }
 
-fn read_words(language: Language, length: usize) -> Box<dyn Iterator<Item = String>> {
+fn read_words(
+    language: Language,
+    length: usize,
+) -> Box<dyn Iterator<Item = String>> {
     match get_wordlist_file(language, length) {
         Ok(file_path) => {
             let file = File::open(file_path).unwrap();
@@ -214,7 +224,10 @@ fn read_words(language: Language, length: usize) -> Box<dyn Iterator<Item = Stri
         }
         Err(e) => {
             eprintln!("Error: {}", e);
-            Box::new(read_all_words(language).filter(move |word| word.len() == length))
+            Box::new(
+                read_all_words(language)
+                    .filter(move |word| word.len() == length),
+            )
         }
     }
 }
@@ -257,7 +270,8 @@ impl Pattern {
     }
 
     fn first_letter_matches_or_is_wildcard(&self, word: &str) -> bool {
-        self.first_letter == '_' || self.first_letter == word.chars().next().unwrap_or('_')
+        self.first_letter == '_'
+            || self.first_letter == word.chars().next().unwrap_or('_')
     }
 
     fn matches(&self, word: &str) -> bool {
@@ -285,7 +299,8 @@ fn solve_hangman_puzzle(
 ) -> HangmanResult {
     let pattern = Pattern::create(pattern_string, invalid_letters);
 
-    let possible_words = if pattern.known_letters_count() == 0 && pattern.invalid_letters.is_empty()
+    let possible_words = if pattern.known_letters_count() == 0
+        && pattern.invalid_letters.is_empty()
     {
         read_words(language, pattern.pattern.len()).collect()
     } else if pattern.first_letter == '_' {
@@ -294,8 +309,12 @@ fn solve_hangman_puzzle(
             .collect()
     } else {
         read_words(language, pattern.pattern.len())
-            .skip_while(|word| !pattern.first_letter_matches_or_is_wildcard(word))
-            .take_while(|word| pattern.first_letter_matches_or_is_wildcard(word))
+            .skip_while(|word| {
+                !pattern.first_letter_matches_or_is_wildcard(word)
+            })
+            .take_while(|word| {
+                pattern.first_letter_matches_or_is_wildcard(word)
+            })
             .filter(|word| pattern.matches(word))
             .collect()
     };
