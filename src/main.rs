@@ -1,5 +1,5 @@
 use std::collections::hash_map::DefaultHasher;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fmt::Formatter;
 use std::fs::File;
 use std::hash::Hasher;
@@ -9,6 +9,7 @@ use std::path::{Path, PathBuf};
 use std::process::exit;
 use std::{char, fs};
 
+use counter::Counter;
 use directories::ProjectDirs;
 use memoise::memoise;
 
@@ -31,27 +32,16 @@ struct HangmanResult {
     possible_words: Vec<String>,
 }
 
-fn get_unique_chars_in_word(word: &str) -> HashSet<char> {
-    let mut chars = HashSet::new();
-    for ch in word.chars() {
-        chars.insert(ch);
-    }
-    chars
-}
-
 impl HangmanResult {
-    fn get_letter_frequency(&self) -> HashMap<char, u32> {
-        let mut map = HashMap::new();
-        for x in self
-            .possible_words
+    fn get_letter_frequency(&self) -> Counter<char, u32> {
+        let input_chars: HashSet<char> = self.input.chars().collect();
+        self.possible_words
             .iter()
-            .flat_map(|word| get_unique_chars_in_word(word))
-        {
-            if !self.invalid.contains(&x) && !self.input.contains(x) {
-                map.insert(x, map.get(&x).unwrap_or(&0) + 1);
-            }
-        }
-        map
+            .flat_map(|word| word.chars().collect::<HashSet<char>>())
+            .filter(|ch| !{
+                self.invalid.contains(ch) || input_chars.contains(ch)
+            })
+            .collect::<Counter<char, u32>>()
     }
 
     fn print(
@@ -85,13 +75,12 @@ impl HangmanResult {
                 ""
             }
         )?;
-        let mut letters: Vec<(char, u32)> =
-            self.get_letter_frequency().into_iter().collect();
+        let letters: Vec<(char, u32)> =
+            self.get_letter_frequency().most_common_ordered();
         if letters.is_empty() {
             writeln!(file)?;
         } else {
             write!(file, " letters: ")?;
-            letters.sort_by_key(|tuple| (-(tuple.1 as i64), tuple.0));
             for (ch, freq) in letters.iter().take(letters_print_count) {
                 write!(file, "{}: {}, ", ch, freq)?;
             }
