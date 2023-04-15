@@ -243,16 +243,17 @@ fn read_words(
     }
 }
 
-struct Pattern {
+pub struct Pattern {
     invalid_letters: HashSet<char>,
     pattern: Vec<char>,
     first_letter: char,
 }
 
 impl Pattern {
-    fn create(pattern: String, invalid_letters: Vec<char>) -> Pattern {
+    fn new(pattern: String, invalid_letters: Vec<char>) -> Pattern {
         let pattern_as_chars: Vec<char> = pattern
             .to_lowercase()
+            .replace(['-', '?'], "_")
             .chars()
             .filter(|ch| !ch.is_whitespace())
             .collect();
@@ -309,7 +310,7 @@ pub fn solve_hangman_puzzle(
     invalid_letters: Vec<char>,
     language: Language,
 ) -> HangmanResult {
-    let pattern = Pattern::create(pattern_string, invalid_letters);
+    let pattern = Pattern::new(pattern_string, invalid_letters);
 
     let possible_words = if pattern.known_letters_count() == 0
         && pattern.invalid_letters.is_empty()
