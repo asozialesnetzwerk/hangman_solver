@@ -113,8 +113,10 @@ fn get_full_wordlist_file(language: Language) -> String {
     format!("words/{}.txt", language.as_string())
 }
 
-fn get_full_wordlist_file_hash(language: Language) -> String {
-    format!("{:x}", hash_words(read_all_words(language)))
+fn get_full_wordlist_file_hash(
+    language: Language,
+) -> Result<String, io::Error> {
+    Ok(format!("{:x}", hash_words(read_all_words(language)?)))
 }
 
 fn get_cache_dir() -> Option<PathBuf> {
@@ -125,7 +127,8 @@ fn get_cache_dir() -> Option<PathBuf> {
 #[memoise(language)]
 fn get_words_cache_folder(language: Language) -> Option<PathBuf> {
     let words_cache_dir: PathBuf = get_cache_dir()?.join("words");
-    let hash: String = get_full_wordlist_file_hash(language);
+    let hash: String = get_full_wordlist_file_hash(language)
+        .unwrap_or_else(|_| language.as_string().to_string());
 
     let lang_words_dir: PathBuf = words_cache_dir.join(language.as_string());
     let words_dir: PathBuf = lang_words_dir.join(&*hash);
@@ -191,7 +194,8 @@ fn get_wordlist_file(
     let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
     if !file_name.exists() {
         let mut file = File::create(Path::new(&file_name))?;
-        for word in read_all_words(language).filter(|word| word.len() == length)
+        for word in
+            read_all_words(language)?.filter(|word| word.len() == length)
         {
             file.write_all(word.as_bytes())?;
             file.write_all("\n".as_bytes())?;
@@ -200,9 +204,11 @@ fn get_wordlist_file(
     Ok(file_name)
 }
 
-fn read_all_words(language: Language) -> impl Iterator<Item = String> {
-    let file = File::open(get_full_wordlist_file(language)).unwrap();
-    BufReader::new(file).lines().filter_map(|line| line.ok())
+fn read_all_words(
+    language: Language,
+) -> Result<impl Iterator<Item = String>, io::Error> {
+    let file = File::open(get_full_wordlist_file(language))?;
+    Ok(BufReader::new(file).lines().filter_map(|line| line.ok()))
 }
 
 fn hash_words(words: impl Iterator<Item = String>) -> u64 {
@@ -216,20 +222,20 @@ fn hash_words(words: impl Iterator<Item = String>) -> u64 {
 fn read_words(
     language: Language,
     length: usize,
-) -> Box<dyn Iterator<Item = String>> {
-    match get_wordlist_file(language, length) {
+) -> Result<Box<dyn Iterator<Item = String>>, io::Error> {
+    Ok(match get_wordlist_file(language, length) {
         Ok(file_path) => {
-            let file = File::open(file_path).unwrap();
+            let file = File::open(file_path)?;
             Box::new(BufReader::new(file).lines().filter_map(|line| line.ok()))
         }
         Err(e) => {
             eprintln!("Error: {}", e);
             Box::new(
-                read_all_words(language)
+                read_all_words(language)?
                     .filter(move |word| word.len() == length),
             )
         }
-    }
+    })
 }
 
 struct Pattern {
@@ -296,19 +302,19 @@ fn solve_hangman_puzzle(
     pattern_string: String,
     invalid_letters: Vec<char>,
     language: Language,
-) -> HangmanResult {
+) -> Result<HangmanResult, io::Error> {
     let pattern = Pattern::create(pattern_string, invalid_letters);
 
     let possible_words = if pattern.known_letters_count() == 0
         && pattern.invalid_letters.is_empty()
     {
-        read_words(language, pattern.pattern.len()).collect()
+        read_words(language, pattern.pattern.len())?.collect()
     } else if pattern.first_letter == '_' {
-        read_words(language, pattern.pattern.len())
+        read_words(language, pattern.pattern.len())?
             .filter(|word| pattern.matches(word))
             .collect()
     } else {
-        read_words(language, pattern.pattern.len())
+        read_words(language, pattern.pattern.len())?
             .skip_while(|word| {
                 !pattern.first_letter_matches_or_is_wildcard(word)
             })
@@ -330,11 +336,11 @@ fn solve_hangman_puzzle(
         .copied()
         .collect();
     invalid_in_result.sort();
-    HangmanResult {
+    Ok(HangmanResult {
         input: input_as_string,
         invalid: invalid_in_result,
         possible_words,
-    }
+    })
 }
 
 fn main() {
@@ -352,9 +358,10 @@ fn main() {
                 let input: Vec<&str> = buffer.splitn(2, ' ').collect();
                 let hr = solve_hangman_puzzle(
                     input[0].to_string(),
-                    input[1].chars().collect(),
+                    input.get(1).unwrap_or(&"").chars().collect(),
                     Language::DE,
-                );
+                )
+                .expect("Solving should be possible.");
                 hr.print(10, 16, io::stdout()).expect("Printing to stdout");
             }
             Err(error) => {
