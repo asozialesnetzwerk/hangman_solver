@@ -1,5 +1,6 @@
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
+use std::env;
 use std::fmt::Formatter;
 use std::fs::File;
 use std::hash::Hasher;
@@ -17,18 +18,29 @@ use memoise::memoise;
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Language {
     DE,
+    EN,
 }
 
 impl Language {
+    pub fn from_string(string: &str) -> Option<Language> {
+        match string.to_lowercase().as_str() {
+            "de" => Some(Language::DE),
+            "en" => Some(Language::EN),
+            _ => None,
+        }
+    }
+
     pub fn as_string(&self) -> &str {
         match self {
             Language::DE => "de",
+            Language::EN => "en",
         }
     }
 
     pub fn read_words(self) -> Lines<'static> {
         match self {
             Language::DE => include_str!(r"../words/de.txt"),
+            Language::EN => include_str!(r"../words/en.txt"),
         }
         .lines()
     }
@@ -187,8 +199,7 @@ fn get_wordlist_file(
     let file_name: PathBuf = words_dir.join(format!("{}.txt", length));
     if !file_name.exists() {
         let mut file = File::create(Path::new(&file_name))?;
-        for word in read_all_words(language).filter(|word| word.len() == length)
-        {
+        for word in language.read_words().filter(|word| word.len() == length) {
             file.write_all(word.as_bytes())?;
             file.write_all("\n".as_bytes())?;
         }
@@ -204,20 +215,12 @@ fn read_lines_of_file(
         .filter_map(|line| line.ok()))
 }
 
-fn read_all_words(language: Language) -> impl Iterator<Item = &'static str> {
-    {
-        match language {
-            Language::DE => include_str!(r"../words/de.txt"),
-        }
-    }
-    .lines()
-}
-
 fn read_words_without_cache(
     language: Language,
     length: usize,
 ) -> impl Iterator<Item = String> {
-    read_all_words(language)
+    language
+        .read_words()
         .filter(move |word| word.len() == length)
         .map(|word| word.to_string())
 }
@@ -343,10 +346,20 @@ pub fn solve_hangman_puzzle(
 }
 
 fn main() {
+    let args: Vec<String> = env::args().skip(1).collect();
+
+    let lang = if args.is_empty() {
+        Language::DE
+    } else if args.len() == 1 {
+        args.get(0)
+            .and_then(|lang| Language::from_string(lang))
+            .expect("Invalid language")
+    } else {
+        panic!("Too many arguments");
+    };
+
     let mut buffer = String::new();
     let stdin = io::stdin();
-
-    let lang = Language::DE;
 
     loop {
         let mut handle = stdin.lock();
