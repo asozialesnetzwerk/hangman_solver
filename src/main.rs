@@ -1,6 +1,6 @@
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
-use std::fmt::{Formatter, Write};
+use std::fmt::Formatter;
 use std::fs::File;
 use std::hash::Hasher;
 use std::io::{self, BufRead, BufReader, Write as IoWrite};
@@ -325,19 +325,18 @@ fn solve_hangman_puzzle(
             .collect()
     };
 
-    let mut input_as_string = String::new();
-    for ch in pattern.pattern {
-        input_as_string.write_char(ch).unwrap();
-    }
+    let input_string: String = pattern.pattern.iter().collect();
+
     let mut invalid_in_result: Vec<char> = pattern
         .invalid_letters
         .iter()
-        .filter(|ch| !input_as_string.contains(**ch))
+        .filter(|ch| !pattern.pattern.contains(*ch))
         .copied()
         .collect();
+
     invalid_in_result.sort();
     Ok(HangmanResult {
-        input: input_as_string,
+        input: input_string,
         invalid: invalid_in_result,
         possible_words,
     })
