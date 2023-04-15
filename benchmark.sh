@@ -10,30 +10,37 @@ cargo build ${CARGO_ARGS}
 
 run_with_input()
 {
-  FILE="${TEST_INPUTS_DIR}/${1}.txt"
-  START=$(date +%s%N)
-  if [ -z "${2:-}" ] ; then
-    cargo run -q ${CARGO_ARGS} < "${FILE}"
+  if [ -n "${2:-}" ] ; then
+    LANGUAGE="${2}"
   else
-    OUTPUT_FILE="${2}/${1}.output"
-    cargo run -q ${CARGO_ARGS} < "${FILE}" > "${OUTPUT_FILE}"
+    LANGUAGE="de"
+  fi
+  FILE="${TEST_INPUTS_DIR}/${LANGUAGE}/${1}.txt"
+  START=$(date +%s%N)
+  if [ -z "${3:-}" ] ; then
+    cargo run -q ${CARGO_ARGS} "${LANGUAGE}" < "${FILE}"
+  else
+    OUTPUT_FILE="${3}/${1}.output"
+    cargo run -q ${CARGO_ARGS} "${LANGUAGE}" < "${FILE}" > "${OUTPUT_FILE}"
   fi
   END=$(date +%s%N)
   ELAPSED=$((END-START))
   LINES=$(wc -l "${FILE}"  | cut -d " " -f1)
   echo "$((ELAPSED/1000000))ms (${1}, lines: ${LINES}, per line: $((ELAPSED/LINES/1000000))ms)"
-  if [ -n "${2:-}" ] ; then
-    diff --color=auto "${TEST_INPUTS_DIR}/${1}.output" "${OUTPUT_FILE}" >&2
+  if [ -n "${3:-}" ] ; then
+    diff --color=auto "${TEST_INPUTS_DIR}/${LANGUAGE}/${1}.output" "${OUTPUT_FILE}" >&2
   fi
 }
 
 run_all()
 {
-  SAVED_HASH=$(cat "${TEST_INPUTS_DIR}"/*output | sha256sum - | cut -d " " -f1)
+  LANGUAGE="${1}"
+  DIR="${2}/${LANGUAGE}"
 
-  DIR=${1}
+  SAVED_HASH=$(cat "${TEST_INPUTS_DIR}/${LANGUAGE}"/*output | sha256sum - | cut -d " " -f1)
 
-  ls -1 "${TEST_INPUTS_DIR}" | cut -d "." -f1 | sort -firu  | while read -r LINE ; do run_with_input "${LINE}" "${DIR}" ; done
+  mkdir -p "${DIR}"
+  ls -1 "${TEST_INPUTS_DIR}/${LANGUAGE}" | cut -d "." -f1 | sort -firu  | while read -r LINE ; do run_with_input "${LINE}" "${LANGUAGE}" "${DIR}" ; done
 
   OUTPUT_HASH=$(cat "${DIR}"/*output | sha256sum - | cut -d " " -f1)
   if [ "${OUTPUT_HASH}" = "${SAVED_HASH}" ] ; then
@@ -45,9 +52,11 @@ run_all()
 }
 
 if [ -z "${1:-}" ] ; then
-  run_all "$(mktemp -d)" || exit "${?}"
+  run_all "de" "$(mktemp -d)" || exit "${?}"
+  run_all "en" "$(mktemp -d)" || exit "${?}"
 elif [ "--write-out" = "${1}" ] ; then
-  run_all "${TEST_INPUTS_DIR}" || echo "Updated output"
+  run_all "de" "${TEST_INPUTS_DIR}" || echo "Updated output de"
+  run_all "en" "${TEST_INPUTS_DIR}" || echo "Updated output en"
 else
-  run_with_input "${1}"
+  run_with_input "${@?}"
 fi
