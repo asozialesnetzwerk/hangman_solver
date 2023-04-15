@@ -54,7 +54,12 @@ impl HangmanResult {
         map
     }
 
-    fn print(&self, print_count: usize, letters_print_count: usize, mut file: impl IoWrite) {
+    fn print(
+        &self,
+        print_count: usize,
+        letters_print_count: usize,
+        mut file: impl IoWrite,
+    ) -> Result<(), io::Error> {
         let invalid: String = self.invalid.iter().collect();
         writeln!(
             file,
@@ -62,15 +67,14 @@ impl HangmanResult {
             self.possible_words.len(),
             self.input,
             invalid,
-        )
-        .unwrap();
+        )?;
         if self.possible_words.is_empty() {
-            writeln!(file, "\n").unwrap();
-            return;
+            writeln!(file, "\n")?;
+            return Ok(());
         }
-        write!(file, " words:   ").unwrap();
+        write!(file, " words:   ")?;
         for w in self.possible_words.iter().take(print_count) {
-            write!(file, "{}, ", w).unwrap();
+            write!(file, "{}, ", w)?;
         }
         writeln!(
             file,
@@ -80,16 +84,15 @@ impl HangmanResult {
             } else {
                 ""
             }
-        )
-        .unwrap();
+        )?;
         let mut letters: Vec<(char, u32)> = self.get_letter_frequency().into_iter().collect();
         if letters.is_empty() {
-            writeln!(file).unwrap();
+            writeln!(file)?;
         } else {
-            write!(file, " letters: ").unwrap();
+            write!(file, " letters: ")?;
             letters.sort_by_key(|tuple| (-(tuple.1 as i64), tuple.0));
             for (ch, freq) in letters.iter().take(letters_print_count) {
-                write!(file, "{}: {}, ", ch, freq).unwrap();
+                write!(file, "{}: {}, ", ch, freq)?;
             }
             writeln!(
                 file,
@@ -99,9 +102,9 @@ impl HangmanResult {
                 } else {
                     ""
                 }
-            )
-            .unwrap();
-        }
+            )?;
+        };
+        Ok(())
     }
 }
 
@@ -304,7 +307,7 @@ fn main() {
                     input[1].chars().collect(),
                     Language::DE,
                 );
-                hr.print(10, 16, io::stdout());
+                hr.print(10, 16, io::stdout()).expect("Printing to stdout");
             }
             Err(error) => {
                 eprintln!("{}", error);
