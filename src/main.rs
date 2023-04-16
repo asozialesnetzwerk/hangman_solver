@@ -379,7 +379,7 @@ fn main() {
                     lang,
                 );
                 assert!(hr.language == lang);
-                println!("{hr}\n");
+                println!("{hr}");
             }
             Err(error) => {
                 eprintln!("{error}");
