@@ -73,15 +73,14 @@ impl HangmanResult {
             .filter(|ch| !input_chars.contains(ch))
             .collect::<Counter<char, u32>>()
     }
+}
 
-    fn print(
-        &self,
-        print_count: usize,
-        letters_print_count: usize,
-        mut file: impl IoWrite,
-    ) -> Result<(), io::Error> {
+impl std::fmt::Display for HangmanResult {
+    fn fmt(&self, file: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let print_count: usize = file.precision().unwrap_or(10);
+        let letters_print_count: usize = print_count + 6;
         let invalid: String = self.invalid.iter().collect();
-        writeln!(
+        write!(
             file,
             "Found {} words (input: {}, invalid: {})",
             self.possible_words.len(),
@@ -89,40 +88,26 @@ impl HangmanResult {
             invalid,
         )?;
         if self.possible_words.is_empty() {
-            writeln!(file, "\n")?;
             return Ok(());
         }
-        write!(file, " words:   ")?;
+        write!(file, "\n words:   ")?;
         for w in self.possible_words.iter().take(print_count) {
             write!(file, "{w}, ")?;
         }
-        writeln!(
-            file,
-            "{}",
-            if print_count < self.possible_words.len() {
-                "..."
-            } else {
-                ""
-            }
-        )?;
+        if print_count < self.possible_words.len() {
+            write!(file, "...")?;
+        }
+
         let letters: Vec<(char, u32)> =
             self.get_letter_frequency().most_common_ordered();
-        if letters.is_empty() {
-            writeln!(file)?;
-        } else {
-            write!(file, " letters: ")?;
+        if !letters.is_empty() {
+            write!(file, "\n letters: ")?;
             for (ch, freq) in letters.iter().take(letters_print_count) {
                 write!(file, "{ch}: {freq}, ")?;
             }
-            writeln!(
-                file,
-                "{}\n",
-                if letters_print_count < letters.len() {
-                    "..."
-                } else {
-                    ""
-                }
-            )?;
+            if letters_print_count < letters.len() {
+                write!(file, "...")?;
+            }
         };
         Ok(())
     }
@@ -394,10 +379,7 @@ fn main() {
                     lang,
                 );
                 assert!(hr.language == lang);
-                if hr.print(10, 16, io::stdout()).is_err() {
-                    eprintln!("Error: printing failed");
-                    exit(2);
-                };
+                println!("{hr}\n");
             }
             Err(error) => {
                 eprintln!("{error}");

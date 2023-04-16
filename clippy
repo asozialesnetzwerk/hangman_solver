@@ -8,4 +8,6 @@ cargo clippy  ${ARGS:-} -- \
     -W clippy::unwrap_used \
     -W clippy::expect_used \
     -A clippy::missing-const-for-fn \
-    -A clippy::option-if-let-else
+    -A clippy::option-if-let-else \
+    -W clippy::panic \
+    -W clippy::todo
