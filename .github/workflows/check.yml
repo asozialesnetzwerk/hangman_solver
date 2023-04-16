@@ -33,7 +33,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Run cargo clippy
-        run: cargo clippy
+        run: ./clippy
 
   improve_code:
     name: Improve and format the code
@@ -48,7 +48,7 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
       - name: Improve the code
-        run: cargo clippy --fix
+        run: ./clippy --fix
       - name: Format the code
         run: cargo fmt
       - name: Update env

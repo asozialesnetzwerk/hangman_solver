@@ -22,7 +22,8 @@ pub enum Language {
 }
 
 impl Language {
-    #[must_use] pub fn from_string(string: &str) -> Option<Self> {
+    #[must_use]
+    pub fn from_string(string: &str) -> Option<Self> {
         match string.to_lowercase().as_str() {
             "de" => Some(Self::DE),
             "en" => Some(Self::EN),
@@ -30,7 +31,8 @@ impl Language {
         }
     }
 
-    #[must_use] pub fn as_string(&self) -> &str {
+    #[must_use]
+    pub fn as_string(&self) -> &str {
         match self {
             Self::DE => "de",
             Self::EN => "en",
@@ -45,7 +47,8 @@ impl Language {
         .lines()
     }
 
-    #[must_use] pub fn get_words_data_hash(self) -> u64 {
+    #[must_use]
+    fn get_words_data_hash(self) -> u64 {
         let mut s = DefaultHasher::new();
         for word in self.read_words() {
             s.write(word.as_bytes());
@@ -140,7 +143,9 @@ fn get_words_cache_folder(language: Language) -> Option<PathBuf> {
 
     if lang_words_dir.exists() {
         // remove old cache data
-        for entry in fs::read_dir(&lang_words_dir).ok()?.filter_map(std::result::Result::ok)
+        for entry in fs::read_dir(&lang_words_dir)
+            .ok()?
+            .filter_map(std::result::Result::ok)
         {
             if entry.path() == words_dir && entry.path().is_dir() {
                 continue;
@@ -250,7 +255,7 @@ pub struct Pattern {
 }
 
 impl Pattern {
-    fn new(pattern: String, invalid_letters: Vec<char>) -> Self {
+    fn new(pattern: &str, invalid_letters: &[char]) -> Self {
         let pattern_as_chars: Vec<char> = pattern
             .to_lowercase()
             .replace(['-', '?'], "_")
@@ -274,7 +279,7 @@ impl Pattern {
         }
     }
 
-    fn first_letter_is_wildcard(&self) -> bool {
+    const fn first_letter_is_wildcard(&self) -> bool {
         self.first_letter == '_'
     }
 
@@ -304,9 +309,10 @@ impl Pattern {
     }
 }
 
-#[must_use] pub fn solve_hangman_puzzle(
-    pattern_string: String,
-    invalid_letters: Vec<char>,
+#[must_use]
+pub fn solve_hangman_puzzle(
+    pattern_string: &str,
+    invalid_letters: &[char],
     language: Language,
 ) -> HangmanResult {
     let pattern = Pattern::new(pattern_string, invalid_letters);
@@ -336,7 +342,7 @@ impl Pattern {
         .copied()
         .collect();
 
-    invalid_in_result.sort();
+    invalid_in_result.sort_unstable();
     HangmanResult {
         input: input_string,
         invalid: invalid_in_result,
@@ -370,19 +376,27 @@ fn main() {
     loop {
         let mut handle = stdin.lock();
 
-        match handle.read_line(&mut buffer) {
+        let r = handle.read_line(&mut buffer);
+        match r {
             Ok(result) => {
                 if buffer.is_empty() {
                     exit(result as i32);
                 }
                 let input: Vec<&str> = buffer.splitn(2, ' ').collect();
                 let hr = solve_hangman_puzzle(
-                    input[0].to_string(),
-                    input.get(1).unwrap_or(&"").chars().collect(),
+                    input[0],
+                    &(input
+                        .get(1)
+                        .unwrap_or(&"")
+                        .chars()
+                        .collect::<Vec<char>>()),
                     lang,
                 );
                 assert!(hr.language == lang);
-                hr.print(10, 16, io::stdout()).expect("Printing to stdout");
+                if hr.print(10, 16, io::stdout()).is_err() {
+                    eprintln!("Error: printing failed");
+                    exit(2);
+                };
             }
             Err(error) => {
                 eprintln!("{error}");
