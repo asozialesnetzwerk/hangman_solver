@@ -357,14 +357,15 @@ fn main() {
     let lang = if args.is_empty() {
         Language::DE
     } else if args.len() == 1 {
-        if let Some(x) =
-            args.get(0).and_then(|lang| Language::from_string(lang))
-        {
-            x
-        } else {
-            eprintln!("Invalid language");
-            exit(1);
-        }
+        args.get(0)
+            .and_then(|lang| Language::from_string(lang))
+            .map_or_else(
+                || {
+                    eprintln!("Invalid language");
+                    exit(1);
+                },
+                |x| x,
+            )
     } else {
         eprintln!("Too many arguments");
         exit(1);
@@ -380,7 +381,7 @@ fn main() {
         match r {
             Ok(result) => {
                 if buffer.is_empty() {
-                    exit(result as i32);
+                    exit(i32::from(result != 0));
                 }
                 let input: Vec<&str> = buffer.splitn(2, ' ').collect();
                 let hr = solve_hangman_puzzle(
