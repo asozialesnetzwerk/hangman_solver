@@ -15,7 +15,7 @@ jobs:
         cargo_args:
           - ""
           - "--release"
-    runs-on: ${{ matrix.runs_on }}
+    runs-on: ubuntu-latest
     permissions: {}
     steps:
       - name: Checkout repository
