@@ -301,7 +301,7 @@ impl Pattern {
 
     fn first_letter_matches(&self, word: &str) -> bool {
         // This only makes sense if first_letter_is_wildcard is false
-        debug_assert_eq!(self.first_letter_is_wildcard(), false);
+        debug_assert!(!self.first_letter_is_wildcard());
         word.chars()
             .next()
             .map_or(false, |char| self.first_letter == char)
