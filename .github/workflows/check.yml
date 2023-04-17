@@ -38,7 +38,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Run cargo clippy
-        run: ./clippy
+        run: ./clippy --color=always -- -D warnings
 
   improve_code:
     name: Improve and format the code
