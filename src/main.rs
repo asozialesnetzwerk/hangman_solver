@@ -67,17 +67,14 @@ fn join_with_max_length(it: &[String], sep: &str, max_len: usize) -> String {
                 string.extend([sep, "..."]);
                 break;
             }
-            string.extend([sep, &item]);
-        } else {
-            if string.len() + sep_len + item.len() + sep_len + 3 > max_len {
-                string.extend([sep, "..."]);
-                break;
-            }
-            string.extend([sep, &item]);
+        } else if string.len() + sep_len + item.len() + sep_len + 3 > max_len {
+            string.extend([sep, "..."]);
+            break;
         }
+        string.extend([sep, item]);
     }
     debug_assert!(string.len() <= max_len);
-    return string;
+    string
 }
 
 pub struct HangmanResult {
