@@ -299,6 +299,7 @@ impl Pattern {
 
     fn first_letter_matches(&self, word: &str) -> bool {
         // This only makes sense if first_letter_is_wildcard is false
+        debug_assert_eq!(self.first_letter_is_wildcard(), false);
         word.chars()
             .next()
             .map_or(false, |char| self.first_letter == char)
@@ -306,6 +307,7 @@ impl Pattern {
 
     fn matches(&self, word: &str) -> bool {
         // This only makes sense if word has the same length as the pattern
+        debug_assert_eq!(word.len(), self.pattern.len());
         for (p, w) in zip(self.pattern.iter(), word.chars()) {
             if *p == '_' {
                 if self.invalid_letters.contains(&w) {
