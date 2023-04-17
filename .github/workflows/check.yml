@@ -13,9 +13,14 @@ jobs:
           - stable
           - beta
           - nightly
+        cargo_args:
+          - ""
+          - "--release"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Update env
+        run: echo 'CARGO_ARGS="${{ matrix.cargo_args }} --color always"' >> "${GITHUB_ENV}"
       - name: Update rust
         run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
       - name: Build project

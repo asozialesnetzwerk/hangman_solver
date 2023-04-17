@@ -3,10 +3,11 @@
 set -eu
 
 TEST_INPUTS_DIR="test_inputs"
-CARGO_ARGS="--release --package hangman_solver --bin hangman_solver"
-
+if [ -z "${CARGO_ARGS:-}" ] ; then
+    CARGO_ARGS="--release"
+fi
+CARGO_ARGS="${CARGO_ARGS} --package hangman_solver --bin hangman_solver"
 cargo build ${CARGO_ARGS}
-
 
 run_with_input()
 {

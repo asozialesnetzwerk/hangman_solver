@@ -57,6 +57,29 @@ impl Language {
     }
 }
 
+fn join_with_max_length(it: &[String], sep: &str, max_len: usize) -> String {
+    let sep_len = sep.len();
+    let mut string = String::with_capacity(max_len);
+    let last_it_index = it.len() - 1;
+    for (i, item) in it.iter().enumerate() {
+        if i == last_it_index {
+            if string.len() + sep_len + item.len() > max_len {
+                string.extend([sep, "..."]);
+                break;
+            }
+            string.extend([sep, &item]);
+        } else {
+            if string.len() + sep_len + item.len() + sep_len + 3 > max_len {
+                string.extend([sep, "..."]);
+                break;
+            }
+            string.extend([sep, &item]);
+        }
+    }
+    debug_assert!(string.len() <= max_len);
+    return string;
+}
+
 pub struct HangmanResult {
     input: String,
     invalid: Vec<char>,
@@ -77,8 +100,7 @@ impl HangmanResult {
 
 impl std::fmt::Display for HangmanResult {
     fn fmt(&self, file: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let print_count: usize = file.precision().unwrap_or(10);
-        let letters_print_count: usize = print_count + 6;
+        let max_line_length: usize = file.width().unwrap_or(80);
         let invalid: String = self.invalid.iter().collect();
         write!(
             file,
@@ -90,24 +112,33 @@ impl std::fmt::Display for HangmanResult {
         if self.possible_words.is_empty() {
             return Ok(());
         }
-        write!(file, "\n words:   ")?;
-        for w in self.possible_words.iter().take(print_count) {
-            write!(file, "{w}, ")?;
-        }
-        if print_count < self.possible_words.len() {
-            write!(file, "...")?;
-        }
+        writeln!(file)?;
+        write!(
+            file,
+            " words:   {}",
+            join_with_max_length(
+                &self.possible_words,
+                ", ",
+                max_line_length - " words:   ".len(),
+            )
+        )?;
 
         let letters: Vec<(char, u32)> =
             self.get_letter_frequency().most_common_ordered();
         if !letters.is_empty() {
-            write!(file, "\n letters: ")?;
-            for (ch, freq) in letters.iter().take(letters_print_count) {
-                write!(file, "{ch}: {freq}, ")?;
-            }
-            if letters_print_count < letters.len() {
-                write!(file, "...")?;
-            }
+            writeln!(file)?;
+            write!(
+                file,
+                " letters: {}",
+                join_with_max_length(
+                    &(letters
+                        .iter()
+                        .map(|(ch, f)| format!("{ch}: {f}"))
+                        .collect::<Vec<String>>()),
+                    ", ",
+                    max_line_length - " letters: ".len(),
+                )
+            )?;
         };
         Ok(())
     }
@@ -379,7 +410,7 @@ fn main() {
                     lang,
                 );
                 assert!(hr.language == lang);
-                println!("{hr}");
+                println!("{hr:100}");
             }
             Err(error) => {
                 eprintln!("{error}");

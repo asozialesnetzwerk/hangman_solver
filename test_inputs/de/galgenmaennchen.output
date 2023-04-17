@@ -1,24 +1,24 @@
 Found 191043 words (input: _______________, invalid: )
- words:   abbauaktivitaet, abbaudiagnostik, abbaueinwirkung, abbauendprodukt, abbauergebnisse, abbaufaehigkeit, abbaufeldgrenze, abbaufoerderung, abbaufragmenten, abbaufunktionen, ...
- letters: e: 183720, n: 153083, r: 146176, s: 138231, a: 134564, t: 131694, i: 117417, u: 103390, l: 100984, h: 90203, g: 86312, o: 76446, c: 63747, k: 63207, b: 61890, d: 59303, ...
+ words:   , abbauaktivitaet, abbaudiagnostik, abbaueinwirkung, abbauendprodukt, abbauergebnisse, ...
+ letters: , e: 183720, n: 153083, r: 146176, s: 138231, a: 134564, t: 131694, i: 117417, ...
 Found 726 words (input: ____e___e____e_, invalid: )
- words:   abblendleuchten, abfuellmethoden, abspeicherungen, absperrventilen, akademikeralter, akademikerinnen, akademikerroben, akademikertagen, akademikertitel, aktienkuenstler, ...
- letters: n: 649, r: 586, s: 453, a: 443, i: 418, h: 414, t: 388, g: 342, u: 340, l: 335, o: 330, c: 312, k: 276, m: 241, b: 196, d: 190, ...
+ words:   , abblendleuchten, abfuellmethoden, abspeicherungen, absperrventilen, akademikeralter, ...
+ letters: , n: 649, r: 586, s: 453, a: 443, i: 418, h: 414, t: 388, g: 342, u: 340, l: 335, ...
 Found 6 words (input: ____en__enn__en, invalid: )
- words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen, schoenmaennchen, witwenmaennchen, 
- letters: a: 6, c: 6, h: 6, m: 6, t: 4, g: 2, r: 2, s: 2, i: 1, k: 1, l: 1, o: 1, w: 1, 
+ words:   , galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen, schoenmaennchen, ...
+ letters: , a: 6, c: 6, h: 6, m: 6, t: 4, g: 2, r: 2, s: 2, i: 1, k: 1, l: 1, o: 1, w: 1
 Found 4 words (input: _a__en_aenn__en, invalid: )
- words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen, 
- letters: c: 4, h: 4, m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1, 
+ words:   , galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ letters: , c: 4, h: 4, m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
 Found 4 words (input: _a__en_aennc_en, invalid: )
- words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen, 
- letters: h: 4, m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1, 
+ words:   , galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ letters: , h: 4, m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
 Found 4 words (input: _a__en_aennchen, invalid: )
- words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen, 
- letters: m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1, 
+ words:   , galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ letters: , m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
 Found 4 words (input: _a__enmaennchen, invalid: )
- words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen, 
- letters: t: 3, g: 2, r: 2, k: 1, l: 1, s: 1, 
+ words:   , galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ letters: , t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
 Found 1 words (input: _a__enmaennchen, invalid: t)
- words:   galgenmaennchen, 
- letters: g: 1, l: 1, 
+ words:   , galgenmaennchen
+ letters: , g: 1, l: 1
