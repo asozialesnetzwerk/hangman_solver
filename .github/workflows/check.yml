@@ -24,15 +24,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Update env
+        shell: bash
         run: echo 'CARGO_ARGS=${{ matrix.cargo_args }} --color always' >> "${GITHUB_ENV}"
       - name: Update rust
+        shell: bash
         run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
       - name: Build project
+        shell: bash
         run: cargo build --verbose --release
       - name: Run benchmark script
-        run: ./benchmark.sh
+        shell: bash
+        run: bash ./benchmark.sh
       - name: Run benchmark script
-        run: ./benchmark.sh
+        shell: bash
+        run: bash ./benchmark.sh
 
   lint_code:
     name: Clippy
