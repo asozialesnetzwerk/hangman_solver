@@ -14,6 +14,7 @@ use std::{char, fs};
 use counter::Counter;
 use directories::ProjectDirs;
 use memoise::memoise;
+use terminal_size::{terminal_size, Width};
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Language {
@@ -407,7 +408,13 @@ fn main() {
                     lang,
                 );
                 assert!(hr.language == lang);
-                println!("{hr:100}");
+                let width: usize = if let Some((Width(w), _)) = terminal_size()
+                {
+                    w.into()
+                } else {
+                    80
+                };
+                println!("{hr:─^width$}");
             }
             Err(error) => {
                 eprintln!("{error}");

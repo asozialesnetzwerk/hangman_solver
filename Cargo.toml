@@ -1,6 +1,6 @@
 [package]
 name = "hangman_solver"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 repository = "https://github.com/asozialesnetzwerk/hangman_solver"
 description = "Solves hangman puzzles"
@@ -25,3 +25,4 @@ lto = true
 counter = "0.5.7"
 directories = "5.0.0"
 memoise = "0.3.2"
+terminal_size = "0.2.6"
