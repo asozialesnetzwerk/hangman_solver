@@ -6,8 +6,8 @@ jobs:
   test:
     name: Run with test inputs
     strategy:
+      fail-fast: false
       matrix:
-        fail-fast: false
         toolchain:
           - stable
           - beta
