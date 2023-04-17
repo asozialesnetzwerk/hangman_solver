@@ -58,21 +58,23 @@ impl Language {
     }
 }
 
-fn join_with_max_length(it: &[String], sep: &str, max_len: usize) -> String {
-    let sep_len = sep.len();
+fn join_with_max_length(
+    strings: &[String],
+    sep: &str,
+    max_len: usize,
+) -> String {
     let mut string = String::with_capacity(max_len);
-    let last_it_index = it.len() - 1;
-    for (i, item) in it.iter().enumerate() {
-        if i == last_it_index {
-            if string.len() + sep_len + item.len() > max_len {
-                string.extend([sep, "..."]);
-                break;
-            }
-        } else if string.len() + sep_len + item.len() + sep_len + 3 > max_len {
-            string.extend([sep, "..."]);
+    let last_index = strings.len() - 1;
+    for (i, item) in strings.iter().enumerate() {
+        let current_sep = if i == 0 { "" } else { sep };
+        let min_next_len = if i == last_index { 0 } else { sep.len() + 3 };
+        if string.len() + current_sep.len() + item.len() + min_next_len
+            > max_len
+        {
+            string.extend([current_sep, "..."]);
             break;
         }
-        string.extend([sep, item]);
+        string.extend([current_sep, item]);
     }
     debug_assert!(string.len() <= max_len);
     string
