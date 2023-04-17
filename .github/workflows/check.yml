@@ -5,8 +5,6 @@ jobs:
 
   test:
     name: Run with test inputs
-    runs-on: ubuntu-latest
-    permissions: {}
     strategy:
       matrix:
         toolchain:
@@ -16,6 +14,12 @@ jobs:
         cargo_args:
           - ""
           - "--release"
+        runs_on:
+          - "ubuntu-latest"
+          - "windows-latest"
+          - "macos-latest"
+    runs-on: ${{ matrix.runs_on }}
+    permissions: {}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
