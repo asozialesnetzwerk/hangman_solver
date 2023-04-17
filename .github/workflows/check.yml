@@ -15,10 +15,6 @@ jobs:
         cargo_args:
           - ""
           - "--release"
-        runs_on:
-          - "ubuntu-latest"
-          - "windows-latest"
-          - "macos-latest"
     runs-on: ${{ matrix.runs_on }}
     permissions: {}
     steps:
