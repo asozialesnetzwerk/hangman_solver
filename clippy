@@ -1,7 +1,6 @@
 #!/bin/sh
 set -eu
-ARGS="$@"
-cargo clippy  ${ARGS:-} -- \
+cargo clippy "$@" -- \
     -D warnings \
     -W clippy::pedantic \
     -W clippy::nursery \
