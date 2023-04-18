@@ -13,7 +13,9 @@ include = [
     "LICENSE",
 ]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "hangman_solver"
+crate-type = ["cdylib"]
 
 [profile.release]
 codegen-units = 1
@@ -25,4 +27,5 @@ lto = true
 counter = "0.5.7"
 directories = "5.0.0"
 memoise = "0.3.2"
+pyo3 = { version = "0.18.3", features = ["extension-module"] }
 terminal_size = "0.2.6"

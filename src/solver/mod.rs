@@ -13,7 +13,9 @@ use std::{char, fs};
 use counter::Counter;
 use directories::ProjectDirs;
 use memoise::memoise;
+use pyo3::prelude::*;
 
+#[pyclass]
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Language {
     DE,
@@ -78,10 +80,16 @@ fn join_with_max_length(
     string
 }
 
+#[pyclass]
+#[derive(FromPyObject)]
 pub struct HangmanResult {
+    #[pyo3(get)]
     pub input: String,
+    #[pyo3(get)]
     pub invalid: Vec<char>,
+    #[pyo3(get, name = "words")]
     pub possible_words: Vec<String>,
+    #[pyo3(get)]
     pub language: Language,
 }
 
@@ -93,6 +101,13 @@ impl HangmanResult {
             .flat_map(|word| word.chars().collect::<HashSet<char>>())
             .filter(|ch| !input_chars.contains(ch))
             .collect::<Counter<char, u32>>()
+    }
+}
+
+#[pymethods]
+impl HangmanResult {
+    pub fn letter_frequency(&self) -> std::collections::HashMap<char, u32> {
+        self.get_letter_frequency().into_map()
     }
 }
 
