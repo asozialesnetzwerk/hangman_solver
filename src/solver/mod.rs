@@ -79,14 +79,14 @@ fn join_with_max_length(
 }
 
 pub struct HangmanResult {
-    input: String,
-    invalid: Vec<char>,
-    possible_words: Vec<String>,
-    language: Language,
+    pub input: String,
+    pub invalid: Vec<char>,
+    pub possible_words: Vec<String>,
+    pub language: Language,
 }
 
 impl HangmanResult {
-    fn get_letter_frequency(&self) -> Counter<char, u32> {
+    pub fn get_letter_frequency(&self) -> Counter<char, u32> {
         let input_chars: HashSet<char> = self.input.chars().collect();
         self.possible_words
             .iter()
