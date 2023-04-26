@@ -7,18 +7,19 @@ use std::hash::Hasher;
 use std::io::{self, BufRead, BufReader, Write as IoWrite};
 use std::iter::zip;
 use std::path::{Path, PathBuf};
-use std::str::Lines;
 use std::{char, fs};
 
 use counter::Counter;
 use directories::ProjectDirs;
+use itertools::Itertools;
 use memoise::memoise;
 use pyo3::prelude::*;
 
 #[pyclass]
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Language {
     DE,
+    DEUmlauts,
     EN,
 }
 
@@ -28,6 +29,7 @@ impl Language {
         match string.to_lowercase().as_str() {
             "de" => Some(Self::DE),
             "en" => Some(Self::EN),
+            "de-umlauts" | "de_umlauts" => Some(Self::DEUmlauts),
             _ => None,
         }
     }
@@ -37,19 +39,39 @@ impl Language {
         match self {
             Self::DE => "de",
             Self::EN => "en",
+            Self::DEUmlauts => "de-umlauts",
         }
     }
 
-    pub fn read_words(self) -> Lines<'static> {
-        match self {
-            Self::DE => include_str!(r"../../words/de.txt"),
-            Self::EN => include_str!(r"../../words/en.txt"),
-        }
-        .lines()
+    pub fn read_words(self) -> Box<dyn Iterator<Item = String>> {
+        Box::new(
+            match self {
+                Self::DEUmlauts => include_str!(r"../../words/de.txt"),
+                Self::EN => include_str!(r"../../words/en.txt"),
+                Self::DE => {
+                    return Box::new(
+                        Self::DEUmlauts
+                            .read_words()
+                            .map(|word| {
+                                word.replace('ß', "ss")
+                                    .replace('ä', "ae")
+                                    .replace('ö', "oe")
+                                    .replace('ü', "ue")
+                            })
+                            .unique(),
+                    );
+                }
+            }
+            .lines()
+            .map(std::string::ToString::to_string),
+        )
     }
 
     #[must_use]
     fn get_words_data_hash(self) -> u64 {
+        if self == Self::DE {
+            return Self::DEUmlauts.get_words_data_hash();
+        }
         let mut s = DefaultHasher::new();
         for word in self.read_words() {
             s.write(word.as_bytes());
@@ -256,7 +278,6 @@ fn read_words_without_cache(
     language
         .read_words()
         .filter(move |word| word.len() == length)
-        .map(std::string::ToString::to_string)
 }
 
 fn read_words(

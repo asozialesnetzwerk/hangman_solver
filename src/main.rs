@@ -34,9 +34,7 @@ fn main() {
     let stdin = io::stdin();
 
     loop {
-        let mut handle = stdin.lock();
-
-        let r = handle.read_line(&mut buffer);
+        let r = stdin.lock().read_line(&mut buffer);
         match r {
             Ok(result) => {
                 if buffer.is_empty() {
