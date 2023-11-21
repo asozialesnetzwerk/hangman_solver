@@ -7,7 +7,7 @@ description = "Solves hangman puzzles"
 license-file = "LICENSE"
 include = [
     "src/*",
-    "words/*",
+    "words/*.txt",
     "Cargo.toml",
     "Cargo.lock",
     "LICENSE",
@@ -26,7 +26,10 @@ lto = true
 [dependencies]
 counter = "0.5.7"
 directories = "5.0.0"
-itertools = "0.10.5"
+itertools = { version = "0.10.5", features = [] }
 memoise = "0.3.2"
 pyo3 = { version = "0.18.3", features = ["extension-module"] }
 terminal_size = "0.2.6"
+
+[build-dependencies]
+itertools = { version = "0.10.5", features = [] }

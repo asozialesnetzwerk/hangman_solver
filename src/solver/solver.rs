@@ -1,23 +1,17 @@
 // SPDX-License-Identifier: EUPL-1.2
 pub mod solver;
 
-use std::collections::hash_map::DefaultHasher;
 use std::collections::HashSet;
-use std::env;
 use std::fmt::Formatter;
-use std::fs::File;
 use std::hash::Hasher;
-use std::io::{self, BufRead, BufReader, Write as IoWrite};
+use std::io::{self, BufRead, Write as IoWrite};
 use std::iter::zip;
-use std::path::{Path, PathBuf};
-use std::process::exit;
-use std::str::Lines;
+use std::path::PathBuf;
 use std::{char, fs};
 
 use counter::Counter;
 use directories::ProjectDirs;
 use memoise::memoise;
-use terminal_size::{terminal_size, Width};
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Language {
@@ -43,21 +37,11 @@ impl Language {
         }
     }
 
-    pub fn read_words(self) -> Lines<'static> {
+    pub fn read_words(self, length: usize) -> Vec<&'static str> {
         match self {
-            Self::DE => include_str!(r"../words/de.txt"),
-            Self::EN => include_str!(r"../words/en.txt"),
+            Self::DE => include!(concat!(env!("OUT_DIR"), "/de.txt.rs")),
+            Self::EN => include!(concat!(env!("OUT_DIR"), "/en.txt.rs")),
         }
-        .lines()
-    }
-
-    #[must_use]
-    fn get_words_data_hash(self) -> u64 {
-        let mut s = DefaultHasher::new();
-        for word in self.read_words() {
-            s.write(word.as_bytes());
-        }
-        s.finish()
     }
 }
 
@@ -147,47 +131,6 @@ impl std::fmt::Display for HangmanResult {
     }
 }
 
-fn get_cache_dir() -> Option<PathBuf> {
-    ProjectDirs::from("org", "asozial", "hangman_solver")
-        .map(|proj_dirs| proj_dirs.cache_dir().to_path_buf())
-}
-
-#[memoise(language)]
-fn get_words_cache_folder(language: Language) -> Option<PathBuf> {
-    let words_cache_dir: PathBuf = get_cache_dir()?.join("words");
-    let hash: String = format!("{:x}", language.get_words_data_hash());
-
-    let lang_words_dir: PathBuf = words_cache_dir.join(language.as_string());
-    let words_dir: PathBuf = lang_words_dir.join(&*hash);
-
-    if lang_words_dir.exists() {
-        // remove old cache data
-        for entry in fs::read_dir(&lang_words_dir)
-            .ok()?
-            .filter_map(std::result::Result::ok)
-        {
-            if entry.path() == words_dir && entry.path().is_dir() {
-                continue;
-            }
-            if fs::remove_dir_all(entry.path()).is_err() {
-                eprintln!(
-                    "Warning: Deleting old data in {} failed.",
-                    entry.path().to_str().unwrap_or("")
-                );
-            }
-        }
-    }
-    if fs::create_dir_all(&words_dir).is_err() {
-        eprintln!(
-            "Failed to create {}",
-            words_dir.to_str().unwrap_or("cache dir")
-        );
-        return None;
-    }
-
-    Some(words_dir)
-}
-
 #[derive(Debug, Copy, Clone)]
 enum WordListError {
     NoCacheFolder,
@@ -213,58 +156,8 @@ impl std::fmt::Display for WordListError {
     }
 }
 
-#[memoise(language, length)]
-fn get_wordlist_file(
-    language: Language,
-    length: usize,
-) -> Result<PathBuf, WordListError> {
-    let words_dir =
-        get_words_cache_folder(language).ok_or(WordListError::NoCacheFolder)?;
-    let file_name: PathBuf = words_dir.join(format!("{length}.txt"));
-    if !file_name.exists() {
-        let mut file = File::create(Path::new(&file_name))?;
-        for word in language.read_words().filter(|word| word.len() == length) {
-            file.write_all(word.as_bytes())?;
-            file.write_all(b"\n")?;
-        }
-    }
-    Ok(file_name)
-}
-
-fn read_lines_of_file(
-    path: &Path,
-) -> Result<impl Iterator<Item = String>, io::Error> {
-    Ok(BufReader::new(File::open(path)?)
-        .lines()
-        .filter_map(std::result::Result::ok))
-}
-
-fn read_words_without_cache(
-    language: Language,
-    length: usize,
-) -> impl Iterator<Item = String> {
-    language
-        .read_words()
-        .filter(move |word| word.len() == length)
-        .map(std::string::ToString::to_string)
-}
-
-fn read_words(
-    language: Language,
-    length: usize,
-) -> Box<dyn Iterator<Item = String>> {
-    let it = match get_wordlist_file(language, length) {
-        Ok(file_path) => read_lines_of_file(&file_path).map(Box::new).ok(),
-        Err(e) => {
-            eprintln!("Error: {e}");
-            None
-        }
-    };
-    if let Some(x) = it {
-        x
-    } else {
-        Box::new(read_words_without_cache(language, length))
-    }
+fn read_words(language: Language, length: usize) -> Vec<&'static str> {
+    language.read_words(length)
 }
 
 pub struct Pattern {
@@ -338,7 +231,8 @@ pub fn solve_hangman_puzzle(
 ) -> HangmanResult {
     let pattern = Pattern::new(pattern_string, invalid_letters);
 
-    let possible_words = if pattern.known_letters_count() == 0
+    let possible_words: Vec<&'static str> = if pattern.known_letters_count()
+        == 0
         && pattern.invalid_letters.is_empty()
     {
         read_words(language, pattern.pattern.len()).collect()
