@@ -13,10 +13,6 @@ include = [
     "LICENSE",
 ]
 
-[lib]
-name = "hangman_solver"
-crate-type = ["cdylib"]
-
 [profile.release]
 codegen-units = 1
 panic = "abort"
@@ -25,10 +21,7 @@ lto = true
 
 [dependencies]
 counter = "0.5.7"
-directories = "5.0.0"
 itertools = { version = "0.10.5", features = [] }
-memoise = "0.3.2"
-pyo3 = { version = "0.18.3", features = ["extension-module"] }
 terminal_size = "0.2.6"
 
 [build-dependencies]

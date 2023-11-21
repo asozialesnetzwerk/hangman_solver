@@ -11,9 +11,10 @@ use itertools::Itertools;
 fn read_lines_of_file(
     path: &Path,
 ) -> Result<impl Iterator<Item = String>, io::Error> {
-    Ok(BufReader::new(File::open(path)?)
-        .lines()
-        .filter_map(std::result::Result::ok))
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    Ok(reader.lines().map_while(Result::ok))
 }
 
 fn main() {
@@ -31,8 +32,16 @@ fn main() {
                 path.file_name().unwrap().to_str().unwrap()
             ))
             .to_owned();
-        let mut words: Vec<String> =
-            read_lines_of_file(path).unwrap().collect();
+        let mut words: Vec<String> = read_lines_of_file(path)
+            .unwrap()
+            .map(|word| {
+                word.replace('ß', "ss")
+                    .replace('ä', "ae")
+                    .replace('ö', "oe")
+                    .replace('ü', "ue")
+            })
+            .collect();
+
         words.sort_unstable();
         words.sort_by_key(|word: &String| word.len());
 
@@ -41,21 +50,20 @@ fn main() {
             .unique()
             .into_group_map_by(|word: &String| word.len())
             .into_iter()
-            .sorted_by_key(|(length, _)| 0 + length)
+            .sorted_by_key(|(length, _)| *length)
             .collect();
 
         let mut output = String::new();
         output += "match length {";
         for (length, words_group) in words {
-            output += &*format!("{length} => vec![");
+            output += &*format!("{length} => &[");
 
-            for word in words_group {
-                output += &*format!("\"{word}\",");
-            }
+            output +=
+                &*(words_group.iter().map(|w| format!("\"{w}\"")).join(","));
 
             output += "],";
         }
-        output += "_ => vec![]}";
+        output += "_ => &[]}";
         fs::write(dest_path.clone(), output).unwrap();
     }
 }
