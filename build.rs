@@ -31,7 +31,7 @@ fn main() {
                 "{}.rs",
                 path.file_name().unwrap().to_str().unwrap()
             ))
-            .to_owned();
+            .clone();
         let mut words: Vec<String> = read_lines_of_file(path)
             .unwrap()
             .map(|word| {

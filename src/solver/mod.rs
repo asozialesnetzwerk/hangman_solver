@@ -92,7 +92,7 @@ impl std::fmt::Display for HangmanResult {
                 &self
                     .possible_words
                     .iter()
-                    .map(|s| s.to_string())
+                    .map(|s| (*s).to_string())
                     .collect::<Vec<String>>(),
                 ", ",
                 max_line_length - " words:   ".len(),
@@ -204,7 +204,7 @@ pub fn solve_hangman_puzzle(
         read_words(language, pattern.pattern.len())
             .iter()
             .filter(|word| pattern.matches(word))
-            .map(|s| *s)
+            .copied()
             .collect::<Vec<&'static str>>()
     } else {
         read_words(language, pattern.pattern.len())
@@ -212,7 +212,7 @@ pub fn solve_hangman_puzzle(
             .skip_while(|word| !pattern.first_letter_matches(word))
             .take_while(|word| pattern.first_letter_matches(word))
             .filter(|word| pattern.matches(word))
-            .map(|s| *s)
+            .copied()
             .collect::<Vec<&'static str>>()
     };
 
