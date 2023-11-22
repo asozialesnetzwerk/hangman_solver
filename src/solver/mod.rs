@@ -5,6 +5,43 @@ use std::iter::zip;
 
 use counter::Counter;
 
+pub struct StringChunkIter<'a> {
+    word_length: usize,
+    index: usize,
+    string: &'a str,
+}
+
+impl<'a> StringChunkIter<'a> {
+    pub fn new(word_length: usize, string: &'a str) -> StringChunkIter<'a> {
+        StringChunkIter {
+            word_length,
+            index: 0,
+            string,
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.string.len() / self.word_length
+    }
+}
+
+impl<'a> Iterator for StringChunkIter<'a> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let index = self.index;
+        if index >= self.len() {
+            return None;
+        }
+        self.index += 1;
+
+        Some(
+            &self.string
+                [index * self.word_length..self.index * self.word_length],
+        )
+    }
+}
+
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Language {
     DE,
@@ -21,12 +58,12 @@ impl Language {
         }
     }
 
-    pub fn read_words(self, length: usize) -> &'static [&'static str] {
-        let words: &'static [&'static str] = match self {
+    pub fn read_words(self, length: usize) -> StringChunkIter<'static> {
+        let words: &'static str = match self {
             Self::DE => include!(concat!(env!("OUT_DIR"), "/de.txt.rs")),
             Self::EN => include!(concat!(env!("OUT_DIR"), "/en.txt.rs")),
         };
-        words
+        StringChunkIter::new(length, words)
     }
 }
 
@@ -120,7 +157,7 @@ impl std::fmt::Display for HangmanResult {
     }
 }
 
-fn read_words(language: Language, length: usize) -> &'static [&'static str] {
+fn read_words(language: Language, length: usize) -> StringChunkIter<'static> {
     language.read_words(length)
 }
 
@@ -199,20 +236,17 @@ pub fn solve_hangman_puzzle(
         == 0
         && pattern.invalid_letters.is_empty()
     {
-        read_words(language, pattern.pattern.len()).to_vec()
+        read_words(language, pattern.pattern.len())
+            .collect::<Vec<&'static str>>()
     } else if pattern.first_letter_is_wildcard() {
         read_words(language, pattern.pattern.len())
-            .iter()
             .filter(|word| pattern.matches(word))
-            .map(|s| *s)
             .collect::<Vec<&'static str>>()
     } else {
         read_words(language, pattern.pattern.len())
-            .iter()
             .skip_while(|word| !pattern.first_letter_matches(word))
             .take_while(|word| pattern.first_letter_matches(word))
             .filter(|word| pattern.matches(word))
-            .map(|s| *s)
             .collect::<Vec<&'static str>>()
     };
 

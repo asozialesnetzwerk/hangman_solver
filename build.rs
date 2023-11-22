@@ -56,14 +56,13 @@ fn main() {
         let mut output = String::new();
         output += "match length {";
         for (length, words_group) in words {
-            output += &*format!("{length} => &[");
+            output += &*format!("{length} => \"");
 
-            output +=
-                &*(words_group.iter().map(|w| format!("\"{w}\"")).join(","));
+            output += &*(words_group.iter().join("").replace('"', "\\\""));
 
-            output += "],";
+            output += "\",\n";
         }
-        output += "_ => &[]}";
+        output += "_ => \"\"}";
         fs::write(dest_path.clone(), output).unwrap();
     }
 }
