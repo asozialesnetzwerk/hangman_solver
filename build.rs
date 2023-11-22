@@ -152,11 +152,24 @@ fn main() {
                 }};
                 StringChunkIter::new(length, words)
             }}
-        }}
-    "###,
+            
+            pub fn all() -> Vec<Language> {{
+                return vec![
+                    {}
+                ];
+            }}
+            
+            pub fn name(self) -> &'static str {{
+                match self {{
+                    {}
+                }}
+            }}
+        }}"###,
             words_vec.clone().iter().map(|data| data.enum_name()).join(",\n"),
             words_vec.clone().iter().map(|data| format!("\"{}\" => Some(Self::{})", data.lang, data.enum_name())).join(",\n"),
-            words_vec.clone().iter().map(|data| format!("Self::{} => include!(concat!(env!(\"OUT_DIR\"), \"/{}\"))", data.enum_name(), data.out_file_name())).join("\n,")
+            words_vec.clone().iter().map(|data| format!("Self::{} => include!(concat!(env!(\"OUT_DIR\"), \"/{}\"))", data.enum_name(), data.out_file_name())).join("\n,"),
+            words_vec.clone().iter().sorted_by_key(|data| data.lang.as_str()).map(|data| format!("Self::{}", data.enum_name())).join(", "),
+            words_vec.clone().iter().map(|data| format!("Self::{} => \"{}\"", data.enum_name(), data.lang)).join(",\n"),
         ),
     ).unwrap();
 }

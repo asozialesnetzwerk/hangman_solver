@@ -6,6 +6,7 @@ use std::env;
 use std::io::{self, BufRead};
 use std::process::exit;
 
+use itertools::Itertools;
 use terminal_size::{terminal_size, Width};
 
 use crate::solver::{solve_hangman_puzzle, Language};
@@ -13,22 +14,28 @@ use crate::solver::{solve_hangman_puzzle, Language};
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
 
-    let lang = if args.is_empty() {
-        Language::De
-    } else if args.len() == 1 {
-        args.get(0)
-            .and_then(|lang| Language::from_string(lang))
-            .map_or_else(
-                || {
-                    eprintln!("Invalid language");
-                    exit(1);
-                },
-                |x| x,
-            )
-    } else {
+    if args.is_empty() {
+        eprintln!("Please set a language as argument.");
+        eprintln!(
+            "Valid languages: {}",
+            Language::all().iter().map(|lang| lang.name()).join(", ")
+        );
+        exit(2);
+    } else if args.len() != 1 {
         eprintln!("Too many arguments");
         exit(1);
     };
+
+    let lang = args
+        .get(0)
+        .and_then(|lang| Language::from_string(lang))
+        .map_or_else(
+            || {
+                eprintln!("Invalid language");
+                exit(1);
+            },
+            |x| x,
+        );
 
     let mut buffer = String::new();
     let stdin = io::stdin();
