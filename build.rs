@@ -6,6 +6,7 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
+use inflector::Inflector;
 use itertools::Itertools;
 
 type StrConv = fn(String) -> String;
@@ -27,6 +28,10 @@ struct WordsData {
 }
 
 impl WordsData {
+    fn clone_with_lang(&self, lang: String) -> WordsData {
+        Self::new(self.path.clone(), lang, self.conv.clone())
+    }
+
     fn new(path: String, lang: String, conv: StrConv) -> WordsData {
         WordsData { path, lang, conv }
     }
@@ -52,12 +57,26 @@ impl WordsData {
             .collect()
     }
 
-    fn dest_path(&self) -> PathBuf {
-        let out_dir: &String = &env::var("OUT_DIR").unwrap();
-        Path::new(out_dir)
-            .join(format!("{}.txt.rs", self.lang))
-            .to_owned()
+    fn enum_name(&self) -> String {
+        self.lang
+            .replace('-', "_")
+            .as_str()
+            .split("")
+            .map(|string| string.to_lowercase().to_title_case())
+            .join("")
     }
+
+    fn out_file_name(&self) -> String {
+        format!("{}.txt.rs", self.lang)
+    }
+
+    fn dest_path(&self) -> PathBuf {
+        get_out_dir_joined(self.out_file_name())
+    }
+}
+fn get_out_dir_joined(path: String) -> PathBuf {
+    let out_dir: &String = &env::var("OUT_DIR").unwrap();
+    Path::new(out_dir).join(path).to_owned()
 }
 
 fn write_words_data(words_data: WordsData) {
@@ -99,6 +118,7 @@ fn main() {
 
         let mut data: WordsData = WordsData::from_path(path);
         if data.lang == "de" {
+            words_vec.push(data.clone_with_lang(String::from("de_umlauts")));
             data.conv = |word| {
                 word.replace('ß', "ss")
                     .replace('ä', "ae")
@@ -109,7 +129,39 @@ fn main() {
         words_vec.push(data);
     }
 
-    for word_data in words_vec {
+    for word_data in words_vec.clone() {
         write_words_data(word_data);
     }
+
+    fs::write(
+        get_out_dir_joined(String::from("language.rs")),
+        format!(
+            r###"
+        #[derive(Copy, Clone, Eq, PartialEq)]
+        pub enum Language {{
+            {}
+        }}
+    
+        impl Language {{
+            #[must_use]
+            pub fn from_string(string: &str) -> Option<Self> {{
+                match string.to_lowercase().as_str() {{
+                    {},
+                    _ => None,
+                }}
+            }}
+    
+            pub fn read_words(self, length: usize) -> StringChunkIter<'static> {{
+                let words: &'static str = match self {{
+                    {}
+                }};
+                StringChunkIter::new(length, words)
+            }}
+        }}
+    "###,
+            words_vec.clone().iter().map(|data| data.enum_name()).join(",\n"),
+            words_vec.clone().iter().map(|data| format!("\"{}\" => Some(Self::{})", data.lang, data.enum_name())).join(",\n"),
+            words_vec.clone().iter().map(|data| format!("Self::{} => include!(concat!(env!(\"OUT_DIR\"), \"/{}\"))", data.enum_name(), data.out_file_name())).join("\n,")
+        ),
+    ).unwrap();
 }

@@ -35,30 +35,7 @@ impl<'a> Iterator for StringChunkIter<'a> {
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub enum Language {
-    DE,
-    EN,
-}
-
-impl Language {
-    #[must_use]
-    pub fn from_string(string: &str) -> Option<Self> {
-        match string.to_lowercase().as_str() {
-            "de" => Some(Self::DE),
-            "en" => Some(Self::EN),
-            _ => None,
-        }
-    }
-
-    pub fn read_words(self, length: usize) -> StringChunkIter<'static> {
-        let words: &'static str = match self {
-            Self::DE => include!(concat!(env!("OUT_DIR"), "/de.txt.rs")),
-            Self::EN => include!(concat!(env!("OUT_DIR"), "/en.txt.rs")),
-        };
-        StringChunkIter::new(length, words)
-    }
-}
+include!(concat!(env!("OUT_DIR"), "/language.rs"));
 
 fn join_with_max_length(
     strings: &Vec<String>,
