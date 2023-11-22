@@ -52,6 +52,7 @@ impl WordsData {
     fn read_lines(&self) -> Vec<String> {
         read_lines_of_file(Path::new(self.path.as_str()))
             .unwrap()
+            .map(|word| word.to_lowercase())
             .map(self.conv)
             .unique()
             .collect()
@@ -101,6 +102,21 @@ fn write_words_data(words_data: WordsData) {
     fs::write(words_data.dest_path(), output).unwrap();
 }
 
+fn str_contains_umlaut(string: &String) -> bool {
+    string.contains("ß")
+        || string.contains("ä")
+        || string.contains("ö")
+        || string.contains("ü")
+}
+
+fn replace_umlauts(string: String) -> String {
+    string
+        .replace('ß', "ss")
+        .replace('ä', "ae")
+        .replace('ö', "oe")
+        .replace('ü', "ue")
+}
+
 fn main() {
     let paths = fs::read_dir("./words/").unwrap();
 
@@ -112,14 +128,10 @@ fn main() {
         println!("cargo:rerun-if-changed={}", path.display());
 
         let mut data: WordsData = WordsData::from_path(path);
-        if data.lang == "de" {
-            words_vec.push(data.clone_with_lang(String::from("de_umlauts")));
-            data.conv = |word| {
-                word.replace('ß', "ss")
-                    .replace('ä', "ae")
-                    .replace('ö', "oe")
-                    .replace('ü', "ue")
-            };
+        if data.read_lines().iter().any(str_contains_umlaut) {
+            words_vec
+                .push(data.clone_with_lang(format!("{}_umlauts", data.lang)));
+            data.conv = replace_umlauts;
         }
         words_vec.push(data);
     }
