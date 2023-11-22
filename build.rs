@@ -29,7 +29,7 @@ struct WordsData {
 
 impl WordsData {
     fn clone_with_lang(&self, lang: String) -> WordsData {
-        Self::new(self.path.clone(), lang, self.conv.clone())
+        Self::new(self.path.clone(), lang, self.conv)
     }
 
     fn new(path: String, lang: String, conv: StrConv) -> WordsData {
@@ -58,12 +58,7 @@ impl WordsData {
     }
 
     fn enum_name(&self) -> String {
-        self.lang
-            .replace('-', "_")
-            .as_str()
-            .split("")
-            .map(|string| string.to_lowercase().to_title_case())
-            .join("")
+        self.lang.replace('-', "_").to_pascal_case()
     }
 
     fn out_file_name(&self) -> String {

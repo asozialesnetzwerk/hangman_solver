@@ -14,7 +14,7 @@ fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
 
     let lang = if args.is_empty() {
-        Language::DE
+        Language::De
     } else if args.len() == 1 {
         args.get(0)
             .and_then(|lang| Language::from_string(lang))
