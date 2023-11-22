@@ -99,7 +99,7 @@ impl std::fmt::Display for HangmanResult {
                 &self
                     .possible_words
                     .iter()
-                    .map(|s| s.to_string())
+                    .map(|s| (*s).to_string())
                     .collect::<Vec<String>>(),
                 ", ",
                 max_line_length - " words:   ".len(),

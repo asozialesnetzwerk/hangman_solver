@@ -28,15 +28,15 @@ struct WordsData {
 }
 
 impl WordsData {
-    fn clone_with_lang(&self, lang: String) -> WordsData {
+    fn clone_with_lang(&self, lang: String) -> Self {
         Self::new(self.path.clone(), lang, self.conv)
     }
 
-    fn new(path: String, lang: String, conv: StrConv) -> WordsData {
-        WordsData { path, lang, conv }
+    fn new(path: String, lang: String, conv: StrConv) -> Self {
+        Self { path, lang, conv }
     }
 
-    fn from_path(path: &Path) -> WordsData {
+    fn from_path(path: &Path) -> Self {
         let lang: &str = path
             .file_name()
             .unwrap()
@@ -72,7 +72,7 @@ impl WordsData {
 }
 fn get_out_dir_joined(path: String) -> PathBuf {
     let out_dir: &String = &env::var("OUT_DIR").unwrap();
-    Path::new(out_dir).join(path).to_owned()
+    Path::new(out_dir).join(path)
 }
 
 fn write_words_data(words_data: WordsData) {
@@ -103,10 +103,10 @@ fn write_words_data(words_data: WordsData) {
 }
 
 fn str_contains_umlaut(string: &String) -> bool {
-    string.contains("ß")
-        || string.contains("ä")
-        || string.contains("ö")
-        || string.contains("ü")
+    string.contains('ß')
+        || string.contains('ä')
+        || string.contains('ö')
+        || string.contains('ü')
 }
 
 fn replace_umlauts(string: String) -> String {
@@ -177,7 +177,7 @@ fn main() {
                 }}
             }}
         }}"###,
-            words_vec.clone().iter().map(|data| data.enum_name()).join(",\n"),
+            words_vec.clone().iter().map(WordsData::enum_name).join(",\n"),
             words_vec.clone().iter().map(|data| format!("\"{}\" => Some(Self::{})", data.lang, data.enum_name())).join(",\n"),
             words_vec.clone().iter().map(|data| format!("Self::{} => include!(concat!(env!(\"OUT_DIR\"), \"/{}\"))", data.enum_name(), data.out_file_name())).join("\n,"),
             words_vec.clone().iter().sorted_by_key(|data| data.lang.as_str()).map(|data| format!("Self::{}", data.enum_name())).join(", "),
