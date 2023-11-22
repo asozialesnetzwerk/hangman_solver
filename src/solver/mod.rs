@@ -19,10 +19,6 @@ impl<'a> StringChunkIter<'a> {
             string,
         }
     }
-
-    pub fn len(&self) -> usize {
-        self.string.len() / self.word_length
-    }
 }
 
 impl<'a> Iterator for StringChunkIter<'a> {
@@ -30,15 +26,12 @@ impl<'a> Iterator for StringChunkIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let index = self.index;
-        if index >= self.len() {
+        if index >= self.string.len() {
             return None;
         }
-        self.index += 1;
+        self.index += self.word_length;
 
-        Some(
-            &self.string
-                [index * self.word_length..self.index * self.word_length],
-        )
+        Some(&self.string[index..self.index])
     }
 }
 
