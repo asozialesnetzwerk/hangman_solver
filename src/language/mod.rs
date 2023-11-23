@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: EUPL-1.2
+
+#[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
 pub struct StringChunkIter<'a> {

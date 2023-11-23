@@ -86,6 +86,7 @@ name = "hangman_solver"
 version = "0.0.4"
 dependencies = [
  "Inflector",
+ "cfg-if",
  "counter",
  "itertools",
  "pyo3",

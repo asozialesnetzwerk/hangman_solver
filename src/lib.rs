@@ -1,13 +1,18 @@
 mod language;
 mod solver;
 
-use crate::language::Language;
+pub use crate::language::Language;
 
-use crate::solver::{solve_hangman_puzzle, HangmanResult};
+pub use crate::solver::{solve_hangman_puzzle, HangmanResult};
+
+#[cfg(feature = "pyo3")]
 use pyo3::create_exception;
+#[cfg(feature = "pyo3")]
 use pyo3::exceptions::PyValueError;
+#[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
+#[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language))]
 pub fn solve(
@@ -22,8 +27,10 @@ pub fn solve(
     ))
 }
 
+#[cfg(feature = "pyo3")]
 create_exception!(hangman_solver, UnknownLanguageError, PyValueError);
 
+#[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (name, default = None))]
 pub fn parse_language(
@@ -44,6 +51,7 @@ pub fn parse_language(
 //     Ok(language.read_words(word_length))
 // }
 
+#[cfg(feature = "pyo3")]
 #[pymodule]
 pub(crate) fn hangman_solver(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(solve, m)?)?;
