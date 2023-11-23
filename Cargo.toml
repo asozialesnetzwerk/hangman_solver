@@ -19,9 +19,15 @@ panic = "abort"
 strip = true
 lto = true
 
+[lib]
+name = "hangman_solver"
+crate-type = ["cdylib"]
+
 [dependencies]
 counter = "0.5.7"
 itertools = { version = "0.12.0", features = [] }
+pyo3 = { version = "0.20.0", features = ["extension-module", "abi3", "abi3-py39"] }
+# 0.3.0 has a new feature that I don't like
 terminal_size = "0.2.6"
 
 [build-dependencies]

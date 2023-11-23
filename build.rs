@@ -152,20 +152,13 @@ fn main() {
     fs::write(
         get_out_dir_joined(String::from("language.rs")),
         format!(
-            r###"#[derive(Copy, Clone, Eq, PartialEq)]
+            r###"#[pyclass]
+#[derive(Copy, Clone, Eq, PartialEq)]            
 pub enum Language {{
     {}
 }}
 
 impl Language {{
-    #[must_use]
-    pub fn from_string(string: &str) -> Option<Self> {{
-        match string.to_lowercase().as_str() {{
-            {},
-            _ => None,
-        }}
-    }}
-
     pub fn read_words(self, length: usize) -> StringChunkIter<'static> {{
         let words: &'static str = match self {{
             {}
@@ -179,21 +172,25 @@ impl Language {{
         ];
     }}
     
-    pub fn name(self) -> &'static str {{
+    pub fn from_string(string: &str) -> Option<Self> {{
+        match string.to_lowercase().replace('-', "_").as_str() {{
+            {},
+            _ => None,
+        }}
+    }}
+    
+    pub fn name(&self) -> &'static str {{
         match self {{
             {}
         }}
     }}
-}}"###,
+}}
+
+//#[pymethods]
+//impl Language {{
+//    
+//}}"###,
             words_vec.iter().map(WordsData::enum_name).join(",\n"),
-            words_vec
-                .iter()
-                .map(|data| format!(
-                    "\"{}\" => Some(Self::{})",
-                    data.lang,
-                    data.enum_name()
-                ))
-                .join(",\n"),
             words_vec
                 .iter()
                 .map(|data| format!(
@@ -206,6 +203,14 @@ impl Language {{
                 .iter()
                 .map(|data| format!("Self::{}", data.enum_name()))
                 .join(", "),
+            words_vec
+                .iter()
+                .map(|data| format!(
+                    "\"{}\" => Some(Self::{})",
+                    data.lang,
+                    data.enum_name()
+                ))
+                .join(",\n"),
             words_vec
                 .iter()
                 .map(|data| format!(

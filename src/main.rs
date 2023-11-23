@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: EUPL-1.2
+mod language;
 mod solver;
 
 use std::char;
@@ -9,7 +10,8 @@ use std::process::exit;
 use itertools::Itertools;
 use terminal_size::{terminal_size, Width};
 
-use crate::solver::{solve_hangman_puzzle, Language};
+use crate::language::Language;
+use crate::solver::solve_hangman_puzzle;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();

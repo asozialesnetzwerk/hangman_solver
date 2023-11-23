@@ -3,39 +3,10 @@ use std::char;
 use std::collections::HashSet;
 use std::iter::zip;
 
+use crate::language::{Language, StringChunkIter};
+
 use counter::Counter;
-
-pub struct StringChunkIter<'a> {
-    word_length: usize,
-    index: usize,
-    string: &'a str,
-}
-
-impl<'a> StringChunkIter<'a> {
-    pub fn new(word_length: usize, string: &'a str) -> StringChunkIter<'a> {
-        StringChunkIter {
-            word_length,
-            index: 0,
-            string,
-        }
-    }
-}
-
-impl<'a> Iterator for StringChunkIter<'a> {
-    type Item = &'a str;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let index = self.index;
-        if index >= self.string.len() {
-            return None;
-        }
-        self.index += self.word_length;
-
-        Some(&self.string[index..self.index])
-    }
-}
-
-include!(concat!(env!("OUT_DIR"), "/language.rs"));
+use pyo3::prelude::*;
 
 fn join_with_max_length(
     strings: &Vec<String>,
@@ -59,10 +30,15 @@ fn join_with_max_length(
     string
 }
 
+#[pyclass]
 pub struct HangmanResult {
+    #[pyo3(get)]
     input: String,
+    #[pyo3(get)]
     invalid: Vec<char>,
+    #[pyo3(get, name = "words")]
     possible_words: Vec<&'static str>,
+    #[pyo3(get)]
     pub language: Language,
 }
 
@@ -74,6 +50,13 @@ impl HangmanResult {
             .flat_map(|word| word.chars().collect::<HashSet<char>>())
             .filter(|ch| !input_chars.contains(ch))
             .collect::<Counter<char, u32>>()
+    }
+}
+
+#[pymethods]
+impl HangmanResult {
+    pub fn letter_frequency(&self) -> std::collections::HashMap<char, u32> {
+        self.get_letter_frequency().into_map()
     }
 }
 
