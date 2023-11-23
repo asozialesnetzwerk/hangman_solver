@@ -117,7 +117,7 @@ fn replace_umlauts(string: String) -> String {
         .replace('ü', "ue")
 }
 
-const WORDS_DIR: &'static str = "./words/";
+const WORDS_DIR: &str = "./words/";
 
 fn main() {
     println!("cargo:rerun-if-changed={WORDS_DIR}");
@@ -144,7 +144,7 @@ fn main() {
     let words_vec: Vec<WordsData> = words_vec
         .iter()
         .sorted_by_key(|data| data.lang.as_str())
-        .map(|data| data.clone())
+        .map(std::clone::Clone::clone)
         .collect();
 
     for word_data in &words_vec {

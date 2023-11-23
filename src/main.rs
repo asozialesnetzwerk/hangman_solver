@@ -20,7 +20,10 @@ fn main() {
         eprintln!("Please set a language as argument.");
         eprintln!(
             "Valid languages: {}",
-            Language::all().iter().map(|lang| lang.name()).join(", ")
+            Language::all()
+                .iter()
+                .map(language::Language::name)
+                .join(", ")
         );
         exit(2);
     } else if args.len() != 1 {

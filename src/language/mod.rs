@@ -27,8 +27,8 @@ cfg_if! {
 }
 
 impl StringChunkIter {
-    pub fn new(word_length: usize, string: &'static str) -> StringChunkIter {
-        StringChunkIter {
+    pub fn new(word_length: usize, string: &'static str) -> Self {
+        Self {
             word_length,
             index: 0,
             string,
