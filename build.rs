@@ -185,11 +185,7 @@ impl Language {{
         }}
     }}
 }}
-
-//#[pymethods]
-//impl Language {{
-//    
-//}}"###,
+"###,
             words_vec.iter().map(WordsData::enum_name).join(",\n"),
             words_vec
                 .iter()
