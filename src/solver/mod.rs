@@ -125,7 +125,7 @@ impl std::fmt::Display for HangmanResult {
     }
 }
 
-fn read_words(language: Language, length: usize) -> StringChunkIter<'static> {
+fn read_words(language: Language, length: usize) -> StringChunkIter {
     language.read_words(length)
 }
 

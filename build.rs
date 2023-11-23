@@ -161,7 +161,7 @@ pub enum Language {{
 }}
 
 impl Language {{
-    pub fn read_words(self, length: usize) -> StringChunkIter<'static> {{
+    pub fn read_words(self, length: usize) -> StringChunkIter {{
         let words: &'static str = match self {{
             {}
         }};

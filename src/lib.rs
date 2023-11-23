@@ -1,14 +1,12 @@
 mod language;
 mod solver;
 
-pub use crate::language::Language;
+pub use crate::language::{Language, StringChunkIter};
 
 pub use crate::solver::{solve_hangman_puzzle, HangmanResult};
 
 #[cfg(feature = "pyo3")]
-use pyo3::create_exception;
-#[cfg(feature = "pyo3")]
-use pyo3::exceptions::PyValueError;
+pub use crate::language::UnknownLanguageError;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
@@ -28,34 +26,20 @@ pub fn solve(
 }
 
 #[cfg(feature = "pyo3")]
-create_exception!(hangman_solver, UnknownLanguageError, PyValueError);
-
-#[cfg(feature = "pyo3")]
 #[pyfunction]
-#[pyo3(signature = (name, default = None))]
-pub fn parse_language(
-    name: &str,
-    default: Option<Language>,
-) -> PyResult<Language> {
-    Language::from_string(name)
-        .or(default)
-        .ok_or(UnknownLanguageError::new_err(name.to_owned()))
+#[pyo3(signature = (language, word_length))]
+pub fn read_words_with_length(
+    language: Language,
+    word_length: usize,
+) -> PyResult<StringChunkIter> {
+    Ok(language.read_words(word_length))
 }
-
-// #[pyfunction]
-// #[pyo3(signature = (language, word_length))]
-// pub fn read_words_with_length(
-//     language: Language,
-//     word_length: usize,
-// ) -> PyResult<StringChunkIter<'static>> {
-//     Ok(language.read_words(word_length))
-// }
 
 #[cfg(feature = "pyo3")]
 #[pymodule]
 pub(crate) fn hangman_solver(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(solve, m)?)?;
-    m.add_function(wrap_pyfunction!(parse_language, m)?)?;
+    m.add_function(wrap_pyfunction!(read_words_with_length, m)?)?;
     m.add(
         "UnknownLanguageError",
         py.get_type::<UnknownLanguageError>(),
