@@ -75,7 +75,7 @@ fn get_out_dir_joined(path: String) -> PathBuf {
     Path::new(out_dir).join(path)
 }
 
-fn write_words_data(words_data: WordsData) {
+fn write_words_data(words_data: &WordsData) {
     let mut words: Vec<String> = words_data.read_lines();
 
     words.sort_unstable();
@@ -117,8 +117,11 @@ fn replace_umlauts(string: String) -> String {
         .replace('ü', "ue")
 }
 
+const WORDS_DIR: &'static str = "./words/";
+
 fn main() {
-    let paths = fs::read_dir("./words/").unwrap();
+    println!("cargo:rerun-if-changed={WORDS_DIR}");
+    let paths = fs::read_dir(WORDS_DIR).unwrap();
 
     let mut words_vec: Vec<WordsData> = vec![];
 
@@ -136,52 +139,82 @@ fn main() {
         words_vec.push(data);
     }
 
-    for word_data in words_vec.clone() {
+    let words_vec: Vec<WordsData> = words_vec
+        .iter()
+        .sorted_by_key(|data| data.lang.as_str())
+        .map(|data| data.clone())
+        .collect();
+
+    for word_data in &words_vec {
         write_words_data(word_data);
     }
 
     fs::write(
         get_out_dir_joined(String::from("language.rs")),
         format!(
-            r###"
-        #[derive(Copy, Clone, Eq, PartialEq)]
-        pub enum Language {{
+            r###"#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum Language {{
+    {}
+}}
+
+impl Language {{
+    #[must_use]
+    pub fn from_string(string: &str) -> Option<Self> {{
+        match string.to_lowercase().as_str() {{
+            {},
+            _ => None,
+        }}
+    }}
+
+    pub fn read_words(self, length: usize) -> StringChunkIter<'static> {{
+        let words: &'static str = match self {{
+            {}
+        }};
+        StringChunkIter::new(length, words)
+    }}
+    
+    pub fn all() -> Vec<Language> {{
+        return vec![
+            {}
+        ];
+    }}
+    
+    pub fn name(self) -> &'static str {{
+        match self {{
             {}
         }}
-    
-        impl Language {{
-            #[must_use]
-            pub fn from_string(string: &str) -> Option<Self> {{
-                match string.to_lowercase().as_str() {{
-                    {},
-                    _ => None,
-                }}
-            }}
-    
-            pub fn read_words(self, length: usize) -> StringChunkIter<'static> {{
-                let words: &'static str = match self {{
-                    {}
-                }};
-                StringChunkIter::new(length, words)
-            }}
-            
-            pub fn all() -> Vec<Language> {{
-                return vec![
-                    {}
-                ];
-            }}
-            
-            pub fn name(self) -> &'static str {{
-                match self {{
-                    {}
-                }}
-            }}
-        }}"###,
-            words_vec.clone().iter().map(WordsData::enum_name).join(",\n"),
-            words_vec.clone().iter().map(|data| format!("\"{}\" => Some(Self::{})", data.lang, data.enum_name())).join(",\n"),
-            words_vec.clone().iter().map(|data| format!("Self::{} => include!(concat!(env!(\"OUT_DIR\"), \"/{}\"))", data.enum_name(), data.out_file_name())).join("\n,"),
-            words_vec.clone().iter().sorted_by_key(|data| data.lang.as_str()).map(|data| format!("Self::{}", data.enum_name())).join(", "),
-            words_vec.clone().iter().map(|data| format!("Self::{} => \"{}\"", data.enum_name(), data.lang)).join(",\n"),
+    }}
+}}"###,
+            words_vec.iter().map(WordsData::enum_name).join(",\n"),
+            words_vec
+                .iter()
+                .map(|data| format!(
+                    "\"{}\" => Some(Self::{})",
+                    data.lang,
+                    data.enum_name()
+                ))
+                .join(",\n"),
+            words_vec
+                .iter()
+                .map(|data| format!(
+                    "Self::{} => include!(concat!(env!(\"OUT_DIR\"), \"/{}\"))",
+                    data.enum_name(),
+                    data.out_file_name()
+                ))
+                .join("\n,"),
+            words_vec
+                .iter()
+                .map(|data| format!("Self::{}", data.enum_name()))
+                .join(", "),
+            words_vec
+                .iter()
+                .map(|data| format!(
+                    "Self::{} => \"{}\"",
+                    data.enum_name(),
+                    data.lang
+                ))
+                .join(",\n"),
         ),
-    ).unwrap();
+    )
+    .unwrap();
 }
