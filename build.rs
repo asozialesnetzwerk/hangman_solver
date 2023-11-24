@@ -52,6 +52,7 @@ impl WordsData {
     fn read_lines(&self) -> Vec<String> {
         read_lines_of_file(Path::new(self.path.as_str()))
             .unwrap()
+            .filter(|word| !word.is_empty())
             .map(|word| word.to_lowercase())
             .map(self.conv)
             .unique()
