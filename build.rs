@@ -111,7 +111,7 @@ fn write_words_data(words_data: &WordsData) {
                 .iter()
                 .map(|word| {
                     ("\\0".repeat(max_real_str_length - word.as_str().len()))
-                        + &(word.to_owned())
+                        + &word.clone()
                 })
                 .join("")
                 .replace('"', "\\\"")
