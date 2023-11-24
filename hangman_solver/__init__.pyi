@@ -22,17 +22,16 @@ class HangmanResult:
         pass
 
     input: str
-
     invalid: list[str]
-
     language: Language
-
-    words: Iterable[str]
+    words: list[str]
 
 
 
 class Language:
-    def parse_string(self, name: str, default: Language = None) -> Language:
+
+    @staticmethod
+    def parse_string(name: str, default: Language = None) -> Language:
         pass
 
     @staticmethod
