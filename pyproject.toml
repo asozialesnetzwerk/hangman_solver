@@ -23,5 +23,6 @@ bindings = "pyo3"
 compatibility = "manylinux2014"
 features = ["pyo3"]
 profile = "release"
+strip = true
 
 # building wheel with: podman run --rm -v .:/io ghcr.io/pyo3/maturin build --release --manylinux 2014
