@@ -14,12 +14,14 @@ cfg_if! {
         #[pyclass]
         pub struct StringChunkIter {
             word_length: usize,
+            padded_word_byte_count: usize,
             index: usize,
             string: &'static str,
         }
     } else {
         pub struct StringChunkIter {
             word_length: usize,
+            padded_word_byte_count: usize,
             index: usize,
             string: &'static str,
         }
@@ -27,11 +29,16 @@ cfg_if! {
 }
 
 impl StringChunkIter {
-    pub fn new(word_length: usize, string: &'static str) -> Self {
+    pub fn new(
+        word_length: usize,
+        string: &'static str,
+        padded_word_byte_count: usize,
+    ) -> Self {
         Self {
             word_length,
             index: 0,
             string,
+            padded_word_byte_count,
         }
     }
 }
@@ -44,9 +51,16 @@ impl Iterator for StringChunkIter {
         if index >= self.string.len() {
             return None;
         }
-        self.index += self.word_length;
+        self.index += self.padded_word_byte_count;
 
-        Some(&self.string[index..self.index])
+        let result = &self.string[index..self.index];
+        if result.len() == self.word_length {
+            debug_assert!(!result.starts_with('\0'));
+            return Some(result);
+        }
+        let result = result.trim_start_matches('\0');
+        debug_assert!(result.len() >= self.word_length);
+        Some(result)
     }
 }
 
@@ -62,7 +76,7 @@ impl StringChunkIter {
     }
 
     fn __len__(&self) -> usize {
-        self.string.len() / self.word_length
+        self.string.len() / self.padded_word_byte_count
     }
 }
 

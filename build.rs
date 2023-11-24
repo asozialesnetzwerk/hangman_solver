@@ -82,12 +82,12 @@ fn write_words_data(words_data: &WordsData) {
     let mut words: Vec<String> = words_data.read_lines();
 
     words.sort_unstable();
-    words.sort_by_key(|word: &String| word.len());
+    words.sort_by_key(|word: &String| word.chars().count());
 
     let words: Vec<(usize, Vec<String>)> = words
         .into_iter()
         .unique()
-        .into_group_map_by(|word: &String| word.len())
+        .into_group_map_by(|word: &String| word.chars().count())
         .into_iter()
         .sorted_by_key(|(length, _)| *length)
         .collect();
@@ -95,13 +95,33 @@ fn write_words_data(words_data: &WordsData) {
     let mut output = String::new();
     output += "match length {";
     for (length, words_group) in words {
-        output += &*format!("{length} => \"");
+        let max_real_str_length: usize = words_group
+            .iter()
+            .map(|word| word.as_str().len())
+            .max()
+            .unwrap();
 
-        output += &*(words_group.iter().join("").replace('"', "\\\""));
+        output += &*format!("{length} => ({max_real_str_length}, \"");
 
-        output += "\",\n";
+        let string_content: String = if max_real_str_length == length {
+            words_group.iter().join("").replace('"', "\\\"")
+        } else {
+            println!("{} {length} {max_real_str_length}", words_data.lang);
+            words_group
+                .iter()
+                .map(|word| {
+                    ("\\0".repeat(max_real_str_length - word.as_str().len()))
+                        + &(word.to_owned())
+                })
+                .join("")
+                .replace('"', "\\\"")
+        };
+
+        output += &string_content;
+
+        output += "\"),\n";
     }
-    output += "_ => \"\"}";
+    output += "_ => (0, \"\")}";
     fs::write(words_data.dest_path(), output).unwrap();
 }
 
@@ -171,10 +191,10 @@ pub enum Language {{
 
 impl Language {{
     pub fn read_words(self, length: usize) -> StringChunkIter {{
-        let words: &'static str = match self {{
+        let (padded_length, words): (usize, &'static str) = match self {{
             {}
         }};
-        StringChunkIter::new(length, words)
+        StringChunkIter::new(length, words, padded_length)
     }}
     
     pub fn all() -> Vec<Self> {{

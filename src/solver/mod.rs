@@ -184,7 +184,8 @@ impl Pattern {
 
     fn matches(&self, word: &str) -> bool {
         // This only makes sense if word has the same length as the pattern
-        debug_assert_eq!(word.len(), self.pattern.len());
+        debug_assert_eq!(word.chars().count(), self.pattern.len());
+        debug_assert!(!word.contains('\0'));
         for (p, w) in zip(self.pattern.iter(), word.chars()) {
             if *p == '_' {
                 if self.invalid_letters.contains(&w) {
@@ -207,18 +208,19 @@ pub fn solve_hangman_puzzle(
     pattern: &Pattern,
     language: Language,
 ) -> HangmanResult {
+    let all_words = read_words(language, pattern.pattern.len());
+
     let possible_words: Vec<&'static str> = if pattern.known_letters_count()
         == 0
         && pattern.invalid_letters.is_empty()
     {
-        read_words(language, pattern.pattern.len())
-            .collect::<Vec<&'static str>>()
+        all_words.collect::<Vec<&'static str>>()
     } else if pattern.first_letter_is_wildcard() {
-        read_words(language, pattern.pattern.len())
+        all_words
             .filter(|word| pattern.matches(word))
             .collect::<Vec<&'static str>>()
     } else {
-        read_words(language, pattern.pattern.len())
+        all_words
             .skip_while(|word| !pattern.first_letter_matches(word))
             .take_while(|word| pattern.first_letter_matches(word))
             .filter(|word| pattern.matches(word))
