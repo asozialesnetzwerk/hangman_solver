@@ -54,9 +54,15 @@ run_all()
 
 if [ -z "${1:-}" ] ; then
   run_all "de" "$(mktemp -d)" || exit "${?}"
+  run_all "de_umlauts" "$(mktemp -d)" || exit "${?}"
+  run_all "de_basic" "$(mktemp -d)" || exit "${?}"
+  run_all "de_basic_umlauts" "$(mktemp -d)" || exit "${?}"
   run_all "en" "$(mktemp -d)" || exit "${?}"
 elif [ "--write-out" = "${1}" ] ; then
   run_all "de" "${TEST_INPUTS_DIR}" || echo "Updated output de"
+  run_all "de_umlauts" "${TEST_INPUTS_DIR}" || echo "Updated output de_umlauts"
+  run_all "de_basic" "${TEST_INPUTS_DIR}" || echo "Updated output de_basic"
+  run_all "de_basic_umlauts" "${TEST_INPUTS_DIR}" || echo "Updated output de_basic_umlauts"
   run_all "en" "${TEST_INPUTS_DIR}" || echo "Updated output en"
 else
   run_with_input "${@?}"

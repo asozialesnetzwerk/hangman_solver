@@ -1,0 +1,18 @@
+Found 1555 words (input: _____________, invalid: )
+ words:   abendakademie, abendprogramm, abenteuerlich, abergläubisch, ...
+ letters: e: 1359, n: 1197, r: 1138, i: 1137, s: 1004, t: 1000, a: 929, ...
+Found 26 words (input: __e__________, invalid: )
+ words:   abendprogramm, abergläubisch, aserbaidschan, bleichsüchtig, ...
+ letters: i: 23, r: 22, s: 20, h: 19, c: 16, n: 15, a: 14, d: 13, l: 12, ...
+Found 1 words (input: __e______s___, invalid: )
+ words:   zweitwohnsitz
+ letters: h: 1, i: 1, n: 1, o: 1, t: 1, w: 1, z: 1
+Found 1 words (input: __e______s___, invalid: a)
+ words:   zweitwohnsitz
+ letters: h: 1, i: 1, n: 1, o: 1, t: 1, w: 1, z: 1
+Found 1 words (input: __ei_____si__, invalid: a)
+ words:   zweitwohnsitz
+ letters: h: 1, n: 1, o: 1, t: 1, w: 1, z: 1
+Found 1 words (input: __ei____nsi__, invalid: a)
+ words:   zweitwohnsitz
+ letters: h: 1, o: 1, t: 1, w: 1, z: 1

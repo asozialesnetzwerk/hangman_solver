@@ -1,0 +1,21 @@
+Found 2431 words (input: _______, invalid: )
+ words:   abartig, abaxial, abbruch, abessen, abfahrt, abfluss, abfolge, ...
+ letters: e: 1682, n: 1353, r: 1176, a: 1069, i: 962, t: 956, l: 907, ...
+Found 749 words (input: _______, invalid: e)
+ words:   abartig, abaxial, abbruch, abfahrt, abfluss, abgrund, abortiv, ...
+ letters: a: 461, i: 375, r: 332, t: 332, n: 313, s: 308, o: 281, u: 259, ...
+Found 11 words (input: a____a_, invalid: e)
+ words:   achtbar, achtsam, admiral, advokat, adäquat, akkurat, akrobat, ...
+ letters: t: 9, r: 6, u: 5, o: 4, d: 3, k: 3, l: 3, m: 3, s: 3, b: 2, c: 2, ...
+Found 2 words (input: a____a_, invalid: et)
+ words:   admiral, asozial
+ letters: i: 2, l: 2, d: 1, m: 1, o: 1, r: 1, s: 1, z: 1
+Found 1 words (input: a____a_, invalid: ert)
+ words:   asozial
+ letters: i: 1, l: 1, o: 1, s: 1, z: 1
+Found 1 words (input: as___a_, invalid: ert)
+ words:   asozial
+ letters: i: 1, l: 1, o: 1, z: 1
+Found 1 words (input: as___al, invalid: ert)
+ words:   asozial
+ letters: i: 1, o: 1, z: 1

@@ -1,0 +1,30 @@
+Found 3160 words (input: __________, invalid: )
+ words:   abaissiert, abbedingen, abbehalten, abbekommen, abberufung, ...
+ letters: e: 2593, n: 2100, r: 1964, i: 1959, a: 1675, t: 1675, s: 1491, ...
+Found 40 words (input: __e_____e_, invalid: )
+ words:   amerikaner, amethysten, biergarten, bleifarben, bleischwer, ...
+ letters: r: 37, n: 34, a: 28, b: 23, i: 19, l: 17, ü: 17, f: 16, t: 13, ...
+Found 3 words (input: __er__r_e_, invalid: )
+ words:   biergarten, tiergarten, unerwartet
+ letters: a: 3, n: 3, t: 3, g: 2, i: 2, b: 1, u: 1, w: 1
+Found 2 words (input: __er__r_en, invalid: )
+ words:   biergarten, tiergarten
+ letters: a: 2, g: 2, i: 2, t: 2, b: 1
+Found 1 words (input: __er__rten, invalid: )
+ words:   biergarten
+ letters: a: 1, b: 1, g: 1, i: 1
+Found 1 words (input: __er__rten, invalid: o)
+ words:   biergarten
+ letters: a: 1, b: 1, g: 1, i: 1
+Found 1 words (input: __er_arten, invalid: o)
+ words:   biergarten
+ letters: b: 1, g: 1, i: 1
+Found 1 words (input: __ergarten, invalid: o)
+ words:   biergarten
+ letters: b: 1, i: 1
+Found 1 words (input: __ergarten, invalid: oz)
+ words:   biergarten
+ letters: b: 1, i: 1
+Found 1 words (input: __ergarten, invalid: ouz)
+ words:   biergarten
+ letters: b: 1, i: 1

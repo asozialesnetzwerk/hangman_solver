@@ -1,0 +1,24 @@
+Found 236202 words (input: _______________, invalid: )
+ words:   abbauaktivitaet, abbaudiagnostik, abbaueinwirkung, ...
+ letters: e: 227090, n: 189450, r: 182073, s: 170489, t: 161179, a: 158824, ...
+Found 838 words (input: ____e___e____e_, invalid: )
+ words:   abblendleuchten, abfuellmethoden, abspeicherungen, ...
+ letters: n: 743, r: 684, s: 515, a: 494, i: 471, h: 470, t: 445, g: 413, ...
+Found 6 words (input: ____en__enn__en, invalid: )
+ words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, ...
+ letters: a: 6, c: 6, h: 6, m: 6, t: 4, g: 2, r: 2, s: 2, i: 1, k: 1, l: 1, ...
+Found 4 words (input: _a__en_aenn__en, invalid: )
+ words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ letters: c: 4, h: 4, m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
+Found 4 words (input: _a__en_aennc_en, invalid: )
+ words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ letters: h: 4, m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
+Found 4 words (input: _a__en_aennchen, invalid: )
+ words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ letters: m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
+Found 4 words (input: _a__enmaennchen, invalid: )
+ words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ letters: t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
+Found 1 words (input: _a__enmaennchen, invalid: t)
+ words:   galgenmaennchen
+ letters: g: 1, l: 1

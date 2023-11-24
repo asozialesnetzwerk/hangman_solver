@@ -1,0 +1,12 @@
+Found 850 words (input: _______________, invalid: )
+ words:   abschnittsweise, abwasserverband, adventskalender, ...
+ letters: e: 760, n: 684, r: 664, s: 659, i: 640, t: 629, a: 550, h: 471, ...
+Found 2 words (input: ____e___e____e_, invalid: )
+ words:   handelsregister, konzertbesucher
+ letters: h: 2, n: 2, r: 2, s: 2, t: 2, a: 1, b: 1, c: 1, d: 1, g: 1, i: 1, ...
+Found 0 words (input: ____en__enn__en, invalid: )
+Found 0 words (input: _a__en_aenn__en, invalid: )
+Found 0 words (input: _a__en_aennc_en, invalid: )
+Found 0 words (input: _a__en_aennchen, invalid: )
+Found 0 words (input: _a__enmaennchen, invalid: )
+Found 0 words (input: _a__enmaennchen, invalid: t)
