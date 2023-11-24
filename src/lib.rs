@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2
 mod language;
 mod solver;
 

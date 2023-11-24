@@ -130,6 +130,9 @@ fn main() {
     for dir_entry in paths {
         let p = dir_entry.unwrap().path();
         let path = p.as_path();
+        if path.file_name().unwrap().to_str().unwrap() == "LICENSE" {
+            continue;
+        }
         println!("cargo:rerun-if-changed={}", path.display());
 
         let mut data: WordsData = WordsData::from_path(path);
