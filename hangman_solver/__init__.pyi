@@ -2,19 +2,23 @@ from collections.abc import Iterable, Mapping
 from typing import ClassVar
 
 
-__all__ = [
-    'solve',
-    'read_words_with_length',
-    'UnknownLanguageError',
-    'HangmanResult',
-    'Language',
-]
+__all__ = (
+    "solve",
+    "solve_crossword",
+    "read_words_with_length",
+    "UnknownLanguageError",
+    "HangmanResult",
+    "Language",
+)
 
 
 def read_words_with_length(language: Language, word_length: int) -> Iterable[str]:
     pass
 
 def solve(pattern_string: str, invalid_letters: list[str], language: Language) -> HangmanResult:
+    pass
+
+def solve_crossword(pattern_string: str, invalid_letters: list[str], language: Language) -> HangmanResult:
     pass
 
 class HangmanResult:

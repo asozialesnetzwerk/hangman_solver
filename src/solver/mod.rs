@@ -136,7 +136,11 @@ pub struct Pattern {
 }
 
 impl Pattern {
-    fn new(pattern: &str, invalid_letters: &[char]) -> Self {
+    pub fn new(
+        pattern: &str,
+        invalid_letters: &[char],
+        add_pattern_to_invalid: bool,
+    ) -> Self {
         let pattern_as_chars: Vec<char> = pattern
             .to_lowercase()
             .replace(['-', '?'], "_")
@@ -144,9 +148,15 @@ impl Pattern {
             .filter(|ch| !ch.is_whitespace())
             .collect();
 
-        let invalid_letters_set: HashSet<char> = pattern_as_chars
+        let additional_invalid: Vec<char> = if add_pattern_to_invalid {
+            pattern_as_chars.clone()
+        } else {
+            vec![]
+        };
+
+        let invalid_letters_set: HashSet<char> = additional_invalid
             .iter()
-            .chain(invalid_letters.iter())
+            .chain(invalid_letters)
             .copied()
             .filter(|ch| *ch != '_' && !ch.is_whitespace())
             .collect();
@@ -194,12 +204,9 @@ impl Pattern {
 
 #[must_use]
 pub fn solve_hangman_puzzle(
-    pattern_string: &str,
-    invalid_letters: &[char],
+    pattern: &Pattern,
     language: Language,
 ) -> HangmanResult {
-    let pattern = Pattern::new(pattern_string, invalid_letters);
-
     let possible_words: Vec<&'static str> = if pattern.known_letters_count()
         == 0
         && pattern.invalid_letters.is_empty()

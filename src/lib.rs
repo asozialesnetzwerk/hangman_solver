@@ -4,7 +4,7 @@ mod solver;
 
 pub use crate::language::{Language, StringChunkIter};
 
-pub use crate::solver::{solve_hangman_puzzle, HangmanResult};
+pub use crate::solver::{solve_hangman_puzzle, HangmanResult, Pattern};
 
 #[cfg(feature = "pyo3")]
 pub use crate::language::UnknownLanguageError;
@@ -19,11 +19,20 @@ pub fn solve(
     invalid_letters: Vec<char>,
     language: Language,
 ) -> PyResult<HangmanResult> {
-    Ok(solve_hangman_puzzle(
-        pattern_string.as_str(),
-        &invalid_letters,
-        language,
-    ))
+    let pattern = Pattern::new(&pattern_string, &invalid_letters, true);
+    Ok(solve_hangman_puzzle(&pattern, language))
+}
+
+#[cfg(feature = "pyo3")]
+#[pyfunction]
+#[pyo3(signature = (pattern_string, invalid_letters, language))]
+pub fn solve_crossword(
+    pattern_string: String,
+    invalid_letters: Vec<char>,
+    language: Language,
+) -> PyResult<HangmanResult> {
+    let pattern = Pattern::new(&pattern_string, &invalid_letters, false);
+    Ok(solve_hangman_puzzle(&pattern, language))
 }
 
 #[cfg(feature = "pyo3")]
@@ -40,6 +49,7 @@ pub fn read_words_with_length(
 #[pymodule]
 pub(crate) fn hangman_solver(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(solve, m)?)?;
+    m.add_function(wrap_pyfunction!(solve_crossword, m)?)?;
     m.add_function(wrap_pyfunction!(read_words_with_length, m)?)?;
     m.add(
         "UnknownLanguageError",

@@ -11,7 +11,7 @@ use itertools::Itertools;
 use terminal_size::{terminal_size, Width};
 
 use crate::language::Language;
-use crate::solver::solve_hangman_puzzle;
+use crate::solver::{solve_hangman_puzzle, Pattern};
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -53,15 +53,16 @@ fn main() {
                     exit(i32::from(result != 0));
                 }
                 let input: Vec<&str> = buffer.splitn(2, ' ').collect();
-                let hr = solve_hangman_puzzle(
+                let pattern = Pattern::new(
                     input[0],
                     &(input
                         .get(1)
                         .unwrap_or(&"")
                         .chars()
                         .collect::<Vec<char>>()),
-                    lang,
+                    true,
                 );
+                let hr = solve_hangman_puzzle(&pattern, lang);
                 assert!(hr.language == lang);
                 let width: usize = if let Some((Width(w), _)) = terminal_size()
                 {
