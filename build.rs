@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used)]
+
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -103,6 +105,7 @@ fn write_words_data(words_data: &WordsData) {
     fs::write(words_data.dest_path(), output).unwrap();
 }
 
+#[allow(clippy::ptr_arg)]
 fn str_contains_umlaut(string: &String) -> bool {
     string.contains('ß')
         || string.contains('ä')
@@ -110,6 +113,8 @@ fn str_contains_umlaut(string: &String) -> bool {
         || string.contains('ü')
 }
 
+#[allow(clippy::ptr_arg)]
+#[allow(clippy::needless_pass_by_value)]
 fn replace_umlauts(string: String) -> String {
     string
         .replace('ß', "ss")
@@ -172,10 +177,10 @@ impl Language {{
         StringChunkIter::new(length, words)
     }}
     
-    pub fn all() -> Vec<Language> {{
-        return vec![
+    pub fn all() -> Vec<Self> {{
+        vec![
             {}
-        ];
+        ]
     }}
     
     pub fn from_string(string: &str) -> Option<Self> {{
@@ -184,7 +189,9 @@ impl Language {{
             _ => None,
         }}
     }}
-    
+
+    #[allow(clippy::needless_pass_by_value)]
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn name(&self) -> &'static str {{
         match self {{
             {}
