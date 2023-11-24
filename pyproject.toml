@@ -24,5 +24,7 @@ compatibility = "manylinux2014"
 features = ["pyo3"]
 profile = "release"
 strip = true
+python-source = "python"
+module-name = "hangman_solver._solver"
 
 # building wheel with: podman run --rm -v .:/io ghcr.io/pyo3/maturin build --release --manylinux 2014

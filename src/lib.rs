@@ -47,6 +47,7 @@ pub fn read_words_with_length(
 
 #[cfg(feature = "pyo3")]
 #[pymodule]
+#[pyo3(name = "_solver")]
 pub(crate) fn hangman_solver(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(solve, m)?)?;
     m.add_function(wrap_pyfunction!(solve_crossword, m)?)?;
