@@ -22,14 +22,14 @@ run_with_input()
     cargo run -q ${CARGO_ARGS} "${LANGUAGE}" < "${FILE}"
   else
     OUTPUT_FILE="${3}/${1}.output"
-    cargo run -q ${CARGO_ARGS} "${LANGUAGE}" < "${FILE}" > "${OUTPUT_FILE}"
+    cargo run -q ${CARGO_ARGS} "${LANGUAGE}" < "${FILE}" 2>&1 | tee "${OUTPUT_FILE}" > /dev/null
   fi
   END=$(date +%s%N)
   ELAPSED=$((END-START))
   LINES=$(wc -l "${FILE}"  | cut -d " " -f1)
   echo "$((ELAPSED/1000000))ms (${1}, lines: ${LINES}, per line: $((ELAPSED/LINES/1000000))ms)"
   if [ -n "${3:-}" ] ; then
-    diff --color=auto "${TEST_INPUTS_DIR}/${LANGUAGE}/${1}.output" "${OUTPUT_FILE}" >&2
+    PAGER=cat git diff --no-index --color=auto "${TEST_INPUTS_DIR}/${LANGUAGE}/${1}.output" "${OUTPUT_FILE}" >&2
   fi
 }
 
