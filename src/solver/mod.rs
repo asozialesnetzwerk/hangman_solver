@@ -2,7 +2,6 @@
 use std::char;
 use std::collections::HashSet;
 use std::iter::zip;
-use std::string::ToString;
 
 use crate::language::{Language, StringChunkIter};
 
@@ -17,23 +16,26 @@ const WILDCARD_CHAR_AS_STR: &str = "_";
 const WILDCARD_ALIASES: [char; 2] = ['#', '?'];
 const RESERVED_CHARS: [char; 5] = ['#', '?', '_', '\0', '\n'];
 
-fn join_with_max_length(
-    strings: &Vec<String>,
+fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
+    strings: T,
     sep: &str,
     max_len: usize,
 ) -> String {
     let mut string = String::with_capacity(max_len);
-    let last_index = strings.len() - 1;
-    for (i, item) in strings.iter().enumerate() {
+    let last_index = string.len() - 1;
+    for (i, item) in strings.enumerate() {
         let current_sep = if i == 0 { "" } else { sep };
         let min_next_len = if i == last_index { 0 } else { sep.len() + 3 };
-        if string.len() + current_sep.len() + item.len() + min_next_len
+        if string.len()
+            + current_sep.len()
+            + item.chars().count()
+            + min_next_len
             > max_len
         {
             string.extend([current_sep, "..."]);
             break;
         }
-        string.extend([current_sep, item]);
+        string.extend([current_sep, &item]);
     }
     debug_assert!(string.len() <= max_len);
     string
@@ -89,11 +91,7 @@ impl std::fmt::Display for HangmanResult {
             file,
             " words:   {}",
             join_with_max_length(
-                &self
-                    .possible_words
-                    .iter()
-                    .map(|s| (*s).to_string())
-                    .collect::<Vec<String>>(),
+                self.possible_words.iter().map(|word| String::from(*word)),
                 ", ",
                 max_line_length - " words:   ".len(),
             )
@@ -107,10 +105,7 @@ impl std::fmt::Display for HangmanResult {
                 file,
                 " letters: {}",
                 join_with_max_length(
-                    &(letters
-                        .iter()
-                        .map(|(ch, f)| format!("{ch}: {f}"))
-                        .collect::<Vec<String>>()),
+                    letters.iter().map(|(ch, f)| format!("{ch}: {f}")),
                     ", ",
                     max_line_length - " letters: ".len(),
                 )
