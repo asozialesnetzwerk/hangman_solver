@@ -32,7 +32,6 @@ name = "hangman_solver_lib"
 crate-type = ["cdylib"]
 
 [dependencies]
-cfg-if = { version = "1.0.0", features = [] }
 counter = "0.5.7"
 itertools = { version = "0.12.0", features = [] }
 pyo3 = { version = "0.20.0", features = ["extension-module", "abi3", "abi3-py310"], optional = true }

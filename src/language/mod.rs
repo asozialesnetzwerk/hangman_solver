@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: EUPL-1.2
 
-use cfg_if::cfg_if;
-
 #[cfg(feature = "pyo3")]
 use pyo3::create_exception;
 #[cfg(feature = "pyo3")]
@@ -9,23 +7,12 @@ use pyo3::exceptions::PyValueError;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
-cfg_if! {
-    if #[cfg(feature = "pyo3")] {
-        #[pyclass]
-        pub struct StringChunkIter {
-            word_length: usize,
-            padded_word_byte_count: usize,
-            index: usize,
-            string: &'static str,
-        }
-    } else {
-        pub struct StringChunkIter {
-            word_length: usize,
-            padded_word_byte_count: usize,
-            index: usize,
-            string: &'static str,
-        }
-    }
+#[cfg_attr(feature = "pyo3", pyclass)]
+pub struct StringChunkIter {
+    word_length: usize,
+    padded_word_byte_count: usize,
+    index: usize,
+    string: &'static str,
 }
 
 impl StringChunkIter {
