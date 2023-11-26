@@ -71,8 +71,11 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+      - name: Update rust
+        shell: bash
+        run: rustup update stable && rustup default stable
       - name: Improve the code
-        run: ./clippy --fix
+        run: ./clippy --fix || ./clippy --fix --all-features
       - name: Format the code
         run: cargo fmt
       - name: Update env
