@@ -15,5 +15,5 @@ Found 99 words (input: ____er___, invalid: nt)
  letters: a: 70, s: 60, b: 51, o: 51, u: 49, i: 38, l: 34, h: 29, m: 29, ...
 Found 3 words (input: ____ers__, invalid: nt)
  words:   bildersog, hammersau, papierski
- letters: a: 2, i: 2, b: 1, d: 1, g: 1, h: 1, k: 1, l: 1, m: 1, o: 1, p: 1, ...
+ letters: a: 2, i: 2, b: 1, d: 1, g: 1, h: 1, k: 1, l: 1, m: 1, o: 1, p: 1, u: 1
 Found 0 words (input: zuckersüß, invalid: )
