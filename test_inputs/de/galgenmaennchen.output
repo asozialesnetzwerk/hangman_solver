@@ -8,16 +8,16 @@ Found 6 words (input: ____en__enn__en, invalid: )
  words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, ...
  letters: a: 6, c: 6, h: 6, m: 6, t: 4, g: 2, r: 2, s: 2, i: 1, k: 1, l: 1, ...
 Found 4 words (input: _a__en_aenn__en, invalid: )
- words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, ...
  letters: c: 4, h: 4, m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
 Found 4 words (input: _a__en_aennc_en, invalid: )
- words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, ...
  letters: h: 4, m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
 Found 4 words (input: _a__en_aennchen, invalid: )
- words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, ...
  letters: m: 4, t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
 Found 4 words (input: _a__enmaennchen, invalid: )
- words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, rattenmaennchen
+ words:   galgenmaennchen, gartenmaennchen, kastenmaennchen, ...
  letters: t: 3, g: 2, r: 2, k: 1, l: 1, s: 1
 Found 1 words (input: _a__enmaennchen, invalid: t)
  words:   galgenmaennchen

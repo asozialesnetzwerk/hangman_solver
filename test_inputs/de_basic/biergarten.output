@@ -6,7 +6,7 @@ Found 169 words (input: __e_____e_, invalid: )
  letters: r: 116, i: 115, n: 112, a: 93, s: 78, t: 74, l: 67, u: 63, h: 58, ...
 Found 5 words (input: __er__r_e_, invalid: )
  words:   biergarten, fuersorgen, tiergarten, unerwartet, ziergarten
- letters: n: 5, a: 4, g: 4, t: 4, i: 3, u: 2, b: 1, f: 1, o: 1, s: 1, w: 1, z: 1
+ letters: n: 5, a: 4, g: 4, t: 4, i: 3, u: 2, b: 1, f: 1, o: 1, s: 1, w: 1, ...
 Found 4 words (input: __er__r_en, invalid: )
  words:   biergarten, fuersorgen, tiergarten, ziergarten
  letters: g: 4, a: 3, i: 3, t: 3, b: 1, f: 1, o: 1, s: 1, u: 1, z: 1
