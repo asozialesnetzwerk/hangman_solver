@@ -17,6 +17,24 @@ const WILDCARD_CHAR_AS_STR: &str = "_";
 const WILDCARD_ALIASES: [char; 2] = ['#', '?'];
 const RESERVED_CHARS: [char; 5] = ['#', '?', '_', '\0', '\n'];
 
+trait CharCount {
+    fn char_count(&self) -> usize;
+}
+
+impl CharCount for String {
+    #[inline]
+    fn char_count(&self) -> usize {
+        self.chars().count()
+    }
+}
+
+impl CharCount for str {
+    #[inline]
+    fn char_count(&self) -> usize {
+        self.chars().count()
+    }
+}
+
 fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
     strings: T,
     sep: &str,
@@ -27,9 +45,9 @@ fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
     for (i, item) in strings.enumerate() {
         let current_sep = if i == 0 { "" } else { sep };
         let min_next_len = if i == last_index { 0 } else { sep.len() + 3 };
-        if string.len()
+        if string.char_count()
             + current_sep.len()
-            + item.chars().count()
+            + item.char_count()
             + min_next_len
             > max_len
         {
@@ -38,7 +56,7 @@ fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
         }
         string.extend([current_sep, &item]);
     }
-    debug_assert!(string.len() <= max_len);
+    debug_assert!(string.char_count() <= max_len);
     string
 }
 
@@ -182,7 +200,7 @@ impl Pattern {
 
     fn matches(&self, word: &str) -> bool {
         // This only makes sense if word has the same length as the pattern
-        debug_assert_eq!(word.chars().count(), self.pattern.len());
+        debug_assert_eq!(word.char_count(), self.pattern.len());
         // none of the reserved chars shall be in the word
         debug_assert_eq!(
             RESERVED_CHARS
