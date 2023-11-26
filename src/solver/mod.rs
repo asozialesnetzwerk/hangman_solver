@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: EUPL-1.2
+use cfg_if::cfg_if;
 use std::char;
 use std::collections::HashSet;
 use std::iter::zip;
@@ -41,16 +42,27 @@ fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
     string
 }
 
-#[cfg_attr(feature = "pyo3", pyclass)]
-pub struct HangmanResult {
-    #[cfg_attr(feature = "pyo3", pyo3(get))]
-    input: String,
-    #[cfg_attr(feature = "pyo3", pyo3(get))]
-    invalid: Vec<char>,
-    #[cfg_attr(feature = "pyo3", pyo3(get, name = "words"))]
-    possible_words: Vec<&'static str>,
-    #[cfg_attr(feature = "pyo3", pyo3(get))]
-    pub language: Language,
+cfg_if! {
+    if #[cfg(feature = "pyo3")] {
+        #[pyclass]
+        pub struct HangmanResult {
+            #[pyo3(get)]
+            input: String,
+            #[pyo3(get)]
+            invalid: Vec<char>,
+            #[pyo3(get, name = "words")]
+            possible_words: Vec<&'static str>,
+            #[pyo3(get)]
+            pub language: Language,
+        }
+    } else {
+        pub struct HangmanResult {
+            input: String,
+            invalid: Vec<char>,
+            possible_words: Vec<&'static str>,
+            pub language: Language,
+        }
+    }
 }
 
 impl HangmanResult {
