@@ -75,6 +75,7 @@ create_exception!(hangman_solver, UnknownLanguageError, PyValueError);
 #[cfg(feature = "pyo3")]
 #[pymethods]
 impl Language {
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     #[getter]
     fn value(&self) -> &'static str {
         self.name()
@@ -90,6 +91,6 @@ impl Language {
     pub fn parse_string(name: &str, default: Option<Self>) -> PyResult<Self> {
         Self::from_string(name)
             .or(default)
-            .ok_or(UnknownLanguageError::new_err(name.to_owned()))
+            .ok_or_else(|| UnknownLanguageError::new_err(name.to_owned()))
     }
 }
