@@ -35,6 +35,7 @@ impl CharCount for str {
     }
 }
 
+#[inline]
 fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
     strings: T,
     sep: &str,
@@ -84,6 +85,7 @@ cfg_if! {
 }
 
 impl HangmanResult {
+    #[inline]
     fn get_letter_frequency(&self) -> Counter<char, u32> {
         let input_chars: HashSet<char> = self.input.chars().collect();
         self.possible_words
@@ -186,6 +188,7 @@ impl Pattern {
         }
     }
 
+    #[inline]
     const fn first_letter_is_wildcard(&self) -> bool {
         self.first_letter == WILDCARD_CHAR
     }
@@ -221,6 +224,8 @@ impl Pattern {
         true
     }
 
+    #[inline]
+    #[must_use]
     fn known_letters_count(&self) -> usize {
         self.pattern
             .iter()

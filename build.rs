@@ -194,13 +194,15 @@ impl Language {{
         }};
         StringChunkIter::new(length, words, padded_length)
     }}
-    
+
+    #[inline]
     pub fn all() -> Vec<Self> {{
         vec![
             {}
         ]
     }}
-    
+
+    #[inline]
     pub fn from_string(string: &str) -> Option<Self> {{
         match string.to_lowercase().replace('-', "_").as_str() {{
             {},
@@ -210,6 +212,7 @@ impl Language {{
 
     #[allow(clippy::needless_pass_by_value)]
     #[allow(clippy::trivially_copy_pass_by_ref)]
+    #[inline]
     pub fn name(&self) -> &'static str {{
         match self {{
             {}
