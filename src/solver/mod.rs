@@ -2,6 +2,7 @@
 use std::char;
 use std::collections::HashSet;
 use std::iter::zip;
+use std::string::ToString;
 
 use crate::language::{Language, StringChunkIter};
 
@@ -9,6 +10,10 @@ use counter::Counter;
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
+
+const WILDCARD_CHAR: char = '_';
+const WILDCARD_CHAR_AS_STR: &str = "_";
+const WILDCARD_ALIASES: [char; 2] = ['#', '?'];
 
 fn join_with_max_length(
     strings: &Vec<String>,
@@ -131,7 +136,7 @@ impl Pattern {
     ) -> Self {
         let pattern_as_chars: Vec<char> = pattern
             .to_lowercase()
-            .replace(['-', '?'], "_")
+            .replace(WILDCARD_ALIASES, WILDCARD_CHAR_AS_STR)
             .chars()
             .filter(|ch| !ch.is_whitespace())
             .collect();
@@ -146,10 +151,10 @@ impl Pattern {
             .iter()
             .chain(invalid_letters)
             .copied()
-            .filter(|ch| *ch != '_' && !ch.is_whitespace())
+            .filter(|ch| *ch != WILDCARD_CHAR && !ch.is_whitespace())
             .collect();
 
-        let first_letter = *pattern_as_chars.first().unwrap_or(&'_');
+        let first_letter = *pattern_as_chars.first().unwrap_or(&WILDCARD_CHAR);
 
         Self {
             invalid_letters: invalid_letters_set,
@@ -159,7 +164,7 @@ impl Pattern {
     }
 
     const fn first_letter_is_wildcard(&self) -> bool {
-        self.first_letter == '_'
+        self.first_letter == WILDCARD_CHAR
     }
 
     fn first_letter_matches(&self, word: &str) -> bool {
@@ -175,7 +180,7 @@ impl Pattern {
         debug_assert_eq!(word.chars().count(), self.pattern.len());
         debug_assert!(!word.contains('\0'));
         for (p, w) in zip(self.pattern.iter(), word.chars()) {
-            if *p == '_' {
+            if *p == WILDCARD_CHAR {
                 if self.invalid_letters.contains(&w) {
                     return false;
                 }
@@ -187,7 +192,10 @@ impl Pattern {
     }
 
     fn known_letters_count(&self) -> usize {
-        self.pattern.iter().filter(|ch| **ch != '_').count()
+        self.pattern
+            .iter()
+            .filter(|ch| **ch != WILDCARD_CHAR)
+            .count()
     }
 }
 
