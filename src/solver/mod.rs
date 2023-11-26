@@ -7,6 +7,7 @@ use std::string::ToString;
 use crate::language::{Language, StringChunkIter};
 
 use counter::Counter;
+use itertools::Itertools;
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
@@ -14,6 +15,7 @@ use pyo3::prelude::*;
 const WILDCARD_CHAR: char = '_';
 const WILDCARD_CHAR_AS_STR: &str = "_";
 const WILDCARD_ALIASES: [char; 2] = ['#', '?'];
+const RESERVED_CHARS: [char; 5] = ['#', '?', '_', '\0', '\n'];
 
 fn join_with_max_length(
     strings: &Vec<String>,
@@ -178,7 +180,14 @@ impl Pattern {
     fn matches(&self, word: &str) -> bool {
         // This only makes sense if word has the same length as the pattern
         debug_assert_eq!(word.chars().count(), self.pattern.len());
-        debug_assert!(!word.contains('\0'));
+        // none of the reserved chars shall be in the word
+        debug_assert_eq!(
+            RESERVED_CHARS
+                .iter()
+                .filter(|ch| word.chars().contains(ch))
+                .count(),
+            0
+        );
         for (p, w) in zip(self.pattern.iter(), word.chars()) {
             if *p == WILDCARD_CHAR {
                 if self.invalid_letters.contains(&w) {
