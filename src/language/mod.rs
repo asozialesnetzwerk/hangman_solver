@@ -87,10 +87,7 @@ impl Language {
 
     #[staticmethod]
     #[pyo3(signature = (name, default = None))]
-    pub fn parse_string(
-        name: &str,
-        default: Option<Self>,
-    ) -> PyResult<Self> {
+    pub fn parse_string(name: &str, default: Option<Self>) -> PyResult<Self> {
         Self::from_string(name)
             .or(default)
             .ok_or(UnknownLanguageError::new_err(name.to_owned()))
