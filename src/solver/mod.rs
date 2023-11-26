@@ -21,8 +21,8 @@ fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
     sep: &str,
     max_len: usize,
 ) -> String {
+    let last_index = strings.len() - 1;
     let mut string = String::with_capacity(max_len);
-    let last_index = string.len() - 1;
     for (i, item) in strings.enumerate() {
         let current_sep = if i == 0 { "" } else { sep };
         let min_next_len = if i == last_index { 0 } else { sep.len() + 3 };
