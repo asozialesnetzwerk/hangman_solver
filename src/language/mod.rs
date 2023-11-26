@@ -81,17 +81,17 @@ impl Language {
     }
 
     #[staticmethod]
-    fn values() -> Vec<Language> {
-        Language::all()
+    fn values() -> Vec<Self> {
+        Self::all()
     }
 
     #[staticmethod]
     #[pyo3(signature = (name, default = None))]
     pub fn parse_string(
         name: &str,
-        default: Option<Language>,
-    ) -> PyResult<Language> {
-        Language::from_string(name)
+        default: Option<Self>,
+    ) -> PyResult<Self> {
+        Self::from_string(name)
             .or(default)
             .ok_or(UnknownLanguageError::new_err(name.to_owned()))
     }
