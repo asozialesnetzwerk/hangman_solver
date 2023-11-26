@@ -148,7 +148,7 @@ impl std::fmt::Display for HangmanResult {
 }
 
 pub struct Pattern {
-    invalid_letters: HashSet<char>,
+    invalid_letters: Vec<char>,
     pattern: Vec<char>,
     first_letter: char,
 }
@@ -172,17 +172,18 @@ impl Pattern {
             vec![]
         };
 
-        let invalid_letters_set: HashSet<char> = additional_invalid
+        let invalid_letters_vec: Vec<char> = additional_invalid
             .iter()
             .chain(invalid_letters)
             .copied()
             .filter(|ch| *ch != WILDCARD_CHAR && !ch.is_whitespace())
+            .unique()
             .collect();
 
         let first_letter = *pattern_as_chars.first().unwrap_or(&WILDCARD_CHAR);
 
         Self {
-            invalid_letters: invalid_letters_set,
+            invalid_letters: invalid_letters_vec,
             pattern: pattern_as_chars,
             first_letter,
         }
