@@ -115,10 +115,6 @@ impl std::fmt::Display for HangmanResult {
     }
 }
 
-fn read_words(language: Language, length: usize) -> StringChunkIter {
-    language.read_words(length)
-}
-
 pub struct Pattern {
     invalid_letters: HashSet<char>,
     pattern: Vec<char>,
@@ -208,7 +204,7 @@ pub fn solve_hangman_puzzle(
     pattern: &Pattern,
     language: Language,
 ) -> HangmanResult {
-    let all_words = read_words(language, pattern.pattern.len());
+    let all_words: StringChunkIter = language.read_words(pattern.pattern.len());
 
     let possible_words: Vec<&'static str> = if pattern.known_letters_count()
         == 0
