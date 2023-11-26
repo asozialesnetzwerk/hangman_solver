@@ -149,8 +149,6 @@ fn main() {
     println!("cargo:rerun-if-changed={WORDS_DIR}");
     let paths = fs::read_dir(WORDS_DIR).unwrap();
 
-    let pyo3: bool = env::var("CARGO_FEATURE_PYO3").is_ok();
-
     let mut words_vec: Vec<WordsData> = vec![];
 
     for dir_entry in paths {
@@ -183,8 +181,8 @@ fn main() {
     fs::write(
         get_out_dir_joined(String::from("language.rs")),
         format!(
-            r###"{}
-#[derive(Copy, Clone, Eq, PartialEq)]            
+            r###"#[cfg_attr(feature = "pyo3", pyclass)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Language {{
     {}
 }}
@@ -219,7 +217,6 @@ impl Language {{
     }}
 }}
 "###,
-            if pyo3 { "#[pyclass]" } else { "" },
             words_vec.iter().map(WordsData::enum_name).join(",\n"),
             words_vec
                 .iter()
