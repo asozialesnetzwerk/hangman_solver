@@ -24,6 +24,12 @@ panic = "abort"
 strip = true
 lto = true
 
+[profile.profile]
+inherits = "release"
+strip = false
+lto = false
+debug = 1
+
 [[bin]]
 name = "hangman_solver"
 

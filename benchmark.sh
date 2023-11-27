@@ -17,6 +17,10 @@ run_with_input()
     LANGUAGE="de"
   fi
   FILE="${TEST_INPUTS_DIR}/${LANGUAGE}/${1}.txt"
+  if [ -n "${HYPERFINE:-}" ] ; then
+    cargo run -q ${CARGO_ARGS} "${LANGUAGE}" < "${FILE}"
+    return 0
+  fi
   START=$(date +%s%N)
   if [ -z "${3:-}" ] ; then
     cargo run -q ${CARGO_ARGS} "${LANGUAGE}" < "${FILE}"
@@ -38,10 +42,16 @@ run_all()
   LANGUAGE="${1}"
   DIR="${2}/${LANGUAGE}"
 
-  SAVED_HASH=$(cat "${TEST_INPUTS_DIR}/${LANGUAGE}"/*output | sha256sum - | cut -d " " -f1)
+  if [ -z "${HYPERFINE:-}" ] ; then
+    SAVED_HASH=$(cat "${TEST_INPUTS_DIR}/${LANGUAGE}"/*output | sha256sum - | cut -d " " -f1)
+  fi
 
   mkdir -p "${DIR}"
   ls -1 "${TEST_INPUTS_DIR}/${LANGUAGE}" | cut -d "." -f1 | sort -firu  | while read -r LINE ; do run_with_input "${LINE}" "${LANGUAGE}" "${DIR}" ; done
+
+  if [ -n "${HYPERFINE:-}" ] ; then
+    return 0
+  fi
 
   OUTPUT_HASH=$(cat "${DIR}"/*output | sha256sum - | cut -d " " -f1)
   if [ "${OUTPUT_HASH}" = "${SAVED_HASH}" ] ; then
