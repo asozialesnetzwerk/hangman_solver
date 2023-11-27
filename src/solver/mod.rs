@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: EUPL-1.2
 use cfg_if::cfg_if;
 use std::char;
-use std::collections::HashSet;
 use std::iter::zip;
 
 use crate::language::{Language, StringChunkIter};
@@ -66,41 +65,36 @@ cfg_if! {
         #[pyclass]
         pub struct HangmanResult {
             #[pyo3(get)]
-            input: String,
+            pub input: String,
             #[pyo3(get)]
-            invalid: Vec<char>,
+            pub invalid: Vec<char>,
             #[pyo3(get, name = "words")]
-            possible_words: Vec<&'static str>,
+            pub possible_words: Vec<&'static str>,
             #[pyo3(get)]
             pub language: Language,
+            pub letter_frequency: Counter<char, u32>,
         }
     } else {
         pub struct HangmanResult {
-            input: String,
-            invalid: Vec<char>,
-            possible_words: Vec<&'static str>,
+            pub input: String,
+            pub invalid: Vec<char>,
+            pub possible_words: Vec<&'static str>,
             pub language: Language,
+            pub letter_frequency: Counter<char, u32>,
         }
     }
 }
 
-impl HangmanResult {
-    #[inline]
-    fn get_letter_frequency(&self) -> Counter<char, u32> {
-        let input_chars: HashSet<char> = self.input.chars().collect();
-        self.possible_words
-            .iter()
-            .flat_map(|word| word.chars().collect::<HashSet<char>>())
-            .filter(|ch| !input_chars.contains(ch))
-            .collect::<Counter<char, u32>>()
-    }
-}
+impl HangmanResult {}
 
 #[cfg(feature = "pyo3")]
 #[pymethods]
 impl HangmanResult {
-    pub fn letter_frequency(&self) -> std::collections::HashMap<char, u32> {
-        self.get_letter_frequency().into_map()
+    #[pyo3(letter_frequency)]
+    pub fn py_get_letter_frequency(
+        &self,
+    ) -> std::collections::HashMap<char, u32> {
+        self.letter_frequency.into_map()
     }
 }
 
@@ -130,7 +124,7 @@ impl std::fmt::Display for HangmanResult {
         )?;
 
         let letters: Vec<(char, u32)> =
-            self.get_letter_frequency().most_common_ordered();
+            self.letter_frequency.most_common_ordered();
         if !letters.is_empty() {
             writeln!(file)?;
             write!(
@@ -235,6 +229,23 @@ impl Pattern {
     }
 }
 
+fn collect_and_create_letter_frequency<T: Iterator<Item = &'static str>>(
+    words: T,
+    pattern: &Pattern,
+) -> (Vec<&'static str>, Counter<char, u32>) {
+    let mut letter_counter: Counter<char, u32> = Counter::new();
+
+    let words: Vec<&'static str> = words
+        .inspect(|word| letter_counter.update(word.chars().unique()))
+        .collect::<Vec<&'static str>>();
+
+    for letter in &pattern.pattern {
+        letter_counter.remove(letter);
+    }
+
+    (words, letter_counter)
+}
+
 #[must_use]
 pub fn solve_hangman_puzzle(
     pattern: &Pattern,
@@ -242,21 +253,26 @@ pub fn solve_hangman_puzzle(
 ) -> HangmanResult {
     let all_words: StringChunkIter = language.read_words(pattern.pattern.len());
 
-    let possible_words: Vec<&'static str> = if pattern.known_letters_count()
-        == 0
+    let (possible_words, letter_frequency): (
+        Vec<&'static str>,
+        Counter<char, u32>,
+    ) = if pattern.known_letters_count() == 0
         && pattern.invalid_letters.is_empty()
     {
-        all_words.collect::<Vec<&'static str>>()
+        collect_and_create_letter_frequency(all_words, pattern)
     } else if pattern.first_letter_is_wildcard() {
-        all_words
-            .filter(|word| pattern.matches(word))
-            .collect::<Vec<&'static str>>()
+        collect_and_create_letter_frequency(
+            all_words.filter(|word| pattern.matches(word)),
+            pattern,
+        )
     } else {
-        all_words
-            .skip_while(|word| !pattern.first_letter_matches(word))
-            .take_while(|word| pattern.first_letter_matches(word))
-            .filter(|word| pattern.matches(word))
-            .collect::<Vec<&'static str>>()
+        collect_and_create_letter_frequency(
+            all_words
+                .skip_while(|word| !pattern.first_letter_matches(word))
+                .take_while(|word| pattern.first_letter_matches(word))
+                .filter(|word| pattern.matches(word)),
+            pattern,
+        )
     };
 
     let input_string: String = pattern.pattern.iter().collect();
@@ -274,5 +290,6 @@ pub fn solve_hangman_puzzle(
         invalid: invalid_in_result,
         possible_words,
         language,
+        letter_frequency,
     }
 }
