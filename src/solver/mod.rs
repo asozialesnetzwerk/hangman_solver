@@ -90,11 +90,11 @@ impl HangmanResult {}
 #[cfg(feature = "pyo3")]
 #[pymethods]
 impl HangmanResult {
-    #[pyo3(letter_frequency)]
+    #[pyo3(name = "letter_frequency")]
     pub fn py_get_letter_frequency(
         &self,
     ) -> std::collections::HashMap<char, u32> {
-        self.letter_frequency.into_map()
+        self.letter_frequency.clone().into_map()
     }
 }
 
@@ -227,23 +227,23 @@ impl Pattern {
             .filter(|ch| **ch != WILDCARD_CHAR)
             .count()
     }
-}
 
-fn collect_and_create_letter_frequency<T: Iterator<Item = &'static str>>(
-    words: T,
-    pattern: &Pattern,
-) -> (Vec<&'static str>, Counter<char, u32>) {
-    let mut letter_counter: Counter<char, u32> = Counter::new();
+    fn collect_and_create_letter_frequency<T: Iterator<Item = &'static str>>(
+        &self,
+        words: T,
+    ) -> (Vec<&'static str>, Counter<char, u32>) {
+        let mut letter_counter: Counter<char, u32> = Counter::new();
 
-    let words: Vec<&'static str> = words
-        .inspect(|word| letter_counter.update(word.chars().unique()))
-        .collect::<Vec<&'static str>>();
+        let words: Vec<&'static str> = words
+            .inspect(|word| letter_counter.update(word.chars().unique()))
+            .collect::<Vec<&'static str>>();
 
-    for letter in &pattern.pattern {
-        letter_counter.remove(letter);
+        for letter in &self.pattern {
+            letter_counter.remove(letter);
+        }
+
+        (words, letter_counter)
     }
-
-    (words, letter_counter)
 }
 
 #[must_use]
@@ -259,19 +259,17 @@ pub fn solve_hangman_puzzle(
     ) = if pattern.known_letters_count() == 0
         && pattern.invalid_letters.is_empty()
     {
-        collect_and_create_letter_frequency(all_words, pattern)
+        pattern.collect_and_create_letter_frequency(all_words)
     } else if pattern.first_letter_is_wildcard() {
-        collect_and_create_letter_frequency(
+        pattern.collect_and_create_letter_frequency(
             all_words.filter(|word| pattern.matches(word)),
-            pattern,
         )
     } else {
-        collect_and_create_letter_frequency(
+        pattern.collect_and_create_letter_frequency(
             all_words
                 .skip_while(|word| !pattern.first_letter_matches(word))
                 .take_while(|word| pattern.first_letter_matches(word))
                 .filter(|word| pattern.matches(word)),
-            pattern,
         )
     };
 
