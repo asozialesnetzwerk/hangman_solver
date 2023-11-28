@@ -39,7 +39,6 @@ class HangmanResult:
     words: list[str]
     letter_frequency: list[tuple[str, int]]
 
-
 class Language:
 
     @staticmethod
