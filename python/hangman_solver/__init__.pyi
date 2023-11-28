@@ -15,20 +15,30 @@ __all__ = (
 def read_words_with_length(language: Language, word_length: int) -> Iterable[str]:
     pass
 
-def solve(pattern_string: str, invalid_letters: list[str], language: Language) -> HangmanResult:
+def solve(
+    pattern_string: str,
+    invalid_letters: list[str],
+    language: Language,
+    max_words_to_collect: int
+) -> HangmanResult:
     pass
 
-def solve_crossword(pattern_string: str, invalid_letters: list[str], language: Language) -> HangmanResult:
+def solve_crossword(
+    pattern_string: str,
+    invalid_letters: list[str],
+    language: Language,
+    max_words_to_collect: int
+) -> HangmanResult:
     pass
 
 class HangmanResult:
-    def letter_frequency(self) -> Mapping[str, int]:
-        pass
-
     input: str
+    matching_words_count: int
     invalid: list[str]
     language: Language
     words: list[str]
+    letter_frequency: list[tuple[str, int]]
+
 
 class Language:
 
