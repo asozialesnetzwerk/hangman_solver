@@ -67,7 +67,7 @@ cfg_if! {
             #[pyo3(get)]
             pub input: String,
             #[pyo3(get)]
-            pub matching_word_count: usize,
+            pub matching_word_count: u32,
             #[pyo3(get)]
             pub invalid: Vec<char>,
             #[pyo3(get, name = "words")]
@@ -81,7 +81,7 @@ cfg_if! {
         pub struct HangmanResult {
             pub input: String,
             pub invalid: Vec<char>,
-            pub matching_word_count: usize,
+            pub matching_word_count: u32,
             pub possible_words: Vec<&'static str>,
             pub language: Language,
             pub letter_frequency: Vec<(char, u32)>,
@@ -96,9 +96,7 @@ impl std::fmt::Display for HangmanResult {
         write!(
             file,
             "Found {} words (input: {}, invalid: {})",
-            self.possible_words.len(),
-            self.input,
-            invalid,
+            self.matching_word_count, self.input, invalid,
         )?;
         if self.possible_words.is_empty() {
             return Ok(());
@@ -136,13 +134,15 @@ pub struct Pattern {
     pub invalid_letters: Vec<char>,
     pub pattern: Vec<char>,
     pub first_letter: char,
+    /// true for normal hangman mode
+    letters_in_pattern_have_no_other_occurrences: bool,
 }
 
 impl Pattern {
     pub fn new(
         pattern: &str,
         invalid_letters: &[char],
-        add_pattern_to_invalid: bool,
+        letters_in_pattern_have_no_other_occurrences: bool,
     ) -> Self {
         let pattern_as_chars: Vec<char> = pattern
             .to_lowercase()
@@ -151,11 +151,12 @@ impl Pattern {
             .filter(|ch| !ch.is_whitespace())
             .collect();
 
-        let additional_invalid: Vec<char> = if add_pattern_to_invalid {
-            pattern_as_chars.clone()
-        } else {
-            vec![]
-        };
+        let additional_invalid: Vec<char> =
+            if letters_in_pattern_have_no_other_occurrences {
+                pattern_as_chars.clone()
+            } else {
+                vec![]
+            };
 
         let invalid_letters_vec: Vec<char> = additional_invalid
             .iter()
@@ -171,6 +172,7 @@ impl Pattern {
             invalid_letters: invalid_letters_vec,
             pattern: pattern_as_chars,
             first_letter,
+            letters_in_pattern_have_no_other_occurrences,
         }
     }
 
@@ -225,11 +227,18 @@ impl Pattern {
         &self,
         words: T,
         max_words_to_collect: Option<usize>,
-    ) -> (usize, Counter<char, u32>, Vec<&'static str>) {
+    ) -> (u32, Counter<char, u32>, Vec<&'static str>) {
         let mut letter_counter: Counter<char, u32> = Counter::new();
 
-        let mut words =
-            words.inspect(|word| letter_counter.update(word.chars().unique()));
+        let update_counter: fn(&mut Counter<char, u32>, &str) =
+            if self.letters_in_pattern_have_no_other_occurrences {
+                |counter, word| counter.update(word.chars().unique())
+            } else {
+                |counter, word| counter.update(word.chars())
+            };
+
+        let mut words = words
+            .inspect(|word: &&str| update_counter(&mut letter_counter, word));
 
         let (words_vec, additional_count): (Vec<&'static str>, usize) =
             if let Some(n) = max_words_to_collect {
@@ -238,15 +247,22 @@ impl Pattern {
                 (words.collect(), 0)
             };
 
-        for letter in &self.pattern {
-            letter_counter.remove(letter);
+        let words_count = u32::try_from(additional_count + words_vec.len())
+            .unwrap_or(u32::MAX);
+
+        if self.letters_in_pattern_have_no_other_occurrences {
+            for letter in &self.pattern {
+                letter_counter.remove(letter);
+            }
+        } else {
+            for letter in
+                self.pattern.iter().filter(|char| **char != WILDCARD_CHAR)
+            {
+                letter_counter[letter] -= words_count;
+            }
         }
 
-        (
-            additional_count + words_vec.len(),
-            letter_counter,
-            words_vec,
-        )
+        (words_count, letter_counter, words_vec)
     }
 }
 
