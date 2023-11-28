@@ -13,6 +13,14 @@ use terminal_size::{terminal_size, Width};
 use crate::language::Language;
 use crate::solver::{solve_hangman_puzzle, Pattern};
 
+fn get_terminal_width() -> usize {
+    if let Some((Width(w), _)) = terminal_size() {
+        w.into()
+    } else {
+        80
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
 
@@ -52,6 +60,9 @@ fn main() {
                 if buffer.is_empty() {
                     exit(i32::from(result != 0));
                 }
+
+                let width = get_terminal_width();
+
                 let input: Vec<&str> = buffer.splitn(2, ' ').collect();
                 let pattern = Pattern::new(
                     input[0],
@@ -62,14 +73,13 @@ fn main() {
                         .collect::<Vec<char>>()),
                     true,
                 );
-                let hr = solve_hangman_puzzle(&pattern, lang);
+                let hr = solve_hangman_puzzle(
+                    &pattern,
+                    lang,
+                    Some(width / pattern.pattern.len() + 1),
+                );
                 assert!(hr.language == lang);
-                let width: usize = if let Some((Width(w), _)) = terminal_size()
-                {
-                    w.into()
-                } else {
-                    80
-                };
+
                 println!("{hr:─^width$}");
             }
             Err(error) => {

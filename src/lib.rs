@@ -13,26 +13,36 @@ use pyo3::prelude::*;
 
 #[cfg(feature = "pyo3")]
 #[pyfunction]
-#[pyo3(signature = (pattern_string, invalid_letters, language))]
+#[pyo3(signature = (pattern_string, invalid_letters, language, max_word_count))]
 pub fn solve(
     pattern_string: String,
     invalid_letters: Vec<char>,
     language: Language,
+    max_word_count: usize,
 ) -> PyResult<HangmanResult> {
     let pattern = Pattern::new(&pattern_string, &invalid_letters, true);
-    Ok(solve_hangman_puzzle(&pattern, language))
+    Ok(solve_hangman_puzzle(
+        &pattern,
+        language,
+        Some(max_word_count),
+    ))
 }
 
 #[cfg(feature = "pyo3")]
 #[pyfunction]
-#[pyo3(signature = (pattern_string, invalid_letters, language))]
+#[pyo3(signature = (pattern_string, invalid_letters, language, max_word_count))]
 pub fn solve_crossword(
     pattern_string: String,
     invalid_letters: Vec<char>,
     language: Language,
+    max_word_count: usize,
 ) -> PyResult<HangmanResult> {
     let pattern = Pattern::new(&pattern_string, &invalid_letters, false);
-    Ok(solve_hangman_puzzle(&pattern, language))
+    Ok(solve_hangman_puzzle(
+        &pattern,
+        language,
+        Some(max_word_count),
+    ))
 }
 
 #[cfg(feature = "pyo3")]

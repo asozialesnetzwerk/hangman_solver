@@ -67,34 +67,25 @@ cfg_if! {
             #[pyo3(get)]
             pub input: String,
             #[pyo3(get)]
+            pub matching_word_count: usize,
+            #[pyo3(get)]
             pub invalid: Vec<char>,
             #[pyo3(get, name = "words")]
             pub possible_words: Vec<&'static str>,
             #[pyo3(get)]
             pub language: Language,
-            pub letter_frequency: Counter<char, u32>,
+            #[pyo3(get)]
+            pub letter_frequency: Vec<(char, u32)>,
         }
     } else {
         pub struct HangmanResult {
             pub input: String,
             pub invalid: Vec<char>,
+            pub matching_word_count: usize,
             pub possible_words: Vec<&'static str>,
             pub language: Language,
-            pub letter_frequency: Counter<char, u32>,
+            pub letter_frequency: Vec<(char, u32)>,
         }
-    }
-}
-
-impl HangmanResult {}
-
-#[cfg(feature = "pyo3")]
-#[pymethods]
-impl HangmanResult {
-    #[pyo3(name = "letter_frequency")]
-    pub fn py_get_letter_frequency(
-        &self,
-    ) -> std::collections::HashMap<char, u32> {
-        self.letter_frequency.clone().into_map()
     }
 }
 
@@ -123,15 +114,15 @@ impl std::fmt::Display for HangmanResult {
             )
         )?;
 
-        let letters: Vec<(char, u32)> =
-            self.letter_frequency.most_common_ordered();
-        if !letters.is_empty() {
+        if !self.letter_frequency.is_empty() {
             writeln!(file)?;
             write!(
                 file,
                 " letters: {}",
                 join_with_max_length(
-                    letters.iter().map(|(ch, f)| format!("{ch}: {f}")),
+                    self.letter_frequency
+                        .iter()
+                        .map(|(ch, f)| format!("{ch}: {f}")),
                     ", ",
                     max_line_length - " letters: ".len(),
                 )
@@ -142,9 +133,9 @@ impl std::fmt::Display for HangmanResult {
 }
 
 pub struct Pattern {
-    invalid_letters: Vec<char>,
-    pattern: Vec<char>,
-    first_letter: char,
+    pub invalid_letters: Vec<char>,
+    pub pattern: Vec<char>,
+    pub first_letter: char,
 }
 
 impl Pattern {
@@ -228,21 +219,34 @@ impl Pattern {
             .count()
     }
 
-    fn collect_and_create_letter_frequency<T: Iterator<Item = &'static str>>(
+    fn collect_count_and_create_letter_frequency<
+        T: Iterator<Item = &'static str>,
+    >(
         &self,
         words: T,
-    ) -> (Vec<&'static str>, Counter<char, u32>) {
+        max_words_to_collect: Option<usize>,
+    ) -> (usize, Counter<char, u32>, Vec<&'static str>) {
         let mut letter_counter: Counter<char, u32> = Counter::new();
 
-        let words: Vec<&'static str> = words
-            .inspect(|word| letter_counter.update(word.chars().unique()))
-            .collect::<Vec<&'static str>>();
+        let mut words =
+            words.inspect(|word| letter_counter.update(word.chars().unique()));
+
+        let (words_vec, additional_count): (Vec<&'static str>, usize) =
+            if let Some(n) = max_words_to_collect {
+                (words.by_ref().take(n).collect(), words.count())
+            } else {
+                (words.collect(), 0)
+            };
 
         for letter in &self.pattern {
             letter_counter.remove(letter);
         }
 
-        (words, letter_counter)
+        (
+            additional_count + words_vec.len(),
+            letter_counter,
+            words_vec,
+        )
     }
 }
 
@@ -250,26 +254,30 @@ impl Pattern {
 pub fn solve_hangman_puzzle(
     pattern: &Pattern,
     language: Language,
+    max_words_to_collect: Option<usize>,
 ) -> HangmanResult {
     let all_words: StringChunkIter = language.read_words(pattern.pattern.len());
 
-    let (possible_words, letter_frequency): (
-        Vec<&'static str>,
-        Counter<char, u32>,
-    ) = if pattern.known_letters_count() == 0
+    let (word_count, letter_frequency, words) = if pattern.known_letters_count()
+        == 0
         && pattern.invalid_letters.is_empty()
     {
-        pattern.collect_and_create_letter_frequency(all_words)
+        pattern.collect_count_and_create_letter_frequency(
+            all_words,
+            max_words_to_collect,
+        )
     } else if pattern.first_letter_is_wildcard() {
-        pattern.collect_and_create_letter_frequency(
+        pattern.collect_count_and_create_letter_frequency(
             all_words.filter(|word| pattern.matches(word)),
+            max_words_to_collect,
         )
     } else {
-        pattern.collect_and_create_letter_frequency(
+        pattern.collect_count_and_create_letter_frequency(
             all_words
                 .skip_while(|word| !pattern.first_letter_matches(word))
                 .take_while(|word| pattern.first_letter_matches(word))
                 .filter(|word| pattern.matches(word)),
+            max_words_to_collect,
         )
     };
 
@@ -286,8 +294,9 @@ pub fn solve_hangman_puzzle(
     HangmanResult {
         input: input_string,
         invalid: invalid_in_result,
-        possible_words,
+        possible_words: words,
         language,
-        letter_frequency,
+        letter_frequency: letter_frequency.most_common_ordered(),
+        matching_word_count: word_count,
     }
 }
