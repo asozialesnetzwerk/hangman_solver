@@ -30,8 +30,6 @@ class HangmanResult:
     language: Language
     words: list[str]
 
-
-
 class Language:
 
     @staticmethod

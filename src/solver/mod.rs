@@ -67,7 +67,7 @@ cfg_if! {
             #[pyo3(get)]
             pub input: String,
             #[pyo3(get)]
-            pub matching_word_count: u32,
+            pub matching_words_count: u32,
             #[pyo3(get)]
             pub invalid: Vec<char>,
             #[pyo3(get, name = "words")]
@@ -81,7 +81,7 @@ cfg_if! {
         pub struct HangmanResult {
             pub input: String,
             pub invalid: Vec<char>,
-            pub matching_word_count: u32,
+            pub matching_words_count: u32,
             pub possible_words: Vec<&'static str>,
             pub language: Language,
             pub letter_frequency: Vec<(char, u32)>,
@@ -96,7 +96,7 @@ impl std::fmt::Display for HangmanResult {
         write!(
             file,
             "Found {} words (input: {}, invalid: {})",
-            self.matching_word_count, self.input, invalid,
+            self.matching_words_count, self.input, invalid,
         )?;
         if self.possible_words.is_empty() {
             return Ok(());
@@ -313,6 +313,6 @@ pub fn solve_hangman_puzzle(
         possible_words: words,
         language,
         letter_frequency: letter_frequency.most_common_ordered(),
-        matching_word_count: word_count,
+        matching_words_count: word_count,
     }
 }
