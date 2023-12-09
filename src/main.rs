@@ -8,17 +8,19 @@ use std::io::{self, BufRead};
 use std::process::exit;
 
 use itertools::Itertools;
+#[cfg(feature = "terminal_size")]
 use terminal_size::{terminal_size, Width};
 
 use crate::language::Language;
 use crate::solver::{solve_hangman_puzzle, Pattern};
 
 fn get_terminal_width() -> usize {
+    #[cfg(feature = "terminal_size")]
     if let Some((Width(w), _)) = terminal_size() {
-        w.into()
-    } else {
-        80
+        return w.into();
     }
+
+    80
 }
 
 fn main() {
