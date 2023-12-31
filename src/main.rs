@@ -52,7 +52,7 @@ fn main() {
     };
 
     let lang = args
-        .get(0)
+        .first()
         .and_then(|lang| Language::from_string(lang))
         .map_or_else(
             || {
