@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: EUPL-1.2
-#![deny(
-    clippy::indexing_slicing,
+#![warn(
     clippy::missing_const_for_fn,
     clippy::nursery,
     clippy::option_if_let_else,
-    clippy::panic,
     clippy::pedantic,
     clippy::todo
 )]
-#![deny(clippy::unwrap_used)]
+#![deny(clippy::indexing_slicing, clippy::panic, clippy::unwrap_used)]
+#![allow(clippy::missing_errors_doc)]
 mod language;
 mod solver;
 
@@ -25,8 +24,8 @@ use pyo3::prelude::*;
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
 pub fn solve(
-    pattern_string: String,
-    invalid_letters: Vec<char>,
+    #[allow(clippy::needless_pass_by_value)] pattern_string: String,
+    #[allow(clippy::needless_pass_by_value)] invalid_letters: Vec<char>,
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
@@ -42,8 +41,8 @@ pub fn solve(
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
 pub fn solve_crossword(
-    pattern_string: String,
-    invalid_letters: Vec<char>,
+    #[allow(clippy::needless_pass_by_value)] pattern_string: String,
+    #[allow(clippy::needless_pass_by_value)] invalid_letters: Vec<char>,
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
@@ -58,7 +57,7 @@ pub fn solve_crossword(
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (language, word_length))]
-pub fn read_words_with_length(
+pub const fn read_words_with_length(
     language: Language,
     word_length: usize,
 ) -> PyResult<StringChunkIter> {
@@ -68,7 +67,7 @@ pub fn read_words_with_length(
 #[cfg(feature = "pyo3")]
 #[pymodule]
 #[pyo3(name = "_solver")]
-pub(crate) fn hangman_solver(py: Python<'_>, m: &PyModule) -> PyResult<()> {
+pub fn hangman_solver(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(solve, m)?)?;
     m.add_function(wrap_pyfunction!(solve_crossword, m)?)?;
     m.add_function(wrap_pyfunction!(read_words_with_length, m)?)?;

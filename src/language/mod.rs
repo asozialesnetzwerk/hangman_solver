@@ -57,7 +57,7 @@ impl Iterator for StringChunkIter {
 #[pymethods]
 impl StringChunkIter {
     #[must_use]
-    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+    const fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
 
@@ -67,7 +67,7 @@ impl StringChunkIter {
     }
 
     #[must_use]
-    fn __len__(&self) -> usize {
+    const fn __len__(&self) -> usize {
         self.string.len() / self.padded_word_byte_count
     }
 }
@@ -83,18 +83,17 @@ impl Language {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     #[getter]
     #[must_use]
-    fn value(&self) -> &'static str {
+    const fn value(&self) -> &'static str {
         self.name()
     }
 
     #[staticmethod]
     #[must_use]
-    fn values() -> Vec<Self> {
+    const fn values() -> [Self; 5] {
         Self::all()
     }
 
     #[staticmethod]
-    #[must_use]
     #[pyo3(signature = (name, default = None))]
     pub fn parse_string(name: &str, default: Option<Self>) -> PyResult<Self> {
         Self::from_string(name)
