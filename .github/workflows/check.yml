@@ -59,6 +59,36 @@ jobs:
       - name: Run cargo clippy
         run: cargo clippy --color=always ${{ matrix.cargo_args }} -- -D warnings
 
+  build_python:
+    name: Clippy
+    runs-on: ubuntu-latest
+    permissions: { }
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - stable
+          - beta
+          - nightly
+        python-version:
+          - "3.10"
+          - 3.12
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+      - name: Update rust
+        shell: bash
+        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+      - name: install build
+        run: python3 -m pip install build
+      - name: Build python
+        run: python3 -m build
+
   improve_code:
     name: Improve and format the code
     runs-on: ubuntu-latest
