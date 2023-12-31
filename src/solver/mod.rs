@@ -130,6 +130,7 @@ impl std::fmt::Display for HangmanResult {
     }
 }
 
+#[allow(clippy::struct_field_names)]
 pub struct Pattern {
     pub invalid_letters: Vec<char>,
     pub pattern: Vec<char>,
