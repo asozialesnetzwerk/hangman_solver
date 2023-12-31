@@ -263,7 +263,15 @@ impl Pattern {
             for letter in
                 self.pattern.iter().filter(|char| **char != WILDCARD_CHAR)
             {
-                letter_counter[letter] -= words_count;
+                if let Some(new_count) = letter_counter
+                    .get(letter)
+                    .and_then(|c| c.checked_sub(words_count))
+                    .and_then(|c| if c == 0 { None } else { Some(c) })
+                {
+                    letter_counter.insert(*letter, new_count);
+                } else {
+                    letter_counter.remove(letter);
+                }
             }
         }
 
