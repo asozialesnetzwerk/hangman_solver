@@ -60,7 +60,7 @@ jobs:
         run: cargo clippy --color=always ${{ matrix.cargo_args }} -- -D warnings
 
   build_python:
-    name: Clippy
+    name: Build Python
     runs-on: ubuntu-latest
     permissions: { }
     strategy:
