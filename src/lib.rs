@@ -1,4 +1,14 @@
 // SPDX-License-Identifier: EUPL-1.2
+#![deny(
+    clippy::indexing_slicing,
+    clippy::missing_const_for_fn,
+    clippy::nursery,
+    clippy::option_if_let_else,
+    clippy::panic,
+    clippy::pedantic,
+    clippy::todo
+)]
+#![deny(clippy::unwrap_used)]
 mod language;
 mod solver;
 

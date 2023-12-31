@@ -16,7 +16,8 @@ pub struct StringChunkIter {
 }
 
 impl StringChunkIter {
-    pub fn new(
+    #[must_use]
+    pub const fn new(
         word_length: usize,
         string: &'static str,
         padded_word_byte_count: usize,
@@ -33,6 +34,7 @@ impl StringChunkIter {
 impl Iterator for StringChunkIter {
     type Item = &'static str;
 
+    #[must_use]
     fn next(&mut self) -> Option<Self::Item> {
         let index = self.index;
         if index >= self.string.len() {
@@ -40,7 +42,7 @@ impl Iterator for StringChunkIter {
         }
         self.index += self.padded_word_byte_count;
 
-        let result = &self.string[index..self.index];
+        let result = &self.string.get(index..self.index)?;
         if result.len() == self.word_length {
             debug_assert!(!result.starts_with('\0'));
             return Some(result);
@@ -54,14 +56,17 @@ impl Iterator for StringChunkIter {
 #[cfg(feature = "pyo3")]
 #[pymethods]
 impl StringChunkIter {
+    #[must_use]
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
 
+    #[must_use]
     fn __next__(&mut self) -> Option<&'static str> {
         self.next()
     }
 
+    #[must_use]
     fn __len__(&self) -> usize {
         self.string.len() / self.padded_word_byte_count
     }
@@ -77,16 +82,19 @@ create_exception!(hangman_solver, UnknownLanguageError, PyValueError);
 impl Language {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     #[getter]
+    #[must_use]
     fn value(&self) -> &'static str {
         self.name()
     }
 
     #[staticmethod]
+    #[must_use]
     fn values() -> Vec<Self> {
         Self::all()
     }
 
     #[staticmethod]
+    #[must_use]
     #[pyo3(signature = (name, default = None))]
     pub fn parse_string(name: &str, default: Option<Self>) -> PyResult<Self> {
         Self::from_string(name)

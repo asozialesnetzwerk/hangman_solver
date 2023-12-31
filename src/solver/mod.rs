@@ -139,6 +139,7 @@ pub struct Pattern {
 }
 
 impl Pattern {
+    #[must_use]
     pub fn new(
         pattern: &str,
         invalid_letters: &[char],
@@ -177,10 +178,12 @@ impl Pattern {
     }
 
     #[inline]
+    #[must_use]
     const fn first_letter_is_wildcard(&self) -> bool {
         self.first_letter == WILDCARD_CHAR
     }
 
+    #[must_use]
     fn first_letter_matches(&self, word: &str) -> bool {
         // This only makes sense if first_letter_is_wildcard is false
         debug_assert!(!self.first_letter_is_wildcard());
@@ -189,6 +192,7 @@ impl Pattern {
             .map_or(false, |char| self.first_letter == char)
     }
 
+    #[must_use]
     fn matches(&self, word: &str) -> bool {
         // This only makes sense if word has the same length as the pattern
         debug_assert_eq!(word.char_count(), self.pattern.len());
@@ -221,6 +225,7 @@ impl Pattern {
             .count()
     }
 
+    #[must_use]
     fn collect_count_and_create_letter_frequency<
         T: Iterator<Item = &'static str>,
     >(

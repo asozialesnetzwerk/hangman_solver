@@ -188,7 +188,8 @@ pub enum Language {{
 }}
 
 impl Language {{
-    pub fn read_words(self, length: usize) -> StringChunkIter {{
+    #[must_use]
+    pub const fn read_words(self, length: usize) -> StringChunkIter {{
         let (padded_length, words): (usize, &'static str) = match self {{
             {}
         }};
@@ -196,13 +197,15 @@ impl Language {{
     }}
 
     #[inline]
-    pub fn all() -> Vec<Self> {{
-        vec![
+    #[must_use]
+    pub const fn all() -> [Self; {}] {{
+        [
             {}
         ]
     }}
 
     #[inline]
+    #[must_use]
     pub fn from_string(string: &str) -> Option<Self> {{
         match string.to_lowercase().replace('-', "_").as_str() {{
             {},
@@ -212,8 +215,9 @@ impl Language {{
 
     #[allow(clippy::needless_pass_by_value)]
     #[allow(clippy::trivially_copy_pass_by_ref)]
+    #[must_use]
     #[inline]
-    pub fn name(&self) -> &'static str {{
+    pub const fn name(&self) -> &'static str {{
         match self {{
             {}
         }}
@@ -229,6 +233,7 @@ impl Language {{
                     data.out_file_name()
                 ))
                 .join("\n,"),
+            words_vec.len(),
             words_vec
                 .iter()
                 .map(|data| format!("Self::{}", data.enum_name()))

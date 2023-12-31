@@ -57,7 +57,7 @@ jobs:
         shell: bash
         run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
       - name: Run cargo clippy
-        run: ./clippy --color=always ${{ matrix.cargo_args }} -- -D warnings
+        run: cargo clippy --color=always ${{ matrix.cargo_args }} -- -D warnings
 
   improve_code:
     name: Improve and format the code
@@ -75,7 +75,7 @@ jobs:
         shell: bash
         run: rustup update stable && rustup default stable
       - name: Improve the code
-        run: ./clippy --fix || ./clippy --fix --all-features
+        run: cargo clippy --fix || cargo clippy --fix --all-features
       - name: Format the code
         run: cargo fmt
       - name: Update env
