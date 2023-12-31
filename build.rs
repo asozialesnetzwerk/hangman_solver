@@ -178,6 +178,8 @@ fn main() {
         write_words_data(word_data);
     }
 
+    let language_count = words_vec.len();
+
     fs::write(
         get_out_dir_joined(String::from("language.rs")),
         format!(
@@ -198,7 +200,7 @@ impl Language {{
 
     #[inline]
     #[must_use]
-    pub const fn all() -> [Self; {}] {{
+    pub const fn all() -> [Self; {language_count}] {{
         [
             {}
         ]
@@ -223,6 +225,31 @@ impl Language {{
         }}
     }}
 }}
+
+#[cfg(feature = "pyo3")]
+#[pymethods]
+impl Language {{
+    #[staticmethod]
+    #[must_use]
+    const fn values() -> [Self; {language_count}] {{
+        Self::all()
+    }}
+
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    #[getter]
+    #[must_use]
+    const fn value(&self) -> &'static str {{
+        self.name()
+    }}
+
+    #[staticmethod]
+    #[pyo3(signature = (name, default = None))]
+    pub fn parse_string(name: &str, default: Option<Self>) -> PyResult<Self> {{
+        Self::from_string(name)
+            .or(default)
+            .ok_or_else(|| UnknownLanguageError::new_err(name.to_owned()))
+    }}
+}}
 "###,
             words_vec.iter().map(WordsData::enum_name).join(",\n"),
             words_vec
@@ -233,7 +260,6 @@ impl Language {{
                     data.out_file_name()
                 ))
                 .join("\n,"),
-            words_vec.len(),
             words_vec
                 .iter()
                 .map(|data| format!("Self::{}", data.enum_name()))

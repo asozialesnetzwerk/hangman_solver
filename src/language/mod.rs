@@ -76,28 +76,3 @@ include!(concat!(env!("OUT_DIR"), "/language.rs"));
 
 #[cfg(feature = "pyo3")]
 create_exception!(hangman_solver, UnknownLanguageError, PyValueError);
-
-#[cfg(feature = "pyo3")]
-#[pymethods]
-impl Language {
-    #[allow(clippy::trivially_copy_pass_by_ref)]
-    #[getter]
-    #[must_use]
-    const fn value(&self) -> &'static str {
-        self.name()
-    }
-
-    #[staticmethod]
-    #[must_use]
-    const fn values() -> [Self; 5] {
-        Self::all()
-    }
-
-    #[staticmethod]
-    #[pyo3(signature = (name, default = None))]
-    pub fn parse_string(name: &str, default: Option<Self>) -> PyResult<Self> {
-        Self::from_string(name)
-            .or(default)
-            .ok_or_else(|| UnknownLanguageError::new_err(name.to_owned()))
-    }
-}
