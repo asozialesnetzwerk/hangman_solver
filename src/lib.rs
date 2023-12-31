@@ -23,9 +23,10 @@ use pyo3::prelude::*;
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
+#[allow(clippy::needless_pass_by_value)]
 pub fn solve(
-    #[allow(clippy::needless_pass_by_value)] pattern_string: String,
-    #[allow(clippy::needless_pass_by_value)] invalid_letters: Vec<char>,
+    pattern_string: String,
+    invalid_letters: Vec<char>,
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
@@ -40,9 +41,10 @@ pub fn solve(
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
+#[allow(clippy::needless_pass_by_value)]
 pub fn solve_crossword(
-    #[allow(clippy::needless_pass_by_value)] pattern_string: String,
-    #[allow(clippy::needless_pass_by_value)] invalid_letters: Vec<char>,
+    pattern_string: String,
+    invalid_letters: Vec<char>,
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
