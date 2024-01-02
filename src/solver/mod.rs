@@ -130,6 +130,15 @@ impl std::fmt::Display for HangmanResult {
     }
 }
 
+#[cfg(feature = "wasm_bindgen")]
+pub struct WasmHangmanResult<'a> {
+    pub input: String,
+    pub invalid: Vec<char>,
+    pub matching_words_count: u32,
+    pub possible_words: Vec<&'a str>,
+    pub letter_frequency: Vec<(char, u32)>,
+}
+
 #[allow(clippy::struct_field_names)]
 pub struct Pattern {
     pub invalid_letters: Vec<char>,
@@ -304,6 +313,33 @@ impl Pattern {
             invalid,
             possible_words,
             language,
+            letter_frequency,
+            matching_words_count,
+        }
+    }
+
+    #[cfg(feature = "wam_bindgen")]
+    #[must_use]
+    pub fn solve_with_words<'a, 'b, T: Iterator<Item = &'a str>>(
+        &self,
+        all_words: &'b mut T,
+        max_words_to_collect: Option<usize>,
+    ) -> WasmHangmanResult {
+        let (possible_words, letter_frequency, matching_words_count) =
+            self._solve_internal(&mut all_words, max_words_to_collect);
+
+        let mut invalid: Vec<char> = self
+            .invalid_letters
+            .iter()
+            .filter(|ch| !self.pattern.contains(*ch))
+            .copied()
+            .collect();
+
+        invalid.sort_unstable();
+        WasmHangmanResult {
+            input: self.pattern.iter().collect(),
+            invalid,
+            possible_words,
             letter_frequency,
             matching_words_count,
         }

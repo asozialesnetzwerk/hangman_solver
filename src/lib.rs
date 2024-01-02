@@ -15,6 +15,11 @@ pub use crate::language::{Language, StringChunkIter};
 
 pub use crate::solver::{HangmanResult, Pattern};
 
+#[cfg(feature = "wam_bindgen")]
+pub use crate::solver::WasmHangmanResult;
+#[cfg(feature = "wam_bindgen")]
+use wasm_bindgen;
+
 #[cfg(feature = "pyo3")]
 pub use crate::language::UnknownLanguageError;
 #[cfg(feature = "pyo3")]
@@ -72,4 +77,19 @@ pub fn hangman_solver(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<HangmanResult>()?;
     m.add_class::<Language>()?;
     Ok(())
+}
+
+#[cfg(feature = "wasm_bindgen")]
+#[wasm_bindgen]
+pub fn solve_hangman(
+    all_words: Vec<&str>,
+    pattern_string: String,
+    invalid_letters: Vec<char>,
+    max_words_to_collect: usize,
+    crossword_mode: bool,
+) -> WasmHangmanResult {
+    let pattern =
+        Pattern::new(&pattern_string, &invalid_letters, !crossword_mode);
+    let mut all_words_iter = all_words.iter();
+    Ok(pattern.solve_with_words(&all_words_iter, Some(max_words_to_collect)))
 }
