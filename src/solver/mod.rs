@@ -3,7 +3,7 @@ use cfg_if::cfg_if;
 use std::char;
 use std::iter::zip;
 
-use crate::language::{Language, StringChunkIter};
+use crate::language::Language;
 
 use counter::Counter;
 use itertools::Itertools;
@@ -228,12 +228,14 @@ impl Pattern {
 
     #[must_use]
     fn _collect_count_and_create_letter_frequency<
-        T: Iterator<Item = &'static str>,
+        'a,
+        'b,
+        T: Iterator<Item = &'a str>,
     >(
         &self,
-        words: T,
+        words: &'b mut T,
         max_words_to_collect: Option<usize>,
-    ) -> (u32, Counter<char, u32>, Vec<&'static str>) {
+    ) -> (u32, Counter<char, u32>, Vec<&'a str>) {
         let mut letter_counter: Counter<char, u32> = Counter::new();
 
         let update_counter: fn(&mut Counter<char, u32>, &str) =
@@ -246,7 +248,7 @@ impl Pattern {
         let mut words = words
             .inspect(|word: &&str| update_counter(&mut letter_counter, word));
 
-        let (words_vec, additional_count): (Vec<&'static str>, usize) =
+        let (words_vec, additional_count): (Vec<&'a str>, usize) =
             if let Some(n) = max_words_to_collect {
                 (words.by_ref().take(n).collect(), words.count())
             } else {
@@ -285,11 +287,9 @@ impl Pattern {
         language: Language,
         max_words_to_collect: Option<usize>,
     ) -> HangmanResult {
-        let (possible_words, letter_frequency, matching_words_count) = self
-            ._solve_internal(
-                language.read_words(self.pattern.len()),
-                max_words_to_collect,
-            );
+        let mut all_words = language.read_words(self.pattern.len());
+        let (possible_words, letter_frequency, matching_words_count) =
+            self._solve_internal(&mut all_words, max_words_to_collect);
 
         let mut invalid: Vec<char> = self
             .invalid_letters
@@ -310,12 +310,11 @@ impl Pattern {
     }
 
     #[must_use]
-    fn _solve_internal(
+    fn _solve_internal<'a, 'b, T: Iterator<Item = &'a str>>(
         &self,
-        all_words: StringChunkIter,
+        all_words: &'b mut T,
         max_words_to_collect: Option<usize>,
-    ) -> (Vec<&'static str>, Vec<(char, u32)>, u32) {
-        debug_assert_eq!(all_words.word_length, self.pattern.len());
+    ) -> (Vec<&'a str>, Vec<(char, u32)>, u32) {
         let (word_count, letter_frequency, words) =
             if self.known_letters_count() == 0
                 && self.invalid_letters.is_empty()
@@ -325,16 +324,19 @@ impl Pattern {
                     max_words_to_collect,
                 )
             } else if self.first_letter_is_wildcard() {
+                let mut filtered_words =
+                    all_words.filter(|word| self.matches(word));
                 self._collect_count_and_create_letter_frequency(
-                    all_words.filter(|word| self.matches(word)),
+                    &mut filtered_words,
                     max_words_to_collect,
                 )
             } else {
+                let mut filtered_words = all_words
+                    .skip_while(|word| !self.first_letter_matches(word))
+                    .take_while(|word| self.first_letter_matches(word))
+                    .filter(|word| self.matches(word));
                 self._collect_count_and_create_letter_frequency(
-                    all_words
-                        .skip_while(|word| !self.first_letter_matches(word))
-                        .take_while(|word| self.first_letter_matches(word))
-                        .filter(|word| self.matches(word)),
+                    &mut filtered_words,
                     max_words_to_collect,
                 )
             };
