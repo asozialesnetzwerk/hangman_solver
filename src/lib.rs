@@ -13,7 +13,7 @@ mod solver;
 
 pub use crate::language::{Language, StringChunkIter};
 
-pub use crate::solver::{solve_hangman_puzzle, HangmanResult, Pattern};
+pub use crate::solver::{HangmanResult, Pattern};
 
 #[cfg(feature = "pyo3")]
 pub use crate::language::UnknownLanguageError;
@@ -31,11 +31,7 @@ pub fn solve(
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
     let pattern = Pattern::new(&pattern_string, &invalid_letters, true);
-    Ok(solve_hangman_puzzle(
-        &pattern,
-        language,
-        Some(max_words_to_collect),
-    ))
+    Ok(pattern.solve(language, Some(max_words_to_collect)))
 }
 
 #[cfg(feature = "pyo3")]
@@ -49,11 +45,7 @@ pub fn solve_crossword(
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
     let pattern = Pattern::new(&pattern_string, &invalid_letters, false);
-    Ok(solve_hangman_puzzle(
-        &pattern,
-        language,
-        Some(max_words_to_collect),
-    ))
+    Ok(pattern.solve(language, Some(max_words_to_collect)))
 }
 
 #[cfg(feature = "pyo3")]

@@ -9,7 +9,7 @@ use pyo3::prelude::*;
 
 #[cfg_attr(feature = "pyo3", pyclass)]
 pub struct StringChunkIter {
-    word_length: usize,
+    pub word_length: usize,
     padded_word_byte_count: usize,
     index: usize,
     string: &'static str,

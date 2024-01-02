@@ -21,7 +21,7 @@ use itertools::Itertools;
 use terminal_size::{terminal_size, Width};
 
 use crate::language::Language;
-use crate::solver::{solve_hangman_puzzle, Pattern};
+use crate::solver::Pattern;
 
 fn get_terminal_width() -> usize {
     #[cfg(feature = "terminal_size")]
@@ -84,11 +84,8 @@ fn main() {
                         .collect::<Vec<char>>()),
                     true,
                 );
-                let hr = solve_hangman_puzzle(
-                    &pattern,
-                    lang,
-                    Some(width / pattern.pattern.len() + 1),
-                );
+                let hr = pattern
+                    .solve(lang, Some(width / pattern.pattern.len() + 1));
                 assert!(hr.language == lang);
 
                 println!("{hr:─^width$}");

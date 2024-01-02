@@ -227,7 +227,7 @@ impl Pattern {
     }
 
     #[must_use]
-    fn collect_count_and_create_letter_frequency<
+    fn _collect_count_and_create_letter_frequency<
         T: Iterator<Item = &'static str>,
     >(
         &self,
@@ -278,55 +278,67 @@ impl Pattern {
 
         (words_count, letter_counter, words_vec)
     }
-}
 
-#[must_use]
-pub fn solve_hangman_puzzle(
-    pattern: &Pattern,
-    language: Language,
-    max_words_to_collect: Option<usize>,
-) -> HangmanResult {
-    let all_words: StringChunkIter = language.read_words(pattern.pattern.len());
+    #[must_use]
+    pub fn solve(
+        &self,
+        language: Language,
+        max_words_to_collect: Option<usize>,
+    ) -> HangmanResult {
+        let (possible_words, letter_frequency, matching_words_count) = self
+            ._solve_internal(
+                language.read_words(self.pattern.len()),
+                max_words_to_collect,
+            );
 
-    let (word_count, letter_frequency, words) = if pattern.known_letters_count()
-        == 0
-        && pattern.invalid_letters.is_empty()
-    {
-        pattern.collect_count_and_create_letter_frequency(
-            all_words,
-            max_words_to_collect,
-        )
-    } else if pattern.first_letter_is_wildcard() {
-        pattern.collect_count_and_create_letter_frequency(
-            all_words.filter(|word| pattern.matches(word)),
-            max_words_to_collect,
-        )
-    } else {
-        pattern.collect_count_and_create_letter_frequency(
-            all_words
-                .skip_while(|word| !pattern.first_letter_matches(word))
-                .take_while(|word| pattern.first_letter_matches(word))
-                .filter(|word| pattern.matches(word)),
-            max_words_to_collect,
-        )
-    };
+        let mut invalid: Vec<char> = self
+            .invalid_letters
+            .iter()
+            .filter(|ch| !self.pattern.contains(*ch))
+            .copied()
+            .collect();
 
-    let input_string: String = pattern.pattern.iter().collect();
+        invalid.sort_unstable();
+        HangmanResult {
+            input: self.pattern.iter().collect(),
+            invalid,
+            possible_words,
+            language,
+            letter_frequency,
+            matching_words_count,
+        }
+    }
 
-    let mut invalid_in_result: Vec<char> = pattern
-        .invalid_letters
-        .iter()
-        .filter(|ch| !pattern.pattern.contains(*ch))
-        .copied()
-        .collect();
+    #[must_use]
+    fn _solve_internal(
+        &self,
+        all_words: StringChunkIter,
+        max_words_to_collect: Option<usize>,
+    ) -> (Vec<&'static str>, Vec<(char, u32)>, u32) {
+        debug_assert_eq!(all_words.word_length, self.pattern.len());
+        let (word_count, letter_frequency, words) =
+            if self.known_letters_count() == 0
+                && self.invalid_letters.is_empty()
+            {
+                self._collect_count_and_create_letter_frequency(
+                    all_words,
+                    max_words_to_collect,
+                )
+            } else if self.first_letter_is_wildcard() {
+                self._collect_count_and_create_letter_frequency(
+                    all_words.filter(|word| self.matches(word)),
+                    max_words_to_collect,
+                )
+            } else {
+                self._collect_count_and_create_letter_frequency(
+                    all_words
+                        .skip_while(|word| !self.first_letter_matches(word))
+                        .take_while(|word| self.first_letter_matches(word))
+                        .filter(|word| self.matches(word)),
+                    max_words_to_collect,
+                )
+            };
 
-    invalid_in_result.sort_unstable();
-    HangmanResult {
-        input: input_string,
-        invalid: invalid_in_result,
-        possible_words: words,
-        language,
-        letter_frequency: letter_frequency.most_common_ordered(),
-        matching_words_count: word_count,
+        (words, letter_frequency.most_common_ordered(), word_count)
     }
 }
