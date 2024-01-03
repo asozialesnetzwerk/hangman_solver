@@ -81,6 +81,7 @@ pub fn hangman_solver(py: Python<'_>, m: &PyModule) -> PyResult<()> {
 
 #[cfg(feature = "wasm-bindgen")]
 #[wasm_bindgen]
+#[allow(clippy::needless_pass_by_value)]
 pub fn solve_hangman(
     all_words: Vec<String>,
     pattern_string: String,
@@ -91,7 +92,7 @@ pub fn solve_hangman(
     let invalid_letters: Vec<char> = invalid_letters.chars().collect();
     let pattern =
         Pattern::new(&pattern_string, &invalid_letters, !crossword_mode);
-    let mut all_words_iter = all_words.iter().map(|string| string.as_str());
+    let mut all_words_iter = all_words.iter().map(String::as_str);
 
     let result = pattern
         .solve_with_words(&mut all_words_iter, Some(max_words_to_collect));

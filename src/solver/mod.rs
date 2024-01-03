@@ -324,6 +324,7 @@ impl Pattern {
 
     #[cfg(feature = "wasm-bindgen")]
     #[must_use]
+    #[allow(dead_code)]
     pub fn solve_with_words<'a, 'b, T: Iterator<Item = &'a str>>(
         &self,
         all_words: &'b mut T,
