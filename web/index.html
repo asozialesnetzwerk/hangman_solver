@@ -228,7 +228,8 @@
                 console.error({msg: `failed to parse: query.get("${key}") = ${query.get(key)}`, error});
             }
         }
-        loadFromState({"state": state});
+        populateFormFromState(state);
+        onStateChange(state);
         addEventListeners();
     })
 </script>
