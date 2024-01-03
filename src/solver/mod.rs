@@ -130,10 +130,14 @@ impl std::fmt::Display for HangmanResult {
     }
 }
 
-#[cfg(feature = "wasm_bindgen")]
+#[cfg(feature = "wasm-bindgen")]
+use serde::Serialize;
+
+#[cfg(feature = "wasm-bindgen")]
+#[derive(Serialize)]
 pub struct WasmHangmanResult<'a> {
     pub input: String,
-    pub invalid: Vec<char>,
+    pub invalid: String,
     pub matching_words_count: u32,
     pub possible_words: Vec<&'a str>,
     pub letter_frequency: Vec<(char, u32)>,
@@ -318,15 +322,15 @@ impl Pattern {
         }
     }
 
-    #[cfg(feature = "wam_bindgen")]
+    #[cfg(feature = "wasm-bindgen")]
     #[must_use]
     pub fn solve_with_words<'a, 'b, T: Iterator<Item = &'a str>>(
         &self,
         all_words: &'b mut T,
         max_words_to_collect: Option<usize>,
-    ) -> WasmHangmanResult {
+    ) -> WasmHangmanResult<'a> {
         let (possible_words, letter_frequency, matching_words_count) =
-            self._solve_internal(&mut all_words, max_words_to_collect);
+            self._solve_internal(all_words, max_words_to_collect);
 
         let mut invalid: Vec<char> = self
             .invalid_letters
@@ -338,7 +342,7 @@ impl Pattern {
         invalid.sort_unstable();
         WasmHangmanResult {
             input: self.pattern.iter().collect(),
-            invalid,
+            invalid: invalid.iter().collect(),
             possible_words,
             letter_frequency,
             matching_words_count,
