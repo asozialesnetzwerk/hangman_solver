@@ -1,4 +1,4 @@
-name: Check
+name: Deploy
 on: [ push ]
 
 jobs:

@@ -1,3 +1,9 @@
+<style>
+    label {
+        display: block;
+    }
+</style>
+
 <form id="hangman-solver-form">
     <label>
         Eingabe (Nutze "_" für nicht bekannte Buchstaben)
@@ -178,11 +184,11 @@
 
     function populateFormFromState(state) {
         const inputElements = getHtmlInputElements();
-        inputElements.input[0].value = state.input;
-        inputElements.crossword_mode[0].checked = state.crossword_mode;
-        inputElements.invalid[0].value = state.invalid;
-        inputElements.max_words[0].value = state.max_words.toString();
-        inputElements.lang[0].value = state.lang;
+        inputElements.input.value = state.input;
+        inputElements.crossword_mode.checked = state.crossword_mode;
+        inputElements.invalid.value = state.invalid;
+        inputElements.max_words.value = state.max_words.toString();
+        inputElements.lang.value = state.lang;
     }
 
     function loadFromState(event) {
@@ -196,8 +202,8 @@
         addEventListener("popstate", loadFromState);
         getForm().addEventListener("submit", updateCurrentState);
         const inputElements = getHtmlInputElements();
-        inputElements.lang[0].addEventListener("change", updateCurrentState);
-        inputElements.crossword_mode[0].addEventListener(
+        inputElements.lang.addEventListener("change", updateCurrentState);
+        inputElements.crossword_mode.addEventListener(
             "change",
             updateCurrentState,
         );
