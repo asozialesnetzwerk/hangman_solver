@@ -210,7 +210,14 @@
     }
 
     init().then(() => {
-        updateCurrentState()
+        const query = new URLSearchParams(window.location.search);
+        const state = getState();
+        for (const key in Object.keys(state)) {
+            if (query.has(key)) {
+                state[key] = query.get(key);
+            }
+        }
+        loadFromState(state);
         addEventListeners();
     })
 </script>

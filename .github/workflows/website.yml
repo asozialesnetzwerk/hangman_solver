@@ -1,6 +1,7 @@
 name: Deploy
-on: [ push ]
-
+on:
+  push:
+    branches: [ main ]
 jobs:
   github-pages:
     name: GitHub Pages
@@ -29,8 +30,8 @@ jobs:
         run: wasm-pack build --target web --no-default-features --features=wasm-bindgen
       - name: Optimize wasm
         run: ./binaryen/bin/wasm-opt -Oz pkg/hangman_solver_lib_bg.wasm  -o pkg/hangman_solver_lib_bg.wasm
-      - name: Move HTML
-        run: mv web/index.html pkg/
+      - name: Copy HTML
+        run: cp web/* pkg/
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v1
         with:
