@@ -212,12 +212,23 @@
     init().then(() => {
         const query = new URLSearchParams(window.location.search);
         const state = getState();
-        for (const key in Object.keys(state)) {
-            if (query.has(key)) {
-                state[key] = query.get(key);
+        for (const key of Object.keys(state)) {
+            if (!query.has(key)) {
+                continue;
+            }
+            try {
+                if (key === "crossword_mode") {
+                    state[key] = Boolean(query.get(key));
+                } else if (key === "max_words") {
+                    state[key] = Number(query.get(key));
+                } else {
+                    state[key] = query.get(key);
+                }
+            } catch (error) {
+                console.error({msg: `failed to parse: query.get("${key}") = ${query.get(key)}`, error});
             }
         }
-        loadFromState(state);
+        loadFromState({"state": state});
         addEventListeners();
     })
 </script>

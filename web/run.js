@@ -24,10 +24,10 @@ await init();
 
 const result = solve_hangman(
     words,
-    flags.input,
-    flags.invalid,
-    flags.maxwords,
-    flags.crossword,
+    flags.input || "",
+    flags.invalid || "",
+    flags.maxwords ?? 10,
+    flags.crossword ?? false,
 );
 
 console.log({
