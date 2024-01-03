@@ -88,13 +88,13 @@ pub fn solve_hangman(
     invalid_letters: String,
     max_words_to_collect: usize,
     crossword_mode: bool,
-) -> Result<JsValue, JsValue> {
+) -> Result<WasmHangmanResult, JsValue> {
     let invalid_letters: Vec<char> = invalid_letters.chars().collect();
     let pattern =
         Pattern::new(&pattern_string, &invalid_letters, !crossword_mode);
     let mut all_words_iter = all_words.iter().map(String::as_str);
 
-    let result = pattern
+    let result: WasmHangmanResult = pattern
         .solve_with_words(&mut all_words_iter, Some(max_words_to_collect));
-    Ok(serde_wasm_bindgen::to_value(&result)?)
+    Ok(result)
 }

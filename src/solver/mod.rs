@@ -131,16 +131,21 @@ impl std::fmt::Display for HangmanResult {
 }
 
 #[cfg(feature = "wasm-bindgen")]
-use serde::Serialize;
+use wasm_bindgen::prelude::*;
 
 #[cfg(feature = "wasm-bindgen")]
-#[derive(Serialize)]
-pub struct WasmHangmanResult<'a> {
+#[wasm_bindgen(getter_with_clone)]
+pub struct WasmHangmanResult {
+    #[wasm_bindgen(readonly)]
     pub input: String,
+    #[wasm_bindgen(readonly)]
     pub invalid: String,
+    #[wasm_bindgen(readonly)]
     pub matching_words_count: u32,
-    pub possible_words: Vec<&'a str>,
-    pub letter_frequency: Vec<(char, u32)>,
+    #[wasm_bindgen(readonly)]
+    pub possible_words: Vec<String>,
+    #[wasm_bindgen(readonly)]
+    pub letter_frequency: String,
 }
 
 #[allow(clippy::struct_field_names)]
@@ -329,7 +334,7 @@ impl Pattern {
         &self,
         all_words: &'b mut T,
         max_words_to_collect: Option<usize>,
-    ) -> WasmHangmanResult<'a> {
+    ) -> WasmHangmanResult {
         let (possible_words, letter_frequency, matching_words_count) =
             self._solve_internal(all_words, max_words_to_collect);
 
@@ -340,12 +345,26 @@ impl Pattern {
             .copied()
             .collect();
 
+        let mut letter_frequency_string: String = String::new();
+
+        for (char, count) in letter_frequency {
+            if !letter_frequency_string.is_empty() {
+                letter_frequency_string.push_str(", ");
+            }
+            letter_frequency_string.push(char);
+            letter_frequency_string.push_str(": ");
+            letter_frequency_string.push_str(&count.to_string());
+        }
+
         invalid.sort_unstable();
         WasmHangmanResult {
             input: self.pattern.iter().collect(),
             invalid: invalid.iter().collect(),
-            possible_words,
-            letter_frequency,
+            possible_words: possible_words
+                .iter()
+                .map(|word| String::from(*word))
+                .collect(),
+            letter_frequency: letter_frequency_string,
             matching_words_count,
         }
     }
