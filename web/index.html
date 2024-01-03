@@ -10,7 +10,7 @@
     </label>
 
     <label>Kreuzworträtselmodus
-        <input type="checkbox" id="crossword-mode" name="crossword_mode">
+        <input type="checkbox" name="crossword_mode">
     </label>
 
     <label>Maximale Wortanzahl
@@ -41,7 +41,7 @@
 
 <div id="matching-words"></div>
 
-<script>
+<script type="module">
     import init, { solve_hangman } from "./hangman_solver_lib.js";
 
     function getForm() {
