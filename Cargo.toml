@@ -17,6 +17,7 @@ build = "build.rs"
 
 [features]
 default = ["terminal_size"]
+wasm-bindgen = ["dep:wasm-bindgen", "dep:js-sys"]
 
 [profile.release]
 codegen-units = 1
@@ -45,6 +46,8 @@ itertools = { version = "0.12.0", features = [] }
 pyo3 = { version = "0.20.0", features = ["extension-module", "abi3", "abi3-py310"], optional = true }
 terminal_size = { version = "0.3.0", optional = true }
 wasm-bindgen = { version = "0.2.89", optional = true }
+js-sys = { version = "0.3.66", optional = true }
+
 
 [build-dependencies]
 itertools = { version = "0.12.0", features = [] }
