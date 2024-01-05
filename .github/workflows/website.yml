@@ -31,7 +31,9 @@ jobs:
       - name: Optimize wasm
         run: ./binaryen/bin/wasm-opt -Oz pkg/hangman_solver_lib_bg.wasm  -o pkg/hangman_solver_lib_bg.wasm
       - name: Copy HTML
-        run: cp web/* pkg/
+        run: cp web/index.html pkg/
+      - name: Copy run.js
+        run: sed 's|"../pkg/hangman_solver_lib.js"|"https://github.asozial.org/hangman_solver/hangman_solver_lib.js"|' web/run.js > pkg/run.js
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v1
         with:

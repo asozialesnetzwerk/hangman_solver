@@ -1,7 +1,7 @@
-#!/bin/env -S deno run --allow-net=github.asozial.org,asozial.org,deno.land
+#!/bin/env -S deno run --allow-net=github.asozial.org,asozial.org,deno.land --allow-read=./pkg/
 import { parse } from "https://deno.land/std@0.207.0/flags/mod.ts";
 import { exit } from "https://deno.land/x/exit/mod.ts";
-import init, { solve_hangman } from "https://github.asozial.org/hangman_solver/hangman_solver_lib.js";
+import init, { solve_hangman } from "../pkg/hangman_solver_lib.js";
 
 
 const flags = parse(Deno.args, {
