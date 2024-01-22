@@ -10,6 +10,7 @@ use std::path::{Path, PathBuf};
 
 use inflector::Inflector;
 use itertools::Itertools;
+use unicode_segmentation::UnicodeSegmentation;
 
 type StrConv = fn(String) -> String;
 
@@ -80,6 +81,14 @@ fn get_out_dir_joined(path: String) -> PathBuf {
 
 fn write_words_data(words_data: &WordsData) {
     let mut words: Vec<String> = words_data.read_lines();
+
+    for word in &words {
+        assert_eq!(
+            UnicodeSegmentation::graphemes(word.as_str(), true).count(),
+            word.chars().count(),
+            "{word} is",
+        );
+    }
 
     words.sort_unstable();
     words.sort_by_key(|word: &String| word.chars().count());
