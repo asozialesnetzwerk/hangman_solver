@@ -74,14 +74,14 @@ fn main() {
 
                 let width = get_terminal_width();
 
-                let input: Box<[&str]> = buffer.splitn(2, ' ').collect();
+                let input: Vec<&str> = buffer.splitn(2, ' ').collect();
                 let pattern = Pattern::new(
                     input.first().unwrap_or(&""),
                     &(input
                         .get(1)
                         .unwrap_or(&"")
                         .chars()
-                        .collect::<Box<[char]>>()),
+                        .collect::<Vec<char>>()),
                     true,
                 );
                 let hr = pattern

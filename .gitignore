@@ -4,4 +4,3 @@ venv/
 .venv/
 dist/
 /hangman_solver.iml
-*.kate-sw

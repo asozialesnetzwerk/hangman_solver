@@ -4,7 +4,6 @@ mod char_collection;
 use cfg_if::cfg_if;
 use std::char;
 use std::iter::zip;
-use std::rc::Rc;
 
 use crate::language::Language;
 use crate::solver::char_collection::CharCollection;
@@ -45,33 +44,31 @@ fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
     string
 }
 
-type CountedLetters = Box<[(char, u32)]>;
-
 cfg_if! {
     if #[cfg(feature = "pyo3")] {
         #[pyclass]
         pub struct HangmanResult {
             #[pyo3(get)]
-            pub input: Rc<[char]>,
+            pub input: String,
             #[pyo3(get)]
             pub matching_words_count: u32,
             #[pyo3(get)]
-            pub invalid: Rc<[char]>,
+            pub invalid: Vec<char>,
             #[pyo3(get, name = "words")]
-            pub possible_words: Box<[&'static str]>,
+            pub possible_words: Vec<&'static str>,
             #[pyo3(get)]
             pub language: Language,
             #[pyo3(get)]
-            pub letter_frequency: CountedLetters,
+            pub letter_frequency: Vec<(char, u32)>,
         }
     } else {
         pub struct HangmanResult {
-            pub input: Rc<[char]>,
-            pub invalid: Rc<[char]>,
+            pub input: String,
+            pub invalid: Vec<char>,
             pub matching_words_count: u32,
-            pub possible_words: Box<[&'static str]>,
+            pub possible_words: Vec<&'static str>,
             pub language: Language,
-            pub letter_frequency: Box<[(char, u32)]>,
+            pub letter_frequency: Vec<(char, u32)>,
         }
     }
 }
@@ -83,9 +80,7 @@ impl std::fmt::Display for HangmanResult {
         write!(
             file,
             "Found {} words (input: {}, invalid: {})",
-            self.matching_words_count,
-            self.input.iter().collect::<String>(),
-            invalid,
+            self.matching_words_count, self.input, invalid,
         )?;
         if self.possible_words.is_empty() {
             return Ok(());
@@ -120,7 +115,7 @@ impl std::fmt::Display for HangmanResult {
 }
 
 #[cfg(feature = "wasm-bindgen")]
-use js_sys::{Array, JsString, Number};
+use js_sys::JsString;
 #[cfg(feature = "wasm-bindgen")]
 use wasm_bindgen::prelude::*;
 
@@ -141,8 +136,8 @@ pub struct WasmHangmanResult {
 
 #[allow(clippy::struct_field_names)]
 pub struct Pattern {
-    pub invalid_letters: Rc<[char]>,
-    pub pattern: Rc<[char]>,
+    pub invalid_letters: Vec<char>,
+    pub pattern: Vec<char>,
     pub first_letter: char,
     /// true for normal hangman mode
     letters_in_pattern_have_no_other_occurrences: bool,
@@ -155,7 +150,7 @@ impl Pattern {
         invalid_letters: &V,
         letters_in_pattern_have_no_other_occurrences: bool,
     ) -> Self {
-        let pattern: Rc<[char]> = pattern
+        let pattern_as_chars: Vec<char> = pattern
             .iter_chars()
             .flat_map(char::to_lowercase)
             .filter(|ch| !ch.is_whitespace())
@@ -168,26 +163,25 @@ impl Pattern {
             })
             .collect();
 
-        let additional_invalid: &[char] =
+        let additional_invalid: Vec<char> =
             if letters_in_pattern_have_no_other_occurrences {
-                &pattern
+                pattern_as_chars.clone()
             } else {
-                &[]
+                vec![]
             };
 
-        let invalid_letters: Rc<[char]> = additional_invalid
-            .iter()
-            .copied()
+        let invalid_letters_vec: Vec<char> = additional_invalid
+            .into_iter()
             .chain(invalid_letters.iter_chars())
             .filter(|ch| *ch != WILDCARD_CHAR && !ch.is_whitespace())
             .unique()
             .collect();
 
-        let first_letter = *pattern.first().unwrap_or(&WILDCARD_CHAR);
+        let first_letter = *pattern_as_chars.first().unwrap_or(&WILDCARD_CHAR);
 
         Self {
-            invalid_letters,
-            pattern,
+            invalid_letters: invalid_letters_vec,
+            pattern: pattern_as_chars,
             first_letter,
             letters_in_pattern_have_no_other_occurrences,
         }
@@ -253,7 +247,7 @@ impl Pattern {
         &self,
         words: &'b mut T,
         max_words_to_collect: Option<usize>,
-    ) -> (u32, Counter<char, u32>, Box<[&'a CC]>) {
+    ) -> (u32, Counter<char, u32>, Vec<&'a CC>) {
         let mut letter_counter: Counter<char, u32> = Counter::new();
 
         let update_counter: fn(&mut Counter<char, u32>, &CC) =
@@ -266,7 +260,7 @@ impl Pattern {
         let mut words =
             words.inspect(|word| update_counter(&mut letter_counter, word));
 
-        let (words_vec, additional_count): (Box<[&'a CC]>, usize) =
+        let (words_vec, additional_count): (Vec<&'a CC>, usize) =
             if let Some(n) = max_words_to_collect {
                 (words.by_ref().take(n).collect(), words.count())
             } else {
@@ -277,7 +271,7 @@ impl Pattern {
             .unwrap_or(u32::MAX);
 
         if self.letters_in_pattern_have_no_other_occurrences {
-            for letter in self.pattern.iter() {
+            for letter in &self.pattern {
                 letter_counter.remove(letter);
             }
         } else {
@@ -318,8 +312,8 @@ impl Pattern {
 
         invalid.sort_unstable();
         HangmanResult {
-            input: self.pattern.clone(),
-            invalid: invalid.into(),
+            input: self.pattern.iter().collect(),
+            invalid,
             possible_words,
             language,
             letter_frequency,
@@ -345,23 +339,26 @@ impl Pattern {
             .copied()
             .collect();
 
-        let mut letter_frequency_string: Array = Array::new();
+        let mut letter_frequency_string: String = String::new();
 
         for (char, count) in letter_frequency {
-            letter_frequency_string.push(&JsString::from(char));
-            letter_frequency_string.push(&JsString::from(": "));
-            letter_frequency_string.push(&Number::from(count));
+            if !letter_frequency_string.is_empty() {
+                letter_frequency_string.push_str(", ");
+            }
+            letter_frequency_string.push(char);
+            letter_frequency_string.push_str(": ");
+            letter_frequency_string.push_str(&count.to_string());
         }
 
         invalid.sort_unstable();
         WasmHangmanResult {
-            input: JsString::from_chars(self.pattern.iter().copied()),
-            invalid: JsString::from_chars(invalid.iter().copied()),
+            input: JsString::from(self.pattern.iter().collect::<String>()),
+            invalid: JsString::from(invalid.iter().collect::<String>()),
             possible_words: possible_words
                 .into_iter()
                 .map(JsString::to_string)
                 .collect(),
-            letter_frequency: letter_frequency_string.join(", "),
+            letter_frequency: JsString::from(letter_frequency_string),
             matching_words_count,
         }
     }
@@ -376,7 +373,7 @@ impl Pattern {
         &self,
         all_words: &'b mut T,
         max_words_to_collect: Option<usize>,
-    ) -> (Box<[&'a CC]>, CountedLetters, u32) {
+    ) -> (Vec<&'a CC>, Vec<(char, u32)>, u32) {
         let (word_count, letter_frequency, words) =
             if self.known_letters_count() == 0
                 && self.invalid_letters.is_empty()
@@ -403,10 +400,6 @@ impl Pattern {
                 )
             };
 
-        (
-            words,
-            letter_frequency.most_common_ordered().into(),
-            word_count,
-        )
+        (words, letter_frequency.most_common_ordered(), word_count)
     }
 }
