@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: EUPL-1.2
 use std::num::NonZeroUsize;
+use std::ops::Div;
 
 #[cfg(feature = "pyo3")]
 use pyo3::create_exception;
