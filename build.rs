@@ -108,7 +108,7 @@ fn write_words_data(words_data: &WordsData) {
             .iter()
             .map(|word| word.as_str().len())
             .max()
-            .unwrap();
+            .expect("word group needs to have max length");
 
         output += &*format!("{length} => ({max_real_str_length}, \"");
 
@@ -180,7 +180,7 @@ fn main() {
     let words_vec: Vec<WordsData> = words_vec
         .iter()
         .sorted_by_key(|data| data.lang.as_str())
-        .map(std::clone::Clone::clone)
+        .cloned()
         .collect();
 
     for word_data in &words_vec {
