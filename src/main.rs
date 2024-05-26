@@ -113,7 +113,7 @@ fn test_itering_words() -> Result<(), String> {
                 ));
             }
             let mut word_count = 0;
-            let mut word_iterator = lang.read_words(i);
+            let word_iterator = lang.read_words(i);
             for word in word_iterator {
                 if word.len() < i {
                     return Err(format!(
