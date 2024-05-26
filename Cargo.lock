@@ -72,7 +72,7 @@ dependencies = [
 
 [[package]]
 name = "hangman_solver"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "Inflector",
  "cfg-if",
