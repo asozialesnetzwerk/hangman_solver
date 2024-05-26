@@ -28,10 +28,10 @@ impl StringChunkIter {
     ) -> Self {
         Self {
             word_length,
-            padded_word_byte_count: if padded_word_byte_count == 0 {
-                NonZeroUsize::MIN
+            padded_word_byte_count: if let Some(non_zero) = NonZeroUsize::new(padded_word_byte_count) {
+                non_zero
             } else {
-                unsafe { NonZeroUsize::new_unchecked(padded_word_byte_count) }
+                NonZeroUsize::MIN
             },
             index: if string.is_empty() { usize::MAX } else { 0 },
             is_ascii: word_length == padded_word_byte_count,
