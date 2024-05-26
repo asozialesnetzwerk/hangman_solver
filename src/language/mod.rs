@@ -49,17 +49,20 @@ impl Iterator for StringChunkIter {
     type Item = &'static str;
 
     #[must_use]
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let end_index =
             self.index.checked_add(self.padded_word_byte_count.get())?;
         debug_assert_ne!(self.index, end_index);
 
+        let result = self.string.get(self.index..end_index)?;
+
         let result = if self.is_ascii {
-            self.string.get(self.index..end_index)?
+            result
         } else {
-            let result = self.string.get(self.index..end_index)?;
             result.trim_start_matches('\0')
         };
+
         debug_assert!(end_index <= self.string.len());
         self.index = end_index;
         debug_assert!(!result.contains('\0'));
