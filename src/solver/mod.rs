@@ -228,6 +228,33 @@ impl Pattern {
         true
     }
 
+    #[must_use]
+    #[inline]
+    fn ascii_matches(&self, word: &str) -> bool  {
+        // This only works if word is ascii
+        debug_assert!(word.is_ascii());
+        // This only makes sense if word has the same length as the pattern
+        debug_assert_eq!(word.len(), self.pattern.len());
+        // none of the reserved chars shall be in the word
+        debug_assert_eq!(
+            RESERVED_CHARS
+                .iter()
+                .filter(|ch| word.iter_chars().contains(ch))
+                .count(),
+            0
+        );
+        for (p, w) in zip(self.pattern.iter(), word.bytes()) {
+            if *p == WILDCARD_CHAR {
+                if self.invalid_letters.contains(&char::from(w)) {
+                    return false;
+                }
+            } else if *p != char::from(w) {
+                return false;
+            }
+        }
+        true
+    }
+
     #[inline]
     #[must_use]
     fn known_letters_count(&self) -> usize {
@@ -300,8 +327,12 @@ impl Pattern {
         max_words_to_collect: Option<usize>,
     ) -> HangmanResult {
         let mut all_words = language.read_words(self.pattern.len());
-        let (possible_words, letter_frequency, matching_words_count) =
-            self._solve_internal(&mut all_words, max_words_to_collect);
+        let (possible_words, letter_frequency, matching_words_count) = if all_words.is_ascii {
+            self._solve_internal(&mut all_words, max_words_to_collect, |p, w| p.ascii_matches(&w))
+        } else {
+            self._solve_internal(&mut all_words, max_words_to_collect, |p, w| p.matches(&w))
+        };
+
 
         let mut invalid: Vec<char> = self
             .invalid_letters
@@ -330,7 +361,7 @@ impl Pattern {
         max_words_to_collect: Option<usize>,
     ) -> WasmHangmanResult {
         let (possible_words, letter_frequency, matching_words_count) =
-            self._solve_internal(all_words, max_words_to_collect);
+            self._solve_internal(all_words, max_words_to_collect, |p, w| p.matches(&w));
 
         let mut invalid: Vec<char> = self
             .invalid_letters
@@ -369,10 +400,12 @@ impl Pattern {
         'b,
         CC: CharCollection + ?Sized + 'a,
         T: Iterator<Item = &'a CC>,
+        Matches: Fn(&Pattern, &CC) -> bool,
     >(
         &self,
         all_words: &'b mut T,
         max_words_to_collect: Option<usize>,
+        matches: Matches,
     ) -> (Vec<&'a CC>, Vec<(char, u32)>, u32) {
         let (word_count, letter_frequency, words) =
             if self.known_letters_count() == 0
@@ -384,7 +417,7 @@ impl Pattern {
                 )
             } else if self.first_letter_is_wildcard() {
                 let mut filtered_words =
-                    all_words.filter(|word| self.matches(word));
+                    all_words.filter(|word| matches(self, word));
                 self._collect_count_and_create_letter_frequency(
                     &mut filtered_words,
                     max_words_to_collect,
@@ -393,7 +426,7 @@ impl Pattern {
                 let mut filtered_words = all_words
                     .skip_while(|word| !self.first_letter_matches(word))
                     .take_while(|word| self.first_letter_matches(word))
-                    .filter(|word| self.matches(word));
+                    .filter(|word| matches(self, word));
                 self._collect_count_and_create_letter_frequency(
                     &mut filtered_words,
                     max_words_to_collect,
