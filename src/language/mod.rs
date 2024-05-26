@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 use std::num::NonZeroUsize;
+
+#[cfg(feature = "pyo3")]
 use std::ops::Div;
 
 #[cfg(feature = "pyo3")]
