@@ -133,15 +133,21 @@ fn test_itering_words() -> Result<(), String> {
             #[cfg(feature = "pyo3")]
             {
                 if word_count != lang.read_words(i).__len__() {
-                    return Err(format!("__len__: {word_count} != {} (lang={lang:?})",lang.read_words(i).__len__()));
+                    return Err(format!(
+                        "__len__: {word_count} != {} (lang={lang:?})",
+                        lang.read_words(i).__len__()
+                    ));
                 }
                 if word_count != lang.read_words(i).__length_hint__() {
-                    return Err(format!("__length_hint__: {word_count} != {} (lang={lang:?})",lang.read_words(i).__length_hint__()));
+                    return Err(format!(
+                        "__length_hint__: {word_count} != {} (lang={lang:?})",
+                        lang.read_words(i).__length_hint__()
+                    ));
                 }
                 let mut word_iterator = lang.read_words(i);
                 while word_iterator.next().is_some() {}
                 let len_hint = word_iterator.__length_hint__();
-                if len_hint != 0  {
+                if len_hint != 0 {
                     return Err(format!(
                         "__length_hint__: {len_hint} != 0 (lang={lang:?})"
                     ));
