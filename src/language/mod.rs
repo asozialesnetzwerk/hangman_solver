@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: EUPL-1.2
 use std::num::NonZeroUsize;
+use std::ops::Div;
 
 #[cfg(feature = "pyo3")]
 use pyo3::create_exception;
@@ -77,8 +78,8 @@ impl StringChunkIter {
     }
 
     #[must_use]
-    const fn __len__(&self) -> usize {
-        self.string.len() / self.padded_word_byte_count
+    fn __len__(&self) -> usize {
+        self.string.len().div(self.padded_word_byte_count)
     }
 }
 
