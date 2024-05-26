@@ -40,6 +40,8 @@ class HangmanResult:
     letter_frequency: list[tuple[str, int]]
 
 class Language:
+    __init__ = None
+    __new__ = None
 
     @staticmethod
     def parse_string(name: str, default: Language = None) -> Language:
@@ -60,7 +62,6 @@ class Language:
         pass
 
     value: str
-
 
     De: ClassVar[Language]
     DeBasic: ClassVar[Language]
