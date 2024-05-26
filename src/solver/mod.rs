@@ -145,6 +145,7 @@ pub struct Pattern {
 
 impl Pattern {
     #[must_use]
+    #[inline]
     pub fn new<T: CharCollection, V: CharCollection>(
         pattern: &T,
         invalid_letters: &V,
@@ -194,6 +195,7 @@ impl Pattern {
     }
 
     #[must_use]
+    #[inline]
     fn first_letter_matches<CC: CharCollection + ?Sized>(
         &self,
         word: &&CC,
@@ -205,6 +207,7 @@ impl Pattern {
     }
 
     #[must_use]
+    #[inline]
     fn matches<CC: CharCollection + ?Sized>(&self, word: &&CC) -> bool {
         // This only makes sense if word has the same length as the pattern
         debug_assert_eq!(word.char_count(), self.pattern.len());
@@ -238,6 +241,7 @@ impl Pattern {
     }
 
     #[must_use]
+    #[inline]
     fn _collect_count_and_create_letter_frequency<
         'a,
         'b,
@@ -294,6 +298,7 @@ impl Pattern {
     }
 
     #[must_use]
+    #[inline]
     pub fn solve(
         &self,
         language: Language,
@@ -364,6 +369,7 @@ impl Pattern {
     }
 
     #[must_use]
+    #[inline]
     fn _solve_internal<
         'a,
         'b,
