@@ -193,7 +193,7 @@ fn main() {
         get_out_dir_joined(String::from("language.rs")),
         format!(
             r###"#[cfg_attr(feature = "pyo3", pyclass)]
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Language {{
     {}
 }}

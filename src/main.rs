@@ -98,3 +98,29 @@ fn main() {
         buffer.clear();
     }
 }
+
+#[test]
+fn test_itering_words() -> Result<(), String> {
+    use crate::solver::char_collection::CharCollection;
+    for lang in Language::all() {
+        let mut total_words = 0usize;
+        for i in 0..100usize {
+            if i != lang.read_words(i).word_length {
+                return Err(format!("{} != {} (lang={lang:?})", i, lang.read_words(i).word_length));
+            }
+            for word in lang.read_words(i) {
+                if word.len() < i {
+                    return Err(format!("{} < {} (word={word}, lang={lang:?})", word.len(), i));
+                }
+                if word.char_count() != i {
+                    return Err(format!("{} != {} (word={word}, lang={lang:?})", word.char_count(), i))
+                }
+                total_words += 1;
+            }
+        }
+        if total_words < 50_000 {
+            return Err(format!("only {total_words} for {lang:?}"));
+        }
+    }
+    Ok(())
+}
