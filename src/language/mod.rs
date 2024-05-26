@@ -17,7 +17,7 @@ use crate::solver::char_collection::CharCollection;
 pub struct StringChunkIter {
     pub word_length: usize,
     padded_word_byte_count: NonZeroUsize,
-    pub is_ascii: bool,
+    is_ascii: bool,
     index: usize,
     string: &'static str,
 }
