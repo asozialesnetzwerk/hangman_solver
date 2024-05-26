@@ -87,7 +87,7 @@ impl StringChunkIter {
     }
 
     #[must_use]
-    fn __len_hint__(&self) -> usize {
+    fn __length_hint__(&self) -> Option<usize> {
         self.string
             .len()
             .checked_sub(self.index)
