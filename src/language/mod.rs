@@ -86,11 +86,6 @@ impl StringChunkIter {
 
     #[must_use]
     pub fn __len__(&self) -> usize {
-        self.string.len().div(self.padded_word_byte_count)
-    }
-
-    #[must_use]
-    pub fn __length_hint__(&self) -> usize {
         self.string
             .len()
             .checked_sub(self.index)
