@@ -28,7 +28,9 @@ impl StringChunkIter {
     ) -> Self {
         Self {
             word_length,
-            padded_word_byte_count: if let Some(non_zero) = NonZeroUsize::new(padded_word_byte_count) {
+            padded_word_byte_count: if let Some(non_zero) =
+                NonZeroUsize::new(padded_word_byte_count)
+            {
                 non_zero
             } else {
                 NonZeroUsize::MIN
