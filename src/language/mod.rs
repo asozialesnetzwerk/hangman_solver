@@ -85,6 +85,14 @@ impl StringChunkIter {
     fn __len__(&self) -> usize {
         self.string.len().div(self.padded_word_byte_count)
     }
+
+    #[must_use]
+    fn __len_hint__(&self) -> usize {
+        self.string
+            .len()
+            .checked_sub(self.index)
+            .map(|rest| rest.div(self.padded_word_byte_count))
+    }
 }
 
 include!(concat!(env!("OUT_DIR"), "/language.rs"));

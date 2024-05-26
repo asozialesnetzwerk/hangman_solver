@@ -112,7 +112,9 @@ fn test_itering_words() -> Result<(), String> {
                     lang.read_words(i).word_length
                 ));
             }
-            for word in lang.read_words(i) {
+            let mut word_count = 0;
+            let mut word_iterator = lang.read_words(i);
+            for word in word_iterator {
                 if word.len() < i {
                     return Err(format!(
                         "{} < {} (word={word}, lang={lang:?})",
@@ -127,8 +129,24 @@ fn test_itering_words() -> Result<(), String> {
                         i
                     ));
                 }
-                total_words += 1;
+                word_count += 1;
             }
+            #[cfg(feature = "pyo3")]
+            {
+                if word_count != lang.read_words(i).__len__() {
+                    return Err(format!("__len__: {word_count} != {} (word={word}, lang={lang:?})",lang.read_words(i).__len__()));
+                }
+                if word_count != lang.read_words(i).__len_hint__() {
+                    return Err(format!("__len_hint__: {word_count} != {} (word={word}, lang={lang:?})",lang.read_words(i).__len_hint__()));
+                }
+                if word_iterator.__len_hint__() != Some(0) {
+                    return Err(format!(
+                        "__len_hint__: {} != 0 (word={word}, lang={lang:?})",
+                        word_iterator.__len_hint__()
+                    ));
+                }
+            }
+            total_words += word_count;
         }
         if total_words < 50_000 {
             return Err(format!("only {total_words} for {lang:?}"));
