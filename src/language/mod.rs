@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: EUPL-1.2
+use std::num::NonZeroUsize;
 
 #[cfg(feature = "pyo3")]
 use pyo3::create_exception;
@@ -7,10 +8,13 @@ use pyo3::exceptions::PyValueError;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
+use crate::solver::char_collection::CharCollection;
+
 #[cfg_attr(feature = "pyo3", pyclass)]
 pub struct StringChunkIter {
     pub word_length: usize,
-    padded_word_byte_count: usize,
+    padded_word_byte_count: NonZeroUsize,
+    is_ascii: bool,
     index: usize,
     string: &'static str,
 }
@@ -24,9 +28,14 @@ impl StringChunkIter {
     ) -> Self {
         Self {
             word_length,
-            index: 0,
+            padded_word_byte_count: if padded_word_byte_count == 0 {
+                NonZeroUsize::MIN
+            } else {
+                unsafe { NonZeroUsize::new_unchecked(padded_word_byte_count) }
+            },
+            index: if string.is_empty() { usize::MAX } else { 0 },
+            is_ascii: word_length == padded_word_byte_count,
             string,
-            padded_word_byte_count,
         }
     }
 }
@@ -36,19 +45,20 @@ impl Iterator for StringChunkIter {
 
     #[must_use]
     fn next(&mut self) -> Option<Self::Item> {
-        let index = self.index;
-        if index >= self.string.len() {
-            return None;
-        }
-        self.index += self.padded_word_byte_count;
+        let end_index =
+            self.index.checked_add(self.padded_word_byte_count.get())?;
+        debug_assert_ne!(self.index, end_index);
 
-        let result = &self.string.get(index..self.index)?;
-        if result.len() == self.word_length {
-            debug_assert!(!result.starts_with('\0'));
-            return Some(result);
-        }
-        let result = result.trim_start_matches('\0');
-        debug_assert!(result.len() >= self.word_length);
+        let result = if self.is_ascii {
+            self.string.get(self.index..end_index)?
+        } else {
+            let result = self.string.get(self.index..end_index)?;
+            result.trim_start_matches('\0')
+        };
+        debug_assert!(end_index <= self.string.len());
+        self.index = end_index;
+        debug_assert!(!result.contains('\0'));
+        debug_assert_eq!(result.char_count(), self.word_length);
         Some(result)
     }
 }
