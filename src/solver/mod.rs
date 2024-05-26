@@ -202,8 +202,11 @@ impl Pattern {
     ) -> bool {
         // This only makes sense if first_letter_is_wildcard is false
         debug_assert!(!self.first_letter_is_wildcard());
-        word.first_char()
-            .map_or(false, |char| self.first_letter == char)
+        word.first_char().map_or(
+            false,
+            #[inline]
+            |char| self.first_letter == char,
+        )
     }
 
     #[must_use]
@@ -225,6 +228,45 @@ impl Pattern {
                     return false;
                 }
             } else if *p != w {
+                return false;
+            }
+        }
+        true
+    }
+
+    #[must_use]
+    #[inline]
+    fn ascii_first_letter_matches(&self, word: &str) -> bool {
+        // This only makes sense if first_letter_is_wildcard is false
+        debug_assert!(!self.first_letter_is_wildcard());
+        word.as_bytes().first().map_or(
+            false,
+            #[inline]
+            |char| self.first_letter == char::from(*char),
+        )
+    }
+
+    #[must_use]
+    #[inline]
+    fn ascii_matches(&self, word: &str) -> bool {
+        // This only works if word is ascii
+        debug_assert!(word.is_ascii());
+        // This only makes sense if word has the same length as the pattern
+        debug_assert_eq!(word.len(), self.pattern.len());
+        // none of the reserved chars shall be in the word
+        debug_assert_eq!(
+            RESERVED_CHARS
+                .iter()
+                .filter(|ch| word.iter_chars().contains(ch))
+                .count(),
+            0
+        );
+        for (p, w) in zip(&self.pattern, word.bytes()) {
+            if *p == WILDCARD_CHAR {
+                if self.invalid_letters.contains(&char::from(w)) {
+                    return false;
+                }
+            } else if *p != char::from(w) {
                 return false;
             }
         }
@@ -306,7 +348,23 @@ impl Pattern {
     ) -> HangmanResult {
         let mut all_words = language.read_words(self.pattern.len());
         let (possible_words, letter_frequency, matching_words_count) =
-            self._solve_internal(&mut all_words, max_words_to_collect);
+            if all_words.is_ascii {
+                self._solve_internal(
+                    &mut all_words,
+                    max_words_to_collect,
+                    Self::ascii_matches,
+                    Self::ascii_first_letter_matches,
+                )
+            } else {
+                self._solve_internal(
+                    &mut all_words,
+                    max_words_to_collect,
+                    #[inline]
+                    |p, w| p.matches(&w),
+                    #[inline]
+                    |p, w| p.first_letter_matches(&w),
+                )
+            };
 
         let mut invalid: Vec<char> = self
             .invalid_letters
@@ -334,8 +392,15 @@ impl Pattern {
         all_words: &'b mut T,
         max_words_to_collect: Option<usize>,
     ) -> WasmHangmanResult {
-        let (possible_words, letter_frequency, matching_words_count) =
-            self._solve_internal(all_words, max_words_to_collect);
+        let (possible_words, letter_frequency, matching_words_count) = self
+            ._solve_internal(
+                all_words,
+                max_words_to_collect,
+                #[inline]
+                |p, w| p.matches(&w),
+                #[inline]
+                |p, w| p.first_letter_matches(&w),
+            );
 
         let mut invalid: Vec<char> = self
             .invalid_letters
@@ -379,6 +444,8 @@ impl Pattern {
         &self,
         all_words: &'b mut T,
         max_words_to_collect: Option<usize>,
+        matches: fn(&Self, &CC) -> bool,
+        first_letter_matches: fn(&Self, &CC) -> bool,
     ) -> (Vec<&'a CC>, Vec<(char, u32)>, u32) {
         let (word_count, letter_frequency, words) =
             if self.known_letters_count() == 0
@@ -390,16 +457,16 @@ impl Pattern {
                 )
             } else if self.first_letter_is_wildcard() {
                 let mut filtered_words =
-                    all_words.filter(|word| self.matches(word));
+                    all_words.filter(|word| matches(self, word));
                 self._collect_count_and_create_letter_frequency(
                     &mut filtered_words,
                     max_words_to_collect,
                 )
             } else {
                 let mut filtered_words = all_words
-                    .skip_while(|word| !self.first_letter_matches(word))
-                    .take_while(|word| self.first_letter_matches(word))
-                    .filter(|word| self.matches(word));
+                    .skip_while(|word| !first_letter_matches(self, word))
+                    .take_while(|word| first_letter_matches(self, word))
+                    .filter(|word| matches(self, word));
                 self._collect_count_and_create_letter_frequency(
                     &mut filtered_words,
                     max_words_to_collect,
