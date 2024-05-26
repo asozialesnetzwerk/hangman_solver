@@ -68,13 +68,13 @@ pub const fn read_words_with_length(
 #[cfg(feature = "pyo3")]
 #[pymodule]
 #[pyo3(name = "_solver")]
-pub fn hangman_solver(py: Python<'_>, m: &PyModule) -> PyResult<()> {
+pub fn hangman_solver(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(solve, m)?)?;
     m.add_function(wrap_pyfunction!(solve_crossword, m)?)?;
     m.add_function(wrap_pyfunction!(read_words_with_length, m)?)?;
     m.add(
         "UnknownLanguageError",
-        py.get_type::<UnknownLanguageError>(),
+        py.get_type_bound::<UnknownLanguageError>(),
     )?;
     m.add_class::<HangmanResult>()?;
     m.add_class::<Language>()?;

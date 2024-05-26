@@ -94,8 +94,7 @@ impl StringChunkIter {
         self.string
             .len()
             .checked_sub(self.index)
-            .map(|rest| rest.div(self.padded_word_byte_count))
-            .unwrap_or(0)
+            .map_or(0, |rest| rest.div(self.padded_word_byte_count))
     }
 }
 
