@@ -1,5 +1,5 @@
 from collections.abc import Iterable, Mapping
-from typing import ClassVar
+from typing import Final, Never
 
 
 __all__ = (
@@ -12,7 +12,7 @@ __all__ = (
 )
 
 
-def read_words_with_length(language: Language, word_length: int) -> Iterable[str]:
+def read_words_with_length(language: Language, word_length: int, /) -> Iterable[str]:
     pass
 
 def solve(
@@ -32,42 +32,45 @@ def solve_crossword(
     pass
 
 class HangmanResult:
-    input: str
-    matching_words_count: int
-    invalid: list[str]
-    language: Language
-    words: list[str]
-    letter_frequency: list[tuple[str, int]]
+    @property
+    def input(self, /) -> str: ...
+    @property
+    def matching_words_count(self, /) -> int: ...
+    @property
+    def invalid(self, /) -> list[str]: ...
+    @property
+    def language(self, /) -> Language: ...
+    @property
+    def words(self, /) -> list[str]: ...
+    @property
+    def letter_frequency(self, /) -> list[tuple[str, int]]: ...
+
 
 class Language:
-    __init__ = None
-    __new__ = None
-
     @staticmethod
-    def parse_string(name: str, default: Language = None) -> Language:
+    def parse_string(name: str, /, default: Language = None) -> Language:
         pass
 
     @staticmethod
     def values() -> list[Language]:
         pass
 
-    def __eq__(self, *args, **kwargs) -> bool:
-        """ Return self==value. """
+    def __eq__(self, other: Language, /) -> bool:
         pass
-    def __ne__(self, *args, **kwargs) -> bool:
-        """ Return self!=value. """
+    def __ne__(self, other: Language, /) -> bool:
         pass
 
-    def __repr__(self) -> str:
+    def __repr__(self, /) -> str:
         pass
 
-    value: str
+    @property
+    def value(self, /) -> str: ...
 
-    De: ClassVar[Language]
-    DeBasic: ClassVar[Language]
-    DeBasicUmlauts: ClassVar[Language]
-    DeUmlauts: ClassVar[Language]
-    En: ClassVar[Language]
+    De: Final[Language]
+    DeBasic: Final[Language]
+    DeBasicUmlauts: Final[Language]
+    DeUmlauts: Final[Language]
+    En: Final[Language]
 
 
 class UnknownLanguageError(ValueError):
