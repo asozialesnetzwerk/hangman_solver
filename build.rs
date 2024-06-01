@@ -200,12 +200,10 @@ fn replace_string_in_place<S, RR, RC>(
     RC: Fn(char) -> Option<S>,
     RR: Fn(&mut String, Range<usize>, S),
 {
-    let replacements: Vec<_> = string
+    while let Some((range, repl)) = string
         .char_indices()
         .rev()
-        .filter_map(|(idx, ch)| replace_char(ch).map(|repl| (idx..idx + ch.len_utf8(), repl)))
-        .collect();
-    for (range, repl) in replacements
+        .find_map(|(idx, ch)| replace_char(ch).map(|repl| (idx..idx + ch.len_utf8(), repl)))
     {
         replace_range(string, range, repl);
     }
