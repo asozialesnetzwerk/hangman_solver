@@ -156,11 +156,14 @@ fn str_contains_umlaut(string: String) -> bool {
 #[allow(clippy::ptr_arg)]
 #[allow(clippy::needless_pass_by_value)]
 fn replace_umlauts(mut string: String) -> String {
-    while let Some((idx, ch)) =
-        string.char_indices().find(|(_, ch)| UMLAUTS.contains(ch))
+    while let Some((idx, ch, repl_index)) =
+        string.char_indices().find_map(|(idx, ch)| {
+            UMLAUTS
+                .iter()
+                .position(|u| u == &ch)
+                .map(|repl_idx| (idx, ch, repl_idx))
+        })
     {
-        let repl_index =
-            UMLAUTS.iter().position(|u| u == &ch).expect("Is umlaut.");
         string.replace_range(
             idx..idx + ch.len_utf8(),
             ASCII_UMLAUT_REPLACEMENTS
