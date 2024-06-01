@@ -1,5 +1,8 @@
 #![allow(clippy::unwrap_used)]
 
+use inflector::Inflector;
+use itertools::Itertools;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -7,9 +10,7 @@ use std::io;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
-
-use inflector::Inflector;
-use itertools::Itertools;
+use std::time::Instant;
 use unicode_segmentation::UnicodeSegmentation;
 
 type StrConv = fn(String) -> String;
@@ -80,55 +81,61 @@ fn get_out_dir_joined(path: String) -> PathBuf {
 }
 
 fn write_words_data(words_data: &WordsData) {
+    let lang = words_data.lang.as_str();
     let mut words: Vec<String> = words_data.read_lines();
 
     for word in &words {
         assert_eq!(
-            UnicodeSegmentation::graphemes(word.as_str(), true).count(),
+            word.as_str().graphemes(true).count(),
             word.chars().count(),
-            "{word} is",
+            "{lang}: {word} has graphemes",
+        );
+        assert_eq!(
+            word.as_str().unicode_words().count(),
+            1,
+            "{lang}: {word} is multiple words",
         );
     }
 
     words.sort_unstable();
     words.sort_by_key(|word: &String| word.chars().count());
 
-    let words: Vec<(usize, Vec<String>)> = words
-        .into_iter()
-        .unique()
-        .into_group_map_by(|word: &String| word.chars().count())
-        .into_iter()
-        .sorted_by_key(|(length, _)| *length)
-        .collect();
+    assert_eq!(
+        words.len(),
+        words.iter().unique().count(),
+        "{lang}: there should be no duplicates."
+    );
 
-    let mut output = String::new();
-    output += "match length {";
-    for (length, words_group) in words {
+    let mut output = String::from("match length {");
+    for (length, chunk) in
+        &words.into_iter().chunk_by(|word| word.chars().count())
+    {
+        let words_group: Vec<_> = chunk.collect();
         let max_real_str_length: usize = words_group
             .iter()
             .map(|word| word.as_str().len())
             .max()
             .expect("word group needs to have max length");
 
-        output += &*format!("{length} => ({max_real_str_length}, \"");
+        let start_of_case = format!("{length} => ({max_real_str_length}, \"");
+        const END_OF_CASE: &'static str = "\"),\n";
+        output.reserve(max_real_str_length * words_group.len() + start_of_case.len() + END_OF_CASE.len());
+        output += &start_of_case;
 
-        let string_content: String = if max_real_str_length == length {
-            words_group.iter().join("").replace('"', "\\\"")
+        if max_real_str_length == length {
+            words_group.into_iter().for_each(|word| output += &word.replace('"', "\\\""))
         } else {
             println!("{} {length} {max_real_str_length}", words_data.lang);
             words_group
-                .iter()
+                .into_iter()
                 .map(|word| {
                     ("\\0".repeat(max_real_str_length - word.as_str().len()))
-                        + &word.clone()
+                        + &word.replace('"', "\\\"")
                 })
-                .join("")
-                .replace('"', "\\\"")
+                .for_each(|word| output += &word)
         };
 
-        output += &string_content;
-
-        output += "\"),\n";
+        output += END_OF_CASE;
     }
     output += "_ => (0, \"\")}";
     fs::write(words_data.dest_path(), output).unwrap();
@@ -155,6 +162,8 @@ fn replace_umlauts(string: String) -> String {
 const WORDS_DIR: &str = "./words/";
 
 fn main() {
+    let now = Instant::now();
+    println!("cargo:warning=start main {:?}", now.elapsed());
     println!("cargo:rerun-if-changed={WORDS_DIR}");
     let paths = fs::read_dir(WORDS_DIR).unwrap();
 
@@ -177,15 +186,13 @@ fn main() {
         words_vec.push(data);
     }
 
-    let words_vec: Vec<WordsData> = words_vec
-        .iter()
-        .sorted_by_key(|data| data.lang.as_str())
-        .cloned()
-        .collect();
+    words_vec.sort_by(|w1, w2| w1.lang.as_str().cmp(w2.lang.as_str()));
 
-    for word_data in &words_vec {
-        write_words_data(word_data);
-    }
+    let words_vec = words_vec;
+
+    println!("cargo:warning=before par_iter {:?}", now.elapsed());
+    words_vec.par_iter().for_each(write_words_data);
+    println!("cargo:warning=after par_iter {:?}", now.elapsed());
 
     let language_count = words_vec.len();
 
@@ -292,4 +299,5 @@ impl Language {{
         ),
     )
     .unwrap();
+    println!("cargo:warning=end main {:?}", now.elapsed());
 }
