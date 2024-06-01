@@ -53,14 +53,12 @@ impl WordsData {
         Self::new(String::from(path_str), String::from(lang), |string| string)
     }
 
-    fn read_lines(&self) -> Vec<String> {
+    fn read_lines(&self) -> impl Iterator<Item = String> {
         read_lines_of_file(Path::new(self.path.as_str()))
-            .unwrap()
+            .expect("Reading file should not fail.")
             .filter(|word| !word.is_empty())
             .map(|word| word.to_lowercase())
             .map(self.conv)
-            .unique()
-            .collect()
     }
 
     fn enum_name(&self) -> String {
@@ -82,7 +80,7 @@ fn get_out_dir_joined(path: String) -> PathBuf {
 
 fn write_words_data(words_data: &WordsData) {
     let lang = words_data.lang.as_str();
-    let mut words: Vec<String> = words_data.read_lines();
+    let mut words: Vec<_> = words_data.read_lines().unique().collect();
 
     for word in &words {
         assert_eq!(
@@ -99,12 +97,6 @@ fn write_words_data(words_data: &WordsData) {
 
     words.sort_unstable();
     words.sort_by_key(|word: &String| word.chars().count());
-
-    assert_eq!(
-        words.len(),
-        words.iter().unique().count(),
-        "{lang}: there should be no duplicates."
-    );
 
     let mut output = String::from("match length {");
     for (length, chunk) in
@@ -141,8 +133,10 @@ fn write_words_data(words_data: &WordsData) {
     fs::write(words_data.dest_path(), output).unwrap();
 }
 
+#[inline]
 #[allow(clippy::ptr_arg)]
-fn str_contains_umlaut(string: &String) -> bool {
+#[allow(clippy::needless_pass_by_value)]
+fn str_contains_umlaut(string: String) -> bool {
     string.contains('ß')
         || string.contains('ä')
         || string.contains('ö')
@@ -178,7 +172,7 @@ fn main() {
         println!("cargo:rerun-if-changed={}", path.display());
 
         let mut data: WordsData = WordsData::from_path(path);
-        if data.read_lines().iter().any(str_contains_umlaut) {
+        if data.read_lines().any(str_contains_umlaut) {
             words_vec
                 .push(data.clone_with_lang(format!("{}_umlauts", data.lang)));
             data.conv = replace_umlauts;
