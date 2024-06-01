@@ -10,6 +10,7 @@ use std::io;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::iter::Iterator;
+use std::ops::Range;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 use unicode_segmentation::UnicodeSegmentation;
@@ -57,8 +58,26 @@ impl WordsData {
     fn read_lines(&self) -> impl Iterator<Item = String> {
         read_lines_of_file(Path::new(self.path.as_str()))
             .expect("Reading file should not fail.")
-            .filter(|word| !word.is_empty())
-            .map(|word| word.to_lowercase())
+            .filter_map(|mut word: String| {
+                if word.is_empty() {
+                    return None;
+                }
+                replace_string_in_place(
+                    &mut word,
+                    #[inline]
+                    |ch| {
+                        ch.is_uppercase().then(
+                            #[inline]
+                            || ch.to_lowercase(),
+                        )
+                    },
+                    #[inline]
+                    |string, range, repl| {
+                        string.replace_range(range, repl.to_string().as_str())
+                    },
+                );
+                Some(word)
+            })
             .map(self.conv)
     }
 
@@ -156,22 +175,38 @@ fn str_contains_umlaut(string: String) -> bool {
 #[allow(clippy::ptr_arg)]
 #[allow(clippy::needless_pass_by_value)]
 fn replace_umlauts(mut string: String) -> String {
-    while let Some((idx, ch, repl_index)) =
-        string.char_indices().find_map(|(idx, ch)| {
+    replace_string_in_place(
+        &mut string,
+        #[inline]
+        |ch| {
             UMLAUTS
                 .iter()
                 .position(|u| u == &ch)
-                .map(|repl_idx| (idx, ch, repl_idx))
-        })
-    {
-        string.replace_range(
-            idx..idx + ch.len_utf8(),
-            ASCII_UMLAUT_REPLACEMENTS
-                .get(repl_index)
-                .expect("Can find replacement"),
-        );
-    }
+                .and_then(|repl_idx| ASCII_UMLAUT_REPLACEMENTS.get(repl_idx))
+                .copied()
+        },
+        #[inline]
+        |s, range, repl| s.replace_range(range, repl),
+    );
     string
+}
+
+#[inline]
+fn replace_string_in_place<S, RR, RC>(
+    string: &mut String,
+    replace_char: RC,
+    replace_range: RR,
+) where
+    RC: Fn(char) -> Option<S>,
+    RR: Fn(&mut String, Range<usize>, S),
+{
+    while let Some((idx, ch, repl)) = string
+        .char_indices()
+        .rev()
+        .find_map(|(idx, ch)| replace_char(ch).map(|repl| (idx, ch, repl)))
+    {
+        replace_range(string, idx..idx + ch.len_utf8(), repl);
+    }
 }
 
 const WORDS_DIR: &str = "./words/";
