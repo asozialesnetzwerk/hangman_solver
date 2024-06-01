@@ -9,6 +9,7 @@ use std::fs::File;
 use std::io;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::iter::Iterator;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 use unicode_segmentation::UnicodeSegmentation;
@@ -133,24 +134,31 @@ fn write_words_data(words_data: &WordsData) {
     fs::write(words_data.dest_path(), output).unwrap();
 }
 
+const UMLAUTS: [char; 4] = ['ß', 'ä', 'ö', 'ü'];
+const ASCII_UMLAUT_REPLACEMENTS: [&str; 4] = ["ss", "ae", "oe", "ue"];
+
 #[inline]
 #[allow(clippy::ptr_arg)]
 #[allow(clippy::needless_pass_by_value)]
 fn str_contains_umlaut(string: String) -> bool {
-    string.contains('ß')
-        || string.contains('ä')
-        || string.contains('ö')
-        || string.contains('ü')
+    UMLAUTS.iter().any(
+        #[inline]
+        |ch| string.contains(*ch),
+    )
 }
 
 #[allow(clippy::ptr_arg)]
 #[allow(clippy::needless_pass_by_value)]
 fn replace_umlauts(string: String) -> String {
-    string
-        .replace('ß', "ss")
-        .replace('ä', "ae")
-        .replace('ö', "oe")
-        .replace('ü', "ue")
+    let mut result: String = String::with_capacity(string.len());
+    for ch in string.chars() {
+        if let Some(repl_index) = UMLAUTS.iter().position(|u| u == &ch) {
+            result.push_str(ASCII_UMLAUT_REPLACEMENTS[repl_index]);
+        } else {
+            result.push(ch);
+        };
+    }
+    result
 }
 
 const WORDS_DIR: &str = "./words/";
