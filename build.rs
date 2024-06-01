@@ -111,12 +111,18 @@ fn write_words_data(words_data: &WordsData) {
             .expect("word group needs to have max length");
 
         let start_of_case = format!("{length} => ({max_real_str_length}, \"");
-        const END_OF_CASE: &'static str = "\"),\n";
-        output.reserve(max_real_str_length * words_group.len() + start_of_case.len() + END_OF_CASE.len());
+        const END_OF_CASE: &str = "\"),\n";
+        output.reserve(
+            max_real_str_length * words_group.len()
+                + start_of_case.len()
+                + END_OF_CASE.len(),
+        );
         output += &start_of_case;
 
         if max_real_str_length == length {
-            words_group.into_iter().for_each(|word| output += &word.replace('"', "\\\""))
+            words_group
+                .into_iter()
+                .for_each(|word| output += &word.replace('"', "\\\""))
         } else {
             println!("{} {length} {max_real_str_length}", words_data.lang);
             words_group
