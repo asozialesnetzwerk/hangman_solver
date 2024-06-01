@@ -155,16 +155,20 @@ fn str_contains_umlaut(string: String) -> bool {
 
 #[allow(clippy::ptr_arg)]
 #[allow(clippy::needless_pass_by_value)]
-fn replace_umlauts(string: String) -> String {
-    let mut result: String = String::with_capacity(string.len());
-    for ch in string.chars() {
-        if let Some(repl_index) = UMLAUTS.iter().position(|u| u == &ch) {
-            result.push_str(ASCII_UMLAUT_REPLACEMENTS[repl_index]);
-        } else {
-            result.push(ch);
-        };
+fn replace_umlauts(mut string: String) -> String {
+    while let Some((idx, ch)) =
+        string.char_indices().find(|(_, ch)| UMLAUTS.contains(ch))
+    {
+        let repl_index =
+            UMLAUTS.iter().position(|u| u == &ch).expect("Is umlaut.");
+        string.replace_range(
+            idx..idx + ch.len_utf8(),
+            ASCII_UMLAUT_REPLACEMENTS
+                .get(repl_index)
+                .expect("Can find replacement"),
+        );
     }
-    result
+    string
 }
 
 const WORDS_DIR: &str = "./words/";
