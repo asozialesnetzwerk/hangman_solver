@@ -86,28 +86,28 @@ fn write_words_data(words_data: &WordsData) {
     let mut words: Vec<(usize, String)> = words_data.read_lines().map(|word| (word.chars().count(), word)).collect();
 
     words.sort();
+    words.dedup();
 
     let mut output = String::from("match length {");
-    for (char_count, chunk) in
-        &words.into_iter().dedup().chunk_by(|(length, _)| *length)
+    for chunk in words.chunk_by(|(length_a, _), (length_b, _)| *length_a == *length_b)
     {
-        let words_group: Vec<String> = chunk.map(|(_, word)| word).collect();
-        let max_word_byte_count: usize = words_group
+        let char_count = chunk.first().expect("needs to have first").0;
+        let max_word_byte_count: usize = chunk
             .iter()
-            .map(|word| word.as_str().len())
+            .map(|(_, word)| word.as_str().len())
             .max()
             .expect("word group needs to have max length");
 
         let start_of_case = format!("{char_count} => ({max_word_byte_count}, \"");
         const END_OF_CASE: &str = "\"),\n";
         output.reserve(
-            max_word_byte_count * words_group.len()
+            max_word_byte_count * chunk.len()
                 + start_of_case.len()
                 + END_OF_CASE.len(),
         );
         output += &start_of_case;
 
-        for word in words_group {
+        for (_, word) in chunk {
             assert_eq!(
                 word.as_str().graphemes(true).count(),
                 char_count,
