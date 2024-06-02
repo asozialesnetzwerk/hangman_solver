@@ -1,5 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
+use easy_parallel::Parallel;
 use inflector::Inflector;
 use itertools::Itertools;
 use std::env;
@@ -12,7 +13,6 @@ use std::iter::Iterator;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 use unicode_segmentation::UnicodeSegmentation;
-use easy_parallel::Parallel;
 
 type StrConv = fn(String) -> String;
 
