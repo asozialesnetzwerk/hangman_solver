@@ -83,23 +83,22 @@ fn write_words_data(words_data: &WordsData) {
     let start = Instant::now();
 
     let lang = words_data.lang.as_str();
-    let mut words: Vec<_> = words_data.read_lines().collect();
+    let mut words: Vec<(usize, String)> = words_data.read_lines().map(|word| (word.chars().count(), word)).collect();
 
-    words.sort_unstable();
-    words.sort_by_key(|word: &String| word.chars().count());
+    words.sort();
 
     let mut output = String::from("match length {");
-    for (length, chunk) in
-        &words.into_iter().dedup().chunk_by(|word| word.chars().count())
+    for (char_count, chunk) in
+        &words.into_iter().dedup().chunk_by(|(length, _)| *length)
     {
-        let words_group: Vec<_> = chunk.collect();
+        let words_group: Vec<String> = chunk.map(|(_, word)| word).collect();
         let max_word_byte_count: usize = words_group
             .iter()
             .map(|word| word.as_str().len())
             .max()
             .expect("word group needs to have max length");
 
-        let start_of_case = format!("{length} => ({max_word_byte_count}, \"");
+        let start_of_case = format!("{char_count} => ({max_word_byte_count}, \"");
         const END_OF_CASE: &str = "\"),\n";
         output.reserve(
             max_word_byte_count * words_group.len()
@@ -111,7 +110,7 @@ fn write_words_data(words_data: &WordsData) {
         for word in words_group {
             assert_eq!(
                 word.as_str().graphemes(true).count(),
-                word.chars().count(),
+                char_count,
                 "{lang}: {word} has graphemes",
             );
             assert_eq!(
@@ -137,7 +136,7 @@ fn write_words_data(words_data: &WordsData) {
     output += "_ => (0, \"\")}";
     fs::write(words_data.dest_path(), output).unwrap();
 
-    println!("cargo:warning=-- write_words_data {} {:?}", words_data.lang, start.elapsed());
+    println!("cargo:warning=-- write_words_data {lang} {:?}", start.elapsed());
 }
 
 const UMLAUTS: [char; 4] = ['ß', 'ä', 'ö', 'ü'];
