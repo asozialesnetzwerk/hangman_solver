@@ -85,19 +85,6 @@ fn write_words_data(words_data: &WordsData) {
     let lang = words_data.lang.as_str();
     let mut words: Vec<_> = words_data.read_lines().collect();
 
-    for word in &words {
-        assert_eq!(
-            word.as_str().graphemes(true).count(),
-            word.chars().count(),
-            "{lang}: {word} has graphemes",
-        );
-        assert_eq!(
-            word.as_str().unicode_words().count(),
-            1,
-            "{lang}: {word} is multiple words",
-        );
-    }
-
     words.sort_unstable();
     words.sort_by_key(|word: &String| word.chars().count());
 
@@ -122,6 +109,17 @@ fn write_words_data(words_data: &WordsData) {
         output += &start_of_case;
 
         for word in words_group {
+            assert_eq!(
+                word.as_str().graphemes(true).count(),
+                word.chars().count(),
+                "{lang}: {word} has graphemes",
+            );
+            assert_eq!(
+                word.as_str().unicode_words().count(),
+                1,
+                "{lang}: {word} is multiple words",
+            );
+
             for _ in 0..(max_word_byte_count - word.as_str().len()) {
                 output.push('\0');
             }
