@@ -83,7 +83,7 @@ fn write_words_data(words_data: &WordsData) {
     let start = Instant::now();
 
     let lang = words_data.lang.as_str();
-    let mut words: Vec<_> = words_data.read_lines().unique().collect();
+    let mut words: Vec<_> = words_data.read_lines().collect();
 
     for word in &words {
         assert_eq!(
@@ -103,7 +103,7 @@ fn write_words_data(words_data: &WordsData) {
 
     let mut output = String::from("match length {");
     for (length, chunk) in
-        &words.into_iter().chunk_by(|word| word.chars().count())
+        &words.into_iter().dedup().chunk_by(|word| word.chars().count())
     {
         let words_group: Vec<_> = chunk.collect();
         let max_word_byte_count: usize = words_group
