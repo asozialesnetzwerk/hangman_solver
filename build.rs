@@ -199,7 +199,7 @@ fn main() {
         words_vec.push(data);
     }
 
-    words_vec.sort_by(|w1, w2| w1.lang.as_str().cmp(w2.lang.as_str()));
+    words_vec.sort_by(|w1, w2| w1.lang.cmp(&w2.lang));
 
     let words_vec = words_vec;
 
