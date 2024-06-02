@@ -83,13 +83,17 @@ fn write_words_data(words_data: &WordsData) {
     let start = Instant::now();
 
     let lang = words_data.lang.as_str();
-    let mut words: Vec<(usize, String)> = words_data.read_lines().map(|word| (word.chars().count(), word)).collect();
+    let mut words: Vec<(usize, String)> = words_data
+        .read_lines()
+        .map(|word| (word.chars().count(), word))
+        .collect();
 
     words.sort();
     words.dedup();
 
     let mut output = String::from("match length {");
-    for chunk in words.chunk_by(|(length_a, _), (length_b, _)| *length_a == *length_b)
+    for chunk in
+        words.chunk_by(|(length_a, _), (length_b, _)| *length_a == *length_b)
     {
         let char_count = chunk.first().expect("needs to have first").0;
         let max_word_byte_count: usize = chunk
@@ -98,7 +102,8 @@ fn write_words_data(words_data: &WordsData) {
             .max()
             .expect("word group needs to have max length");
 
-        let start_of_case = format!("{char_count} => ({max_word_byte_count}, \"");
+        let start_of_case =
+            format!("{char_count} => ({max_word_byte_count}, \"");
         const END_OF_CASE: &str = "\"),\n";
         output.reserve(
             max_word_byte_count * chunk.len()
@@ -136,7 +141,10 @@ fn write_words_data(words_data: &WordsData) {
     output += "_ => (0, \"\")}";
     fs::write(words_data.dest_path(), output).unwrap();
 
-    println!("cargo:warning=-- write_words_data {lang} {:?}", start.elapsed());
+    println!(
+        "cargo:warning=-- write_words_data {lang} {:?}",
+        start.elapsed()
+    );
 }
 
 const UMLAUTS: [char; 4] = ['ß', 'ä', 'ö', 'ü'];
