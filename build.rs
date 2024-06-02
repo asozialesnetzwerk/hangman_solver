@@ -88,7 +88,7 @@ fn write_words_data(words_data: &WordsData) {
         .map(|word| (word.chars().count(), word))
         .collect();
 
-    words.sort();
+    words.sort_unstable();
     words.dedup();
 
     let mut output = String::from("match length {");
@@ -110,35 +110,34 @@ fn write_words_data(words_data: &WordsData) {
                 + start_of_case.len()
                 + END_OF_CASE.len(),
         );
-        output += &start_of_case;
+        output.push_str(&start_of_case);
 
         for (_, word) in chunk {
             assert_eq!(
-                word.as_str().graphemes(true).count(),
+                word.graphemes(true).count(),
                 char_count,
                 "{lang}: {word} has graphemes",
             );
             assert_eq!(
-                word.as_str().unicode_words().count(),
+                word.unicode_words().count(),
                 1,
                 "{lang}: {word} is multiple words",
             );
 
-            for _ in 0..(max_word_byte_count - word.as_str().len()) {
+            for _ in 0..(max_word_byte_count - word.len()) {
                 output.push('\0');
             }
             for ch in word.chars() {
                 if ch == '"' {
-                    output += "\\\"";
-                } else {
-                    output.push(ch);
+                    output.push('\\');
                 }
+                output.push(ch);
             }
         }
 
         output += END_OF_CASE;
     }
-    output += "_ => (0, \"\")}";
+    output.push_str("_ => (0, \"\")}");
     fs::write(words_data.dest_path(), output).unwrap();
 
     println!(
