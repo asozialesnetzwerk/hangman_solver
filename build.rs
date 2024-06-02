@@ -207,11 +207,9 @@ fn main() {
 
     let words_vec = words_vec;
 
-    {
-        println!("cargo:warning=before write_words_data {:?}", now.elapsed());
-        Parallel::new().each(&words_vec, write_words_data).run();
-        println!("cargo:warning=after write_words_data {:?}", now.elapsed());
-    }
+    println!("cargo:warning=before write_words_data {:?}", now.elapsed());
+    Parallel::new().each(&words_vec, write_words_data).run();
+    println!("cargo:warning=after write_words_data {:?}", now.elapsed());
 
     let language_count = words_vec.len();
 
