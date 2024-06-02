@@ -104,35 +104,33 @@ fn write_words_data(words_data: &WordsData) {
         &words.into_iter().chunk_by(|word| word.chars().count())
     {
         let words_group: Vec<_> = chunk.collect();
-        let max_real_str_length: usize = words_group
+        let max_word_byte_count: usize = words_group
             .iter()
             .map(|word| word.as_str().len())
             .max()
             .expect("word group needs to have max length");
 
-        let start_of_case = format!("{length} => ({max_real_str_length}, \"");
+        let start_of_case = format!("{length} => ({max_word_byte_count}, \"");
         const END_OF_CASE: &str = "\"),\n";
         output.reserve(
-            max_real_str_length * words_group.len()
+            max_word_byte_count * words_group.len()
                 + start_of_case.len()
                 + END_OF_CASE.len(),
         );
         output += &start_of_case;
 
-        if max_real_str_length == length {
-            words_group
-                .into_iter()
-                .for_each(|word| output += &word.replace('"', "\\\""))
-        } else {
-            println!("{} {length} {max_real_str_length}", words_data.lang);
-            words_group
-                .into_iter()
-                .map(|word| {
-                    ("\\0".repeat(max_real_str_length - word.as_str().len()))
-                        + &word.replace('"', "\\\"")
-                })
-                .for_each(|word| output += &word)
-        };
+        for word in words_group {
+            for _ in 0..(max_word_byte_count - word.as_str().len()) {
+                output.push('\0');
+            }
+            for ch in word.chars() {
+                if ch == '"' {
+                    output += "\\\"";
+                } else {
+                    output.push(ch);
+                }
+            }
+        }
 
         output += END_OF_CASE;
     }
