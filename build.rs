@@ -62,7 +62,7 @@ impl WordsData {
                 if word.is_empty() {
                     return None;
                 }
-                replace_string_in_place(
+                replace_string_in_place_with_repl_fun(
                     &mut word,
                     #[inline]
                     |ch| {
@@ -75,6 +75,7 @@ impl WordsData {
                     |string, range, repl| {
                         string.replace_range(range, repl.to_string().as_str())
                     },
+                    0,
                 );
                 Some(word)
             })
@@ -123,35 +124,34 @@ fn write_words_data(words_data: &WordsData) {
         &words.into_iter().chunk_by(|word| word.chars().count())
     {
         let words_group: Vec<_> = chunk.collect();
-        let max_real_str_length: usize = words_group
+        let max_str_byte_length: usize = words_group
             .iter()
             .map(|word| word.as_str().len())
             .max()
             .expect("word group needs to have max length");
 
-        let start_of_case = format!("{length} => ({max_real_str_length}, \"");
+        let start_of_case = format!("{length} => ({max_str_byte_length}, \"");
         const END_OF_CASE: &str = "\"),\n";
         output.reserve(
-            max_real_str_length * words_group.len()
+            max_str_byte_length * words_group.len()
                 + start_of_case.len()
                 + END_OF_CASE.len(),
         );
         output += &start_of_case;
 
-        if max_real_str_length == length {
-            words_group
-                .into_iter()
-                .for_each(|word| output += &word.replace('"', "\\\""))
-        } else {
-            println!("{} {length} {max_real_str_length}", words_data.lang);
-            words_group
-                .into_iter()
-                .map(|word| {
-                    ("\\0".repeat(max_real_str_length - word.as_str().len()))
-                        + &word.replace('"', "\\\"")
-                })
-                .for_each(|word| output += &word)
-        };
+        for word in words_group {
+            for _ in 0..max_str_byte_length - word.as_str().len() {
+                output += "\\0";
+            }
+            output += &word;
+            let starting_idx = output.len() - word.len();
+            replace_char_in_string_with_str_in_place(
+                &mut output,
+                '"',
+                "\\\"",
+                starting_idx,
+            );
+        }
 
         output += END_OF_CASE;
     }
@@ -185,26 +185,72 @@ fn replace_umlauts(mut string: String) -> String {
                 .and_then(|repl_idx| ASCII_UMLAUT_REPLACEMENTS.get(repl_idx))
                 .copied()
         },
-        #[inline]
-        |s, range, repl| s.replace_range(range, repl),
+        0,
     );
     string
 }
 
 #[inline]
-fn replace_string_in_place<S, RR, RC>(
+fn replace_char_in_string_with_str_in_place(
+    string: &mut String,
+    ch: char,
+    repl: &'static str,
+    starting_idx: usize,
+) {
+    replace_string_in_place(
+        string,
+        |c| if c == ch { Some(repl) } else { None },
+        starting_idx,
+    );
+}
+
+#[inline]
+fn replace_string_in_place<RC>(
+    string: &mut String,
+    replace_char: RC,
+    starting_idx: usize,
+) where
+    RC: Fn(char) -> Option<&'static str>,
+{
+    replace_string_in_place_with_repl_fun(
+        string,
+        replace_char,
+        #[inline]
+        |s, range, repl| s.replace_range(range, repl),
+        starting_idx,
+    )
+}
+
+#[inline]
+fn replace_string_in_place_with_repl_fun<S, RR, RC>(
     string: &mut String,
     replace_char: RC,
     replace_range: RR,
+    starting_idx: usize,
 ) where
     RC: Fn(char) -> Option<S>,
     RR: Fn(&mut String, Range<usize>, S),
 {
+    let mut last_repl_idx = string.len() + 1;
     while let Some((range, repl)) = string
         .char_indices()
         .rev()
-        .find_map(|(idx, ch)| replace_char(ch).map(|repl| (idx..idx + ch.len_utf8(), repl)))
+        .skip_while(
+            #[inline]
+            |(idx, _)| *idx >= last_repl_idx,
+        )
+        .take_while(
+            #[inline]
+            |(idx, _)| *idx >= starting_idx,
+        )
+        .find_map(
+            #[inline]
+            |(idx, ch)| {
+                replace_char(ch).map(|repl| (idx..idx + ch.len_utf8(), repl))
+            },
+        )
     {
+        last_repl_idx = range.start;
         replace_range(string, range, repl);
     }
 }
