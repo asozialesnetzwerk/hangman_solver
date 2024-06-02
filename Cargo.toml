@@ -53,4 +53,4 @@ js-sys = { version = "0.3.69", optional = true }
 itertools = { version = "0.13.0", features = [] }
 Inflector = "0.11.4"
 unicode-segmentation = "1.11.0"
-rayon = "1.10.0"
+easy-parallel = "3.3.1"

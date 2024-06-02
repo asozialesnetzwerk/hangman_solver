@@ -2,7 +2,6 @@
 
 use inflector::Inflector;
 use itertools::Itertools;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -13,6 +12,7 @@ use std::iter::Iterator;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 use unicode_segmentation::UnicodeSegmentation;
+use easy_parallel::Parallel;
 
 type StrConv = fn(String) -> String;
 
@@ -203,9 +203,11 @@ fn main() {
 
     let words_vec = words_vec;
 
-    println!("cargo:warning=before par_iter {:?}", now.elapsed());
-    words_vec.par_iter().for_each(write_words_data);
-    println!("cargo:warning=after par_iter {:?}", now.elapsed());
+    {
+        println!("cargo:warning=before write_words_data {:?}", now.elapsed());
+        Parallel::new().each(&words_vec, write_words_data).run();
+        println!("cargo:warning=after write_words_data {:?}", now.elapsed());
+    }
 
     let language_count = words_vec.len();
 
