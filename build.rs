@@ -80,6 +80,8 @@ fn get_out_dir_joined(path: String) -> PathBuf {
 }
 
 fn write_words_data(words_data: &WordsData) {
+    let start = Instant::now();
+
     let lang = words_data.lang.as_str();
     let mut words: Vec<_> = words_data.read_lines().unique().collect();
 
@@ -136,6 +138,8 @@ fn write_words_data(words_data: &WordsData) {
     }
     output += "_ => (0, \"\")}";
     fs::write(words_data.dest_path(), output).unwrap();
+
+    println!("cargo:warning=-- write_words_data {} {:?}", words_data.lang, start.elapsed());
 }
 
 const UMLAUTS: [char; 4] = ['ß', 'ä', 'ö', 'ü'];
