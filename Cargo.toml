@@ -37,7 +37,7 @@ name = "hangman_solver"
 
 [lib]
 name = "hangman_solver_lib"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "lib"]
 
 [dependencies]
 cfg-if = { version = "1.0.0", features = [] }
