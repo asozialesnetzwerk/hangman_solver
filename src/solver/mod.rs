@@ -304,7 +304,7 @@ impl Pattern {
         language: Language,
         max_words_to_collect: Option<usize>,
     ) -> HangmanResult {
-        let mut all_words = language.read_words(self.pattern.len());
+        let mut all_words = language.read_words(self.pattern.len()).into_iter();
         let (possible_words, letter_frequency, matching_words_count) =
             self._solve_internal(&mut all_words, max_words_to_collect);
 

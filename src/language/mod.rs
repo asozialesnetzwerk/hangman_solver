@@ -1,3 +1,5 @@
+pub mod word_sequence;
+
 // SPDX-License-Identifier: EUPL-1.2
 use std::num::NonZeroUsize;
 
@@ -11,38 +13,14 @@ use pyo3::exceptions::PyValueError;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
-use crate::solver::char_collection::CharCollection;
+pub use word_sequence::{WordSequence, EMPTY_WORD_SEQUENCE};
 
 #[cfg_attr(feature = "pyo3", pyclass)]
 pub struct StringChunkIter {
-    pub word_length: usize,
     padded_word_byte_count: NonZeroUsize,
     is_ascii: bool,
     index: usize,
     string: &'static str,
-}
-
-impl StringChunkIter {
-    #[must_use]
-    pub const fn new(
-        word_length: usize,
-        string: &'static str,
-        padded_word_byte_count: usize,
-    ) -> Self {
-        Self {
-            word_length,
-            padded_word_byte_count: if let Some(non_zero) =
-                NonZeroUsize::new(padded_word_byte_count)
-            {
-                non_zero
-            } else {
-                NonZeroUsize::MIN
-            },
-            index: if string.is_empty() { usize::MAX } else { 0 },
-            is_ascii: word_length == padded_word_byte_count,
-            string,
-        }
-    }
 }
 
 impl Iterator for StringChunkIter {
@@ -66,7 +44,6 @@ impl Iterator for StringChunkIter {
         debug_assert!(end_index <= self.string.len());
         self.index = end_index;
         debug_assert!(!result.contains('\0'));
-        debug_assert_eq!(result.char_count(), self.word_length);
         Some(result)
     }
 }

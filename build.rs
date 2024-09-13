@@ -91,7 +91,9 @@ fn write_words_data(words_data: &WordsData) {
     words.sort_unstable();
     words.dedup();
 
-    let mut output = String::from("match length {");
+    let mut max_string_lit_len: usize = 0;
+
+    let mut output = String::from("match length.get() {");
     for chunk in
         words.chunk_by(|(length_a, _), (length_b, _)| *length_a == *length_b)
     {
@@ -102,8 +104,12 @@ fn write_words_data(words_data: &WordsData) {
             .max()
             .expect("word group needs to have max length");
 
-        let start_of_case =
-            format!("{char_count} => ({max_word_byte_count}, \"");
+        max_string_lit_len =
+            max_string_lit_len.max(max_word_byte_count * chunk.len());
+
+        let start_of_case = format!(
+            "{char_count} => (NonZeroUsize::MIN.saturating_add({max_word_byte_count} - 1), \""
+        );
         const END_OF_CASE: &str = "\"),\n";
         output.reserve(
             max_word_byte_count * chunk.len()
@@ -134,14 +140,15 @@ fn write_words_data(words_data: &WordsData) {
                 output.push(ch);
             }
         }
-
         output += END_OF_CASE;
     }
-    output.push_str("_ => (0, \"\")}");
+    output.push_str("_ => (NonZeroUsize::MIN, \"\")}");
     fs::write(words_data.dest_path(), output).unwrap();
 
+    println!("cargo:warning={max_string_lit_len}");
+
     println!(
-        "cargo:warning=-- write_words_data {lang} {:?}",
+        "cargo:warning=-- write_words_data {lang} bytes {:?}",
         start.elapsed()
     );
 }
@@ -220,7 +227,7 @@ fn main() {
     fs::write(
         get_out_dir_joined(String::from("language.rs")),
         format!(
-            r###"#[cfg_attr(feature = "pyo3", pyclass)]
+            r###"#[cfg_attr(feature = "pyo3", pyclass(eq))]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Language {{
     {}
@@ -228,11 +235,17 @@ pub enum Language {{
 
 impl Language {{
     #[must_use]
-    pub const fn read_words(self, length: usize) -> StringChunkIter {{
-        let (padded_length, words): (usize, &'static str) = match self {{
-            {}
-        }};
-        StringChunkIter::new(length, words, padded_length)
+    pub const fn read_words(self, length: usize) -> WordSequence {{
+        match NonZeroUsize::new(length) {{
+            None => EMPTY_WORD_SEQUENCE,
+            Some(length) => {{
+                let (padded_length, words): (NonZeroUsize, &'static str) = match self {{
+                    {}
+                }};
+                WordSequence::new(length, words, padded_length)
+            }},
+        }}
+
     }}
 
     #[inline]

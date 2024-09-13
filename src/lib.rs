@@ -11,7 +11,7 @@
 mod language;
 mod solver;
 
-pub use crate::language::{Language, StringChunkIter};
+pub use crate::language::{Language, StringChunkIter, WordSequence};
 
 pub use crate::solver::{HangmanResult, Pattern};
 
@@ -61,8 +61,8 @@ pub fn solve_crossword(
 pub const fn read_words_with_length(
     language: Language,
     word_length: usize,
-) -> PyResult<StringChunkIter> {
-    Ok(language.read_words(word_length))
+) -> WordSequence {
+    language.read_words(word_length)
 }
 
 #[cfg(feature = "pyo3")]

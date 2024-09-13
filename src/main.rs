@@ -105,11 +105,11 @@ fn test_itering_words() -> Result<(), String> {
     for lang in Language::all() {
         let mut total_words = 0usize;
         for i in 0..100usize {
-            if i != lang.read_words(i).word_length {
+            if i != lang.read_words(i).word_char_count() {
                 return Err(format!(
                     "{} != {} (lang={lang:?})",
                     i,
-                    lang.read_words(i).word_length
+                    lang.read_words(i).word_char_count()
                 ));
             }
             let mut word_count = 0;
