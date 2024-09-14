@@ -7,6 +7,8 @@ use pyo3::exceptions::*;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 #[cfg(feature = "pyo3")]
+use pyo3::types::*;
+#[cfg(feature = "pyo3")]
 use std::hash::{DefaultHasher, Hasher};
 
 use super::StringChunkIter;
@@ -153,6 +155,26 @@ impl WordSequenceIndex for Range<usize> {
 }
 
 #[cfg(feature = "pyo3")]
+pub enum GetItemResult {
+    Item(&'static str),
+}
+
+#[cfg(feature = "pyo3")]
+impl IntoPy<PyObject> for GetItemResult {
+    fn into_py(self, py: pyo3::Python<'_>) -> pyo3::Py<pyo3::PyAny> {
+        match self {
+            GetItemResult::Item(value) => value.into_py(py),
+        }
+    }
+}
+
+#[cfg(feature = "pyo3")]
+#[derive(FromPyObject)]
+pub enum GetItemArg {
+    Int(isize),
+}
+
+#[cfg(feature = "pyo3")]
 #[pymethods]
 impl WordSequence {
     #[must_use]
@@ -161,23 +183,30 @@ impl WordSequence {
     }
 
     #[must_use]
+    #[inline]
     pub fn __len__(&self) -> usize {
         self.len()
     }
 
     #[must_use]
-    pub fn __getitem__(&self, index: isize) -> PyResult<&'static str> {
-        let uindex: Option<usize> = if index >= 0 {
-            usize::try_from(index).ok()
-        } else {
-            self.len().checked_add_signed(index)
-        };
-        match uindex {
-            None => Err(PyIndexError::new_err("Invalid index")),
-            Some(index) => match self.get(index) {
-                None => Err(PyIndexError::new_err("Index out of range")),
-                Some(value) => Ok(value),
-            },
+    pub fn __getitem__(&self, index: GetItemArg) -> PyResult<GetItemResult> {
+        match index {
+            GetItemArg::Int(index) => {
+                let uindex: Option<usize> = if index >= 0 {
+                    usize::try_from(index).ok()
+                } else {
+                    self.len().checked_add_signed(index)
+                };
+                match uindex {
+                    None => Err(PyIndexError::new_err("Invalid index")),
+                    Some(index) => match self.get(index) {
+                        None => {
+                            Err(PyIndexError::new_err("Index out of range"))
+                        }
+                        Some(value) => Ok(GetItemResult::Item(value)),
+                    },
+                }
+            }
         }
     }
 
@@ -189,8 +218,8 @@ impl WordSequence {
     }
 
     #[must_use]
-    pub fn __bool__(&self) -> bool {
-        self.len() != 0
+    pub const fn __bool__(&self) -> bool {
+        !self.is_empty()
     }
 
     #[must_use]
@@ -214,6 +243,7 @@ impl WordSequence {
     }
 
     #[must_use]
+    #[inline]
     pub fn count(&self, string: &str) -> u8 {
         u8::from(self.__contains__(string))
     }
