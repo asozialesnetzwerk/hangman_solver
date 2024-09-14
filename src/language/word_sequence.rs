@@ -27,7 +27,7 @@ pub struct WordSequence {
 impl WordSequence {
     #[inline]
     #[must_use]
-    pub const fn new(
+    pub(crate) const fn new(
         word_length: NonZeroUsize,
         data: &'static str,
         padded_word_byte_count: NonZeroUsize,
@@ -217,4 +217,7 @@ impl WordSequence {
     pub fn count(&self, string: &str) -> u8 {
         u8::from(self.__contains__(string))
     }
+
+    // todo: __reversed__
+    // https://users.rust-lang.org/t/solved-slice-protocol-and-custom-conversions-for-a-rust-object-exposed-to-python-via-pyo3/77633
 }
