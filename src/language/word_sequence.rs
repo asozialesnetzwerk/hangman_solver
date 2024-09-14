@@ -163,7 +163,7 @@ pub enum GetItemResult {
 impl IntoPy<PyObject> for GetItemResult {
     fn into_py(self, py: pyo3::Python<'_>) -> pyo3::Py<pyo3::PyAny> {
         match self {
-            GetItemResult::Item(value) => value.into_py(py),
+            Self::Item(value) => value.into_py(py),
         }
     }
 }
@@ -172,6 +172,13 @@ impl IntoPy<PyObject> for GetItemResult {
 #[derive(FromPyObject)]
 pub enum GetItemArg {
     Int(isize),
+}
+
+#[cfg(feature = "pyo3")]
+#[derive(FromPyObject)]
+pub enum ContainsArg {
+    StringArg(String),
+    Other(PyObject),
 }
 
 #[cfg(feature = "pyo3")]
@@ -224,28 +231,33 @@ impl WordSequence {
 
     #[must_use]
     #[inline]
-    #[pyo3(signature = (string, /))]
-    pub fn index(&self, string: &str) -> PyResult<usize> {
-        if string.chars().count() == self.word_length.get() {
-            for (i, word) in self.into_iter().enumerate() {
-                if word == string {
-                    return Ok(i);
+    #[pyo3(signature = (arg, /))]
+    pub fn index(&self, arg: ContainsArg) -> PyResult<usize> {
+        match arg {
+            ContainsArg::StringArg(string) => {
+                if string.chars().count() == self.word_length.get() {
+                    for (i, word) in self.into_iter().enumerate() {
+                        if word == string {
+                            return Ok(i);
+                        }
+                    }
                 }
+                Err(PyValueError::new_err("Word not in words."))
             }
+            ContainsArg::Other(_) => Err(PyTypeError::new_err("Not a string.")),
         }
-        Err(PyValueError::new_err("Word not in words."))
     }
 
     #[must_use]
     #[inline]
-    pub fn __contains__(&self, string: &str) -> bool {
-        self.index(string).is_ok()
+    pub fn __contains__(&self, arg: ContainsArg) -> bool {
+        self.index(arg).is_ok()
     }
 
     #[must_use]
     #[inline]
-    pub fn count(&self, string: &str) -> u8 {
-        u8::from(self.__contains__(string))
+    pub fn count(&self, arg: ContainsArg) -> u8 {
+        u8::from(self.__contains__(arg))
     }
 
     // todo: __reversed__
