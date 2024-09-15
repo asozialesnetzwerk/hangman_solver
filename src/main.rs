@@ -2,12 +2,11 @@
 #![warn(
     clippy::missing_const_for_fn,
     clippy::nursery,
-    clippy::option_if_let_else,
     clippy::pedantic,
     clippy::todo
 )]
 #![deny(clippy::indexing_slicing, clippy::panic, clippy::unwrap_used)]
-#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_errors_doc, clippy::option_if_let_else)]
 mod language;
 mod solver;
 

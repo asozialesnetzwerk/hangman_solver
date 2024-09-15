@@ -2,12 +2,11 @@
 #![warn(
     clippy::missing_const_for_fn,
     clippy::nursery,
-    clippy::option_if_let_else,
     clippy::pedantic,
     clippy::todo
 )]
 #![deny(clippy::indexing_slicing, clippy::panic, clippy::unwrap_used)]
-#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_errors_doc, clippy::option_if_let_else)]
 mod language;
 mod solver;
 
@@ -55,6 +54,7 @@ pub fn solve_crossword(
     Ok(pattern.solve(language, Some(max_words_to_collect)))
 }
 
+#[must_use]
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (language, word_length))]

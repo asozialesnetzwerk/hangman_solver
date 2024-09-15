@@ -3,10 +3,12 @@ use std::num::NonZeroUsize;
 use std::ops::{Div, Range};
 
 #[cfg(feature = "pyo3")]
+#[allow(clippy::wildcard_imports)]
 use pyo3::exceptions::*;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 #[cfg(feature = "pyo3")]
+#[allow(clippy::wildcard_imports)]
 use pyo3::types::*;
 #[cfg(feature = "pyo3")]
 use std::hash::{DefaultHasher, Hasher};
@@ -108,17 +110,18 @@ impl IntoIterator for &WordSequence {
     }
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub trait WordSequenceIndex {
     type Output;
 
-    fn get(&self, word_sequence: &WordSequence) -> Option<Self::Output>;
+    fn get(self, word_sequence: &WordSequence) -> Option<Self::Output>;
 }
 
 impl WordSequenceIndex for usize {
     type Output = &'static str;
 
     #[inline]
-    fn get(&self, word_sequence: &WordSequence) -> Option<Self::Output> {
+    fn get(self, word_sequence: &WordSequence) -> Option<Self::Output> {
         let data_index: Self =
             self.checked_mul(word_sequence.padded_word_byte_count.into())?;
         Some(
@@ -135,11 +138,25 @@ impl WordSequenceIndex for usize {
     }
 }
 
+impl WordSequenceIndex for isize {
+    type Output = &'static str;
+
+    #[inline]
+    fn get(self, word_sequence: &WordSequence) -> Option<Self::Output> {
+        let uindex: Option<usize> = if self >= 0 {
+            0usize.checked_add_signed(self)
+        } else {
+            word_sequence.len().checked_add_signed(self)
+        };
+        uindex?.get(word_sequence)
+    }
+}
+
 impl WordSequenceIndex for Range<usize> {
     type Output = WordSequence;
 
     #[inline]
-    fn get(&self, word_sequence: &WordSequence) -> Option<Self::Output> {
+    fn get(self, word_sequence: &WordSequence) -> Option<Self::Output> {
         Some(WordSequence {
             data: word_sequence.data.get(
                 self.start
@@ -195,25 +212,14 @@ impl WordSequence {
         self.len()
     }
 
-    #[must_use]
+    #[inline]
+    #[allow(clippy::needless_pass_by_value)]
     pub fn __getitem__(&self, index: GetItemArg) -> PyResult<GetItemResult> {
         match index {
-            GetItemArg::Int(index) => {
-                let uindex: Option<usize> = if index >= 0 {
-                    usize::try_from(index).ok()
-                } else {
-                    self.len().checked_add_signed(index)
-                };
-                match uindex {
-                    None => Err(PyIndexError::new_err("Invalid index")),
-                    Some(index) => match self.get(index) {
-                        None => {
-                            Err(PyIndexError::new_err("Index out of range"))
-                        }
-                        Some(value) => Ok(GetItemResult::Item(value)),
-                    },
-                }
-            }
+            GetItemArg::Int(index) => match self.get(index) {
+                None => Err(PyIndexError::new_err("Index out of range")),
+                Some(value) => Ok(GetItemResult::Item(value)),
+            },
         }
     }
 
@@ -229,9 +235,9 @@ impl WordSequence {
         !self.is_empty()
     }
 
-    #[must_use]
     #[inline]
     #[pyo3(signature = (arg, /))]
+    #[allow(clippy::needless_pass_by_value)]
     pub fn index(&self, arg: ContainsArg) -> PyResult<usize> {
         match arg {
             ContainsArg::StringArg(string) => {
@@ -256,6 +262,7 @@ impl WordSequence {
 
     #[must_use]
     #[inline]
+    #[pyo3(signature = (arg, /))]
     pub fn count(&self, arg: ContainsArg) -> u8 {
         u8::from(self.__contains__(arg))
     }
