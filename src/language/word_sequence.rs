@@ -125,7 +125,7 @@ impl WordSequence {
     }
 
     #[must_use]
-    pub fn __len__(&self) -> usize {
+    pub const fn __len__(&self) -> usize {
         self.len()
     }
 
