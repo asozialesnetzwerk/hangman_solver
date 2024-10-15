@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Mapping
 from typing import Final, Never
 
 
@@ -12,7 +12,7 @@ __all__ = (
 )
 
 
-def read_words_with_length(language: Language, word_length: int, /) -> Iterable[str]:
+def read_words_with_length(language: Language, word_length: int, /) -> Collection[str]:
     pass
 
 def solve(

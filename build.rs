@@ -1,4 +1,5 @@
 #![allow(clippy::unwrap_used)]
+#![forbid(unsafe_code)]
 
 use easy_parallel::Parallel;
 use inflector::Inflector;

@@ -7,6 +7,7 @@
 )]
 #![deny(clippy::indexing_slicing, clippy::panic, clippy::unwrap_used)]
 #![allow(clippy::missing_errors_doc, clippy::option_if_let_else)]
+#![forbid(unsafe_code)]
 mod language;
 mod solver;
 
