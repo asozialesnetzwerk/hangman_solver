@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: EUPL-1.2
 use std::num::NonZeroUsize;
-use std::ops::Div;
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
@@ -9,15 +8,23 @@ use std::hash::{DefaultHasher, Hasher};
 
 use super::StringChunkIter;
 
-pub const EMPTY_WORD_SEQUENCE: WordSequence = WordSequence {
-    word_length: NonZeroUsize::MIN,
+#[allow(dead_code)]
+const EMPTY_WORD_SEQUENCE: WordSequence = WordSequence {
+    word_length: 0,
     padded_word_byte_count: NonZeroUsize::MIN,
     data: "",
 };
 
+const _: () = assert!(EMPTY_WORD_SEQUENCE.len() == 0);
+const _: () = assert!(EMPTY_WORD_SEQUENCE.word_char_count() == 0);
+const _: () = assert!(EMPTY_WORD_SEQUENCE.is_empty());
+#[cfg(feature = "pyo3")]
+const _: () =
+    assert!(EMPTY_WORD_SEQUENCE.const_convert_to_iter().__len__() == 0);
+
 #[cfg_attr(feature = "pyo3", pyclass(frozen))]
 pub struct WordSequence {
-    word_length: NonZeroUsize,
+    word_length: usize,
     data: &'static str,
     padded_word_byte_count: NonZeroUsize,
 }
@@ -26,7 +33,7 @@ impl WordSequence {
     #[inline]
     #[must_use]
     pub(crate) const fn new(
-        word_length: NonZeroUsize,
+        word_length: usize,
         data: &'static str,
         padded_word_byte_count: NonZeroUsize,
     ) -> Self {
@@ -40,13 +47,13 @@ impl WordSequence {
     #[inline]
     #[must_use]
     pub const fn word_char_count(&self) -> usize {
-        self.word_length.get()
+        self.word_length
     }
 
     #[inline]
     #[must_use]
-    pub fn len(&self) -> usize {
-        self.data.len().div(self.padded_word_byte_count)
+    pub const fn len(&self) -> usize {
+        self.data.len() / self.padded_word_byte_count.get()
     }
 
     #[inline]
@@ -58,7 +65,7 @@ impl WordSequence {
     #[inline]
     #[must_use]
     pub fn contains(&self, word: &str) -> bool {
-        if word.chars().count() == self.word_length.get() {
+        if word.chars().count() == self.word_length {
             self.iter().any(|w| w == word)
         } else {
             false
@@ -70,6 +77,16 @@ impl WordSequence {
     pub fn iter(&self) -> StringChunkIter {
         self.into_iter()
     }
+
+    #[inline]
+    const fn const_convert_to_iter(&self) -> StringChunkIter {
+        StringChunkIter {
+            index: 0,
+            is_ascii: self.word_length == self.padded_word_byte_count.get(),
+            padded_word_byte_count: self.padded_word_byte_count,
+            string: self.data,
+        }
+    }
 }
 
 impl IntoIterator for WordSequence {
@@ -80,12 +97,7 @@ impl IntoIterator for WordSequence {
     #[inline]
     #[must_use]
     fn into_iter(self) -> Self::IntoIter {
-        StringChunkIter {
-            index: 0,
-            padded_word_byte_count: self.padded_word_byte_count,
-            string: self.data,
-            is_ascii: self.padded_word_byte_count == self.word_length,
-        }
+        self.const_convert_to_iter()
     }
 }
 
@@ -96,12 +108,7 @@ impl IntoIterator for &WordSequence {
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
-        StringChunkIter {
-            index: 0,
-            is_ascii: self.word_length == self.padded_word_byte_count,
-            padded_word_byte_count: self.padded_word_byte_count,
-            string: self.data,
-        }
+        self.const_convert_to_iter()
     }
 }
 

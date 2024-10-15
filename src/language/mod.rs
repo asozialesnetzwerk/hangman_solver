@@ -13,7 +13,7 @@ use pyo3::exceptions::PyValueError;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
-pub use word_sequence::{WordSequence, EMPTY_WORD_SEQUENCE};
+pub use word_sequence::WordSequence;
 
 #[cfg_attr(feature = "pyo3", pyclass)]
 pub struct StringChunkIter {

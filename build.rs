@@ -94,7 +94,7 @@ fn write_words_data(words_data: &WordsData) {
 
     let mut max_string_lit_len: usize = 0;
 
-    let mut output = String::from("match length.get() {");
+    let mut output = String::from("match length {");
     for chunk in
         words.chunk_by(|(length_a, _), (length_b, _)| *length_a == *length_b)
     {
@@ -237,16 +237,10 @@ pub enum Language {{
 impl Language {{
     #[must_use]
     pub const fn read_words(self, length: usize) -> WordSequence {{
-        match NonZeroUsize::new(length) {{
-            None => EMPTY_WORD_SEQUENCE,
-            Some(length) => {{
-                let (padded_length, words): (NonZeroUsize, &'static str) = match self {{
-                    {}
-                }};
-                WordSequence::new(length, words, padded_length)
-            }},
-        }}
-
+        let (padded_length, words): (NonZeroUsize, &'static str) = match self {{
+            {}
+        }};
+        WordSequence::new(length, words, padded_length)
     }}
 
     #[inline]
