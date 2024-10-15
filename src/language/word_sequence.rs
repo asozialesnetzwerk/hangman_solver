@@ -174,6 +174,7 @@ impl WordSequenceIndex for Range<usize> {
 #[cfg(feature = "pyo3")]
 pub enum GetItemResult {
     Item(&'static str),
+    Sequence(Vec<&'static str>),
 }
 
 #[cfg(feature = "pyo3")]
@@ -181,14 +182,16 @@ impl IntoPy<PyObject> for GetItemResult {
     fn into_py(self, py: pyo3::Python<'_>) -> pyo3::Py<pyo3::PyAny> {
         match self {
             Self::Item(value) => value.into_py(py),
+            Self::Sequence(value) => value.into_py(py),
         }
     }
 }
 
 #[cfg(feature = "pyo3")]
 #[derive(FromPyObject)]
-pub enum GetItemArg {
+pub enum GetItemArg<'a> {
     Int(isize),
+    Slice(&'a PySlice),
 }
 
 #[cfg(feature = "pyo3")]
@@ -220,6 +223,18 @@ impl WordSequence {
                 None => Err(PyIndexError::new_err("Index out of range")),
                 Some(value) => Ok(GetItemResult::Item(value)),
             },
+            GetItemArg::Slice(slice) => {
+                let psi = slice.indices(self.len() as i64)?;
+                let (start, stop, step) = (psi.start, psi.stop, psi.step);
+                let m: Vec<(String, i64)> = self
+                    .into_iter()
+                    .slice(start as usize, stop as usize)
+                    .step_by(step as usize)
+                    .map(|p| (p.0.clone(), p.1))
+                    .collect();
+                let m = SliceResult::Slice(m);
+                Ok(m)
+            }
         }
     }
 
