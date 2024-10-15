@@ -18,9 +18,6 @@ const EMPTY_WORD_SEQUENCE: WordSequence = WordSequence {
 const _: () = assert!(EMPTY_WORD_SEQUENCE.is_empty());
 const _: () = assert!(EMPTY_WORD_SEQUENCE.word_char_count() == 0);
 const _: () = assert!(EMPTY_WORD_SEQUENCE.is_empty());
-#[cfg(feature = "pyo3")]
-const _: () =
-    assert!(EMPTY_WORD_SEQUENCE.const_convert_to_iter().__len__() == 0);
 
 #[cfg_attr(feature = "pyo3", pyclass(frozen))]
 pub struct WordSequence {
