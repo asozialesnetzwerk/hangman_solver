@@ -15,7 +15,7 @@ const EMPTY_WORD_SEQUENCE: WordSequence = WordSequence {
     data: "",
 };
 
-const _: () = assert!(EMPTY_WORD_SEQUENCE.len() == 0);
+const _: () = assert!(EMPTY_WORD_SEQUENCE.is_empty());
 const _: () = assert!(EMPTY_WORD_SEQUENCE.word_char_count() == 0);
 const _: () = assert!(EMPTY_WORD_SEQUENCE.is_empty());
 #[cfg(feature = "pyo3")]
