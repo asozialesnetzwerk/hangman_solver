@@ -149,4 +149,31 @@ impl WordSequence {
             false
         }
     }
+
+    #[must_use]
+    pub fn __repr__(&self) -> String {
+        const START: &str = "['";
+        const SEPERATOR: &str = "', '";
+        const END: &str = "']";
+
+        const _: () = assert!(SEPERATOR.len() == START.len() + END.len());
+
+        let mut data = String::with_capacity(
+            self.data.len() + SEPERATOR.len() * self.len(),
+        );
+        data.push_str(START);
+
+        let mut iter = self.iter();
+        while let Some(word) = iter.next() {
+            data.push_str(word);
+            if iter.__len__() > 0 {
+                data.push_str(SEPERATOR);
+            }
+        }
+
+        data.push_str(END);
+
+        data.shrink_to_fit();
+        data
+    }
 }
