@@ -86,10 +86,34 @@ jobs:
       - name: Update rust
         shell: bash
         run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-      - name: install build
-        run: python3 -m pip install build
-      - name: Build python
-        run: python3 -m build
+      - name: install
+        run: python3 -m pip install .
+      - name: import
+        run: |
+          set -xeu
+          if python3 -c 'import sys, hangman_solver as hs; print(*hs.solve("_____", ["a"], hs.Language.De, 999999).words, sep="\n")' | grep a ; then
+            echo "Failure"
+            exit 1
+          else
+            echo "Nothing found!"
+          fi
+
+  build_manylinux_wheels:
+    name: Build manylinux wheels
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: --release
+          manylinux: "2014"
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: dist
 
   improve_code:
     name: Improve and format the code
