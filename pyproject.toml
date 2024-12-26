@@ -28,4 +28,4 @@ strip = true
 python-source = "python"
 module-name = "hangman_solver._solver"
 
-# building wheel with: podman run --rm -v .:/io ghcr.io/pyo3/maturin build --release --compatiblity manylinux_2_17
+# building wheel with: podman run --rm -v .:/io ghcr.io/pyo3/maturin build --release --compatibility manylinux_2_17
