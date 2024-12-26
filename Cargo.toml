@@ -43,7 +43,7 @@ crate-type = ["cdylib", "lib"]
 cfg-if = { version = "1.0.0", features = [] }
 counter = "0.6.0"
 itertools = { version = "0.13.0", features = [] }
-pyo3 = { version = "0.22.4", features = [
+pyo3 = { version = "0.23.3", features = [
     "extension-module",
     "abi3",
     "abi3-py312",
