@@ -30,7 +30,7 @@ use pyo3::prelude::*;
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value)]
 pub fn solve(
     pattern_string: String,
     invalid_letters: Vec<char>,
@@ -44,7 +44,7 @@ pub fn solve(
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value)]
 pub fn solve_crossword(
     pattern_string: String,
     invalid_letters: Vec<char>,

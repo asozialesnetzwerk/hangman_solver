@@ -138,7 +138,7 @@ fn test_itering_words() -> Result<(), String> {
                         lang.read_words(i).__len__()
                     ));
                 }
-                let mut word_iterator = lang.read_words(i);
+                let mut word_iterator = lang.read_words(i).into_iter();
                 while word_iterator.next().is_some() {}
                 let len = word_iterator.__len__();
                 if len != 0 {
