@@ -18,7 +18,7 @@ use std::process::exit;
 
 use itertools::Itertools;
 #[cfg(feature = "terminal_size")]
-use terminal_size::{terminal_size, Width};
+use terminal_size::{Width, terminal_size};
 
 use crate::language::Language;
 use crate::solver::Pattern;
