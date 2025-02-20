@@ -143,6 +143,7 @@ pub struct Pattern {
     letters_in_pattern_have_no_other_occurrences: bool,
 }
 
+#[expect(clippy::used_underscore_items)]
 impl Pattern {
     #[must_use]
     #[inline]
@@ -202,8 +203,7 @@ impl Pattern {
     ) -> bool {
         // This only makes sense if first_letter_is_wildcard is false
         debug_assert!(!self.first_letter_is_wildcard());
-        word.first_char()
-            .map_or(false, |char| self.first_letter == char)
+        word.first_char() == Some(self.first_letter)
     }
 
     #[must_use]
