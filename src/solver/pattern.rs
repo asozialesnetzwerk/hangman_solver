@@ -247,8 +247,8 @@ where
         max_words_to_collect: Option<usize>,
     ) -> (Vec<&'a CC>, Vec<(char, u32)>, u32) {
         let (word_count, letter_frequency, words) =
-            if self.known_letters_count() == 0
-                && self.invalid_letters.is_empty()
+            if self.invalid_letters.is_empty()
+                && self.known_letters_count() == 0
             {
                 self._collect_count_and_create_letter_frequency(
                     all_words,

@@ -11,7 +11,6 @@
 mod language;
 mod solver;
 
-use std::char;
 use std::env;
 use std::io::{self, BufRead};
 use std::process::exit;
@@ -79,11 +78,7 @@ fn main() {
                 let pattern = input.first().unwrap_or(&"");
                 let hr = solve(
                     pattern,
-                    &(input
-                        .get(1)
-                        .unwrap_or(&"")
-                        .chars()
-                        .collect::<Vec<char>>()),
+                    input.get(1).unwrap_or(&""),
                     true,
                     lang,
                     Some(width / pattern.char_count() + 1),

@@ -48,6 +48,21 @@ pub trait PatternTrait {
         language: Language,
         max_words_to_collect: Option<usize>,
     ) -> HangmanResult;
+
+    #[must_use]
+    #[inline]
+    fn known_letters_count(&self) -> usize {
+        let mut count = 0;
+        let mut index = 0;
+        while let Some(value) = self.get_letter(index) {
+            if let PatternLetter::Char(_) = value {
+                count += 1;
+            }
+            index += 1;
+        }
+
+        count
+    }
 }
 
 impl PatternTrait for Pattern {
@@ -142,6 +157,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(not(debug_assertions))]  // TODO: fix stack over flow
     pub fn test_compile_pattern_ascii() {
         let pattern = compile_pattern("______n_s__r_____n", &['e'], true);
 

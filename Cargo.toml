@@ -16,7 +16,7 @@ include = [
 build = "build.rs"
 
 [features]
-default = ["terminal_size"]
+default = ["terminal_size", "pyo3", "wasm-bindgen"]
 wasm-bindgen = ["dep:wasm-bindgen", "dep:js-sys"]
 
 [profile.release]
