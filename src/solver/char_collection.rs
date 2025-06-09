@@ -3,6 +3,30 @@ use js_sys::JsString;
 
 use crate::solver::ascii_char_iterator::AsciiCharIterator;
 
+#[expect(clippy::indexing_slicing)]
+#[inline]
+pub const fn count_codepoints(string: &str) -> usize {
+    let string = string.as_bytes();
+    let mut count = 0;
+
+    let mut i = 0;
+    loop {
+        if i >= string.len() {
+            break count;
+        }
+        let byte = string[i];
+
+        if byte < 128 || byte >= 0b1100_0000 {
+            count += 1;
+        }
+
+        i += 1;
+    }
+}
+
+const _: () = assert!(count_codepoints("abcd1234") == 8);
+const _: () = assert!(count_codepoints("äöüßÄÖÜẞ") == 8);
+
 pub trait CharCollection {
     #[must_use]
     #[inline]
@@ -50,7 +74,7 @@ impl CharCollection for String {
 
     #[inline]
     fn char_count(&self) -> usize {
-        self.chars().count()
+        count_codepoints(self)
     }
 
     #[inline]
@@ -77,7 +101,7 @@ impl CharCollection for str {
 
     #[inline]
     fn char_count(&self) -> usize {
-        self.chars().count()
+        count_codepoints(self)
     }
 
     #[inline]
@@ -104,7 +128,7 @@ impl CharCollection for &str {
 
     #[inline]
     fn char_count(&self) -> usize {
-        self.chars().count()
+        count_codepoints(self)
     }
 
     #[inline]
@@ -179,7 +203,20 @@ impl CharCollection for JsString {
 mod test {
     use itertools::Itertools;
 
-    use crate::solver::char_collection::CharCollection;
+    use crate::solver::char_collection::{CharCollection, count_codepoints};
+
+    #[test]
+    fn test_count_codepoints() {
+        let strings = ["abcd1234", "äöüßÄÖÜẞ", "🤓🦈"];
+        for string in strings {
+            let count = string.chars().count();
+            assert_eq!(count_codepoints(string), count);
+            assert_eq!(string.char_count(), count);
+            assert_eq!(string.iter_chars().count(), count);
+            assert_eq!(string.iter_ascii_chars().count(), count);
+            assert_eq!(string.all_chars_are_ascii(), string.is_ascii());
+        }
+    }
 
     #[test]
     fn test_iter_ascii_chars_ascii() {
