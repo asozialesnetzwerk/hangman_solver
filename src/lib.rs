@@ -94,7 +94,7 @@ pub fn hangman_solver(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[cfg(feature = "wasm-bindgen")]
 #[wasm_bindgen]
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value)]
 pub fn solve_hangman(
     all_words: Vec<JsString>,
     pattern_string: JsString,
@@ -102,15 +102,13 @@ pub fn solve_hangman(
     max_words_to_collect: usize,
     crossword_mode: bool,
 ) -> Result<WasmHangmanResult, JsValue> {
-    let pattern = Pattern::<char>::new(
+    use crate::solver::solve_js;
+
+    Ok(solve_js(
+        &mut all_words.iter(),
         &pattern_string,
         &invalid_letters,
-        !crossword_mode,
-    );
-
-    let mut all_words_iter = all_words.iter();
-
-    let result: WasmHangmanResult = pattern
-        .solve_with_words(&mut all_words_iter, Some(max_words_to_collect));
-    Ok(result)
+        Some(max_words_to_collect),
+        crossword_mode,
+    ))
 }
