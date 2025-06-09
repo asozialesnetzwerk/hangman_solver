@@ -15,6 +15,7 @@ use pyo3::prelude::*;
 
 pub use word_sequence::WordSequence;
 
+#[allow(unsafe_code)]
 #[cfg_attr(feature = "pyo3", pyclass)]
 pub struct StringChunkIter {
     padded_word_byte_count: NonZeroUsize,
