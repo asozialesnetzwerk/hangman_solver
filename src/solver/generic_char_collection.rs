@@ -14,7 +14,7 @@ pub trait GenericCharCollection<Char> {
     fn iter_lowercased(&self) -> impl Iterator<Item = Char> + '_;
 }
 
-impl<T: CharCollection> GenericCharCollection<u8> for T {
+impl<T: CharCollection + ?Sized> GenericCharCollection<u8> for T {
     #[inline]
     fn first(&self) -> Option<u8> {
         self.first_ascii_char()

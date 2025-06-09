@@ -37,8 +37,13 @@ pub fn solve(
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
-    let pattern = Pattern::<char>::new(&pattern_string, &invalid_letters, true);
-    Ok(pattern.solve(language, Some(max_words_to_collect)))
+    Ok(crate::solver::solve(
+        &pattern_string,
+        &invalid_letters,
+        true,
+        language,
+        Some(max_words_to_collect),
+    ))
 }
 
 #[cfg(feature = "pyo3")]
@@ -51,9 +56,13 @@ pub fn solve_crossword(
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
-    let pattern =
-        Pattern::<char>::new(&pattern_string, &invalid_letters, false);
-    Ok(pattern.solve(language, Some(max_words_to_collect)))
+    Ok(crate::solver::solve(
+        &pattern_string,
+        &invalid_letters,
+        false,
+        language,
+        Some(max_words_to_collect),
+    ))
 }
 
 #[must_use]

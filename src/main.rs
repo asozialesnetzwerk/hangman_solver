@@ -21,7 +21,9 @@ use itertools::Itertools;
 use terminal_size::{Width, terminal_size};
 
 use crate::language::Language;
+use crate::solver::char_collection::CharCollection as _;
 use crate::solver::pattern::Pattern;
+use crate::solver::solve;
 
 fn get_terminal_width() -> usize {
     #[cfg(feature = "terminal_size")]
@@ -75,17 +77,18 @@ fn main() {
                 let width = get_terminal_width();
 
                 let input: Vec<&str> = buffer.splitn(2, ' ').collect();
-                let pattern = Pattern::<char>::new(
-                    input.first().unwrap_or(&""),
+                let pattern = input.first().unwrap_or(&"");
+                let hr = solve(
+                    pattern,
                     &(input
                         .get(1)
                         .unwrap_or(&"")
                         .chars()
                         .collect::<Vec<char>>()),
                     true,
+                    lang,
+                    Some(width / pattern.char_count() + 1),
                 );
-                let hr = pattern
-                    .solve(lang, Some(width / pattern.pattern.len() + 1));
                 assert!(hr.language == lang);
 
                 println!("{hr:─^width$}");
