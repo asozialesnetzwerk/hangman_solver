@@ -92,7 +92,6 @@ impl IntoIterator for WordSequence {
     type IntoIter = StringChunkIter;
 
     #[inline]
-    #[must_use]
     fn into_iter(self) -> Self::IntoIter {
         self.const_convert_to_iter()
     }

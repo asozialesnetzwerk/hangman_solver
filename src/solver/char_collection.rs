@@ -30,6 +30,7 @@ const _: () = assert!(count_codepoints("äöüßÄÖÜẞ") == 8);
 pub trait CharCollection {
     #[must_use]
     #[inline]
+    #[allow(dead_code)]
     fn all_chars_are_ascii(&self) -> bool {
         self.iter_chars().all(|ch| ch.is_ascii())
     }

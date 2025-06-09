@@ -170,17 +170,18 @@ where
             .map(ControlChars::normalise_wildcard)
             .collect();
 
-        let additional_invalid: Vec<Ch> =
+        let additional_invalid: &[Ch] =
             if letters_in_pattern_have_no_other_occurrences {
-                pattern_as_chars.clone()
+                &pattern_as_chars
             } else {
-                vec![]
+                &[]
             };
 
         let invalid_letters_vec: Vec<Ch> = additional_invalid
-            .into_iter()
+            .iter()
+            .copied()
             .chain(invalid_letters.char_iter())
-            .filter(|ch| ch.is_normalised_wildcard() && !ch.is_whitespace())
+            .filter(|ch| !ch.is_normalised_wildcard() && !ch.is_whitespace())
             .unique()
             .collect();
 

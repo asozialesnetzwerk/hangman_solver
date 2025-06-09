@@ -17,6 +17,7 @@ pub trait ControlChars: PartialEq + Sized {
 
     #[inline]
     #[must_use]
+    #[allow(dead_code)]
     fn is_reserved(&self) -> bool {
         Self::RESERVED.contains(self)
     }

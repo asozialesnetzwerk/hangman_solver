@@ -26,7 +26,6 @@ pub struct StringChunkIter {
 impl Iterator for StringChunkIter {
     type Item = &'static str;
 
-    #[must_use]
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let end_index =
