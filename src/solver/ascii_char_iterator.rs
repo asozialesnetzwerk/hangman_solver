@@ -5,7 +5,7 @@ pub struct AsciiCharIterator<'s> {
 
 impl<'s> AsciiCharIterator<'s> {
     #[inline]
-    pub fn new(string: &'s str) -> Self {
+    pub const fn new(string: &'s str) -> Self {
         Self {
             utf8_string: string.as_bytes(),
             byte_index: 0,

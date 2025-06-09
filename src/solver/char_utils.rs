@@ -1,4 +1,5 @@
 pub trait CharUtils {
+    #[expect(clippy::wrong_self_convention)]
     fn is_whitespace(self) -> bool;
     fn to_char(self) -> char;
 }
@@ -6,7 +7,7 @@ pub trait CharUtils {
 impl CharUtils for char {
     #[inline]
     fn is_whitespace(self) -> bool {
-        char::is_whitespace(self)
+        Self::is_whitespace(self)
     }
 
     #[inline]

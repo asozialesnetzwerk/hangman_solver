@@ -48,7 +48,7 @@ fn main() {
     } else if args.len() != 1 {
         eprintln!("Too many arguments");
         exit(1);
-    };
+    }
 
     let lang = args
         .first()

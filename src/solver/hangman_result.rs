@@ -103,7 +103,7 @@ impl std::fmt::Display for HangmanResult {
                     max_line_length - " letters: ".len(),
                 )
             )?;
-        };
+        }
         Ok(())
     }
 }

@@ -267,6 +267,7 @@ where
 }
 
 #[cfg(feature = "wasm-bindgen")]
+#[expect(clippy::used_underscore_items)]
 impl<Ch> Pattern<Ch>
 where
     JsString: GenericCharCollection<Ch>,

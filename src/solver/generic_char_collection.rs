@@ -49,7 +49,7 @@ impl<T: CharCollection + ?Sized> GenericCharCollection<char> for T {
 
     #[inline]
     fn iter_lowercased(&self) -> impl Iterator<Item = char> + '_ {
-        self.iter_chars().flat_map(|ch| ch.to_lowercase())
+        self.iter_chars().flat_map(char::to_lowercase)
     }
 
     #[inline]
