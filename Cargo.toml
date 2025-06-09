@@ -24,7 +24,7 @@ codegen-units = 1
 panic = "abort"
 strip = true
 lto = true
-opt-level = "z"
+opt-level = 3
 
 [profile.profile]
 inherits = "release"
