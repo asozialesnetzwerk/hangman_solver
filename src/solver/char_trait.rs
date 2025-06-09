@@ -26,6 +26,7 @@ pub trait ControlChars: PartialEq + Sized {
 
     #[inline]
     #[must_use]
+    #[allow(dead_code)]
     fn normalise_wildcard(self) -> Self {
         if Self::WILDCARD_ALIASES.contains(&self) {
             Self::WILDCARD

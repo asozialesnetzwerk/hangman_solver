@@ -27,6 +27,7 @@ pub fn compile_pattern(
 }
 
 #[allow(dead_code)]
+#[derive(PartialEq, Eq, Debug)]
 pub enum PatternLetter {
     Wildcard,
     Char(char),
@@ -41,7 +42,7 @@ pub trait PatternTrait {
     #[must_use]
     fn is_allowed_letter(&self, ch: char) -> bool;
     #[must_use]
-    fn into_pattern(self) -> Pattern;
+    fn into_pattern(self: Box<Self>) -> Box<Pattern>;
     #[must_use]
     fn solve(
         &self,
@@ -50,19 +51,7 @@ pub trait PatternTrait {
     ) -> HangmanResult;
 
     #[must_use]
-    #[inline]
-    fn known_letters_count(&self) -> usize {
-        let mut count = 0;
-        let mut index = 0;
-        while let Some(value) = self.get_letter(index) {
-            if let PatternLetter::Char(_) = value {
-                count += 1;
-            }
-            index += 1;
-        }
-
-        count
-    }
+    fn known_letters_count(&self) -> usize;
 }
 
 impl PatternTrait for Pattern {
@@ -83,7 +72,7 @@ impl PatternTrait for Pattern {
         !self.invalid_letters.contains(&ch)
     }
 
-    fn into_pattern(self) -> Pattern {
+    fn into_pattern(self: Box<Self>) -> Box<Pattern> {
         self
     }
 
@@ -93,6 +82,10 @@ impl PatternTrait for Pattern {
         max_words_to_collect: Option<usize>,
     ) -> HangmanResult {
         Self::solve(self, language, max_words_to_collect)
+    }
+
+    fn known_letters_count(&self) -> usize {
+        self.known_letters_count
     }
 }
 
@@ -114,8 +107,8 @@ impl PatternTrait for AsciiPattern {
         ch.is_ascii() && !self.invalid_letters.contains(&(ch as u8))
     }
 
-    fn into_pattern(self) -> Pattern {
-        Pattern {
+    fn into_pattern(self: Box<Self>) -> Box<Pattern> {
+        Box::new(Pattern {
             invalid_letters: self
                 .invalid_letters
                 .into_iter()
@@ -125,7 +118,8 @@ impl PatternTrait for AsciiPattern {
             first_letter: self.first_letter.to_char(),
             letters_in_pattern_have_no_other_occurrences: self
                 .letters_in_pattern_have_no_other_occurrences,
-        }
+            known_letters_count: self.known_letters_count,
+        })
     }
 
     fn solve(
@@ -135,17 +129,29 @@ impl PatternTrait for AsciiPattern {
     ) -> HangmanResult {
         Self::solve(self, language, max_words_to_collect)
     }
+
+    fn known_letters_count(&self) -> usize {
+        self.known_letters_count
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::Language;
+    use crate::{solver::pattern_trait::PatternLetter, Language};
 
     use super::compile_pattern;
 
     #[test]
     pub fn test_compile_pattern() {
         let pattern = compile_pattern("_____r_ü_", &['i'], true);
+
+        assert_eq!(pattern.get_letter(0), Some(PatternLetter::Wildcard));
+        assert_eq!(pattern.get_letter(5), Some(PatternLetter::Char('r')));
+        assert_eq!(pattern.length(), 9);
+        assert_eq!(pattern.known_letters_count(), 2);
+        assert!(!pattern.is_allowed_letter('i'));
+        assert!(!pattern.is_allowed_letter('r'));
+        assert!(pattern.is_allowed_letter('a'));
 
         let hr = pattern.solve(Language::DeBasicUmlauts, None);
 
@@ -154,12 +160,23 @@ mod test {
         assert_eq!(hr.invalid, vec!['i']);
         assert_eq!(hr.matching_words_count, 1);
         assert_eq!(hr.possible_words, vec!["zuckersüß"]);
+
+        let pattern = pattern.into_pattern();
+        assert_eq!(pattern.invalid_letters, vec!['r', 'ü', 'i']);
     }
 
     #[test]
-    #[cfg(not(debug_assertions))]  // TODO: fix stack over flow
+    #[cfg(not(debug_assertions))] // TODO: fix stack over flow
     pub fn test_compile_pattern_ascii() {
         let pattern = compile_pattern("______n_s__r_____n", &['e'], true);
+
+        assert_eq!(pattern.get_letter(0), Some(PatternLetter::Wildcard));
+        assert_eq!(pattern.get_letter(6), Some(PatternLetter::Char('n')));
+        assert_eq!(pattern.length(), 18);
+        assert_eq!(pattern.known_letters_count(), 4);
+        assert!(!pattern.is_allowed_letter('e'));
+        assert!(!pattern.is_allowed_letter('n'));
+        assert!(pattern.is_allowed_letter('a'));
 
         let hr = pattern.solve(Language::DeUmlauts, None);
 

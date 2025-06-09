@@ -32,6 +32,7 @@ where
     pub(crate) first_letter: Ch,
     /// true for normal hangman mode
     pub(crate) letters_in_pattern_have_no_other_occurrences: bool,
+    pub(crate) known_letters_count: usize,
 }
 
 #[allow(dead_code)]
@@ -61,10 +62,18 @@ where
         invalid_letters: &V,
         letters_in_pattern_have_no_other_occurrences: bool,
     ) -> Self {
+        let mut known_letters_count = 0;
         let pattern_as_chars: Vec<Ch> = pattern
             .iter_lowercased()
             .filter(|ch| !ch.is_whitespace())
-            .map(ControlChars::normalise_wildcard)
+            .map(|ch| {
+                if ch.is_wildcard() {
+                    Ch::WILDCARD
+                } else {
+                    known_letters_count += 1;
+                    ch
+                }
+            })
             .collect();
 
         let additional_invalid: &[Ch] =
@@ -89,6 +98,7 @@ where
             pattern: pattern_as_chars,
             first_letter,
             letters_in_pattern_have_no_other_occurrences,
+            known_letters_count,
         }
     }
 
@@ -140,10 +150,15 @@ where
     #[inline]
     #[must_use]
     fn known_letters_count(&self) -> usize {
-        self.pattern
-            .iter()
-            .filter(|ch| !ch.is_normalised_wildcard())
-            .count()
+        debug_assert_eq!(
+            self.known_letters_count,
+            self.pattern
+                .iter()
+                .filter(|ch| !ch.is_normalised_wildcard())
+                .count()
+        );
+
+        self.known_letters_count
     }
 
     #[must_use]
