@@ -4,8 +4,8 @@ pub mod char_collection;
 pub mod char_trait;
 pub mod char_utils;
 pub mod generic_char_collection;
+pub mod hangman_result;
 
-use cfg_if::cfg_if;
 use std::char;
 use std::hash::Hash;
 use std::iter::zip;
@@ -15,128 +15,15 @@ use crate::solver::char_collection::CharCollection;
 use crate::solver::char_trait::ControlChars;
 use crate::solver::char_utils::CharUtils;
 use crate::solver::generic_char_collection::GenericCharCollection;
+use crate::solver::hangman_result::HangmanResult;
+#[cfg(feature = "wasm-bindgen")]
+use crate::solver::hangman_result::WasmHangmanResult;
 
 use counter::Counter;
 use itertools::Itertools;
 
-#[cfg(feature = "pyo3")]
-use pyo3::prelude::*;
-
-#[inline]
-fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
-    strings: T,
-    sep: &str,
-    max_len: usize,
-) -> String {
-    let last_index = strings.len() - 1;
-    let mut string = String::with_capacity(max_len);
-    for (i, item) in strings.enumerate() {
-        let current_sep = if i == 0 { "" } else { sep };
-        let min_next_len = if i == last_index { 0 } else { sep.len() + 3 };
-        if string.char_count()
-            + current_sep.len()
-            + item.char_count()
-            + min_next_len
-            > max_len
-        {
-            string.extend([current_sep, "..."]);
-            break;
-        }
-        string.extend([current_sep, &item]);
-    }
-    debug_assert!(string.char_count() <= max_len);
-    string
-}
-
-cfg_if! {
-    if #[cfg(feature = "pyo3")] {
-        #[pyclass]
-        pub struct HangmanResult {
-            #[pyo3(get)]
-            pub input: String,
-            #[pyo3(get)]
-            pub matching_words_count: u32,
-            #[pyo3(get)]
-            pub invalid: Vec<char>,
-            #[pyo3(get, name = "words")]
-            pub possible_words: Vec<&'static str>,
-            #[pyo3(get)]
-            pub language: Language,
-            #[pyo3(get)]
-            pub letter_frequency: Vec<(char, u32)>,
-        }
-    } else {
-        pub struct HangmanResult {
-            pub input: String,
-            pub invalid: Vec<char>,
-            pub matching_words_count: u32,
-            pub possible_words: Vec<&'static str>,
-            pub language: Language,
-            pub letter_frequency: Vec<(char, u32)>,
-        }
-    }
-}
-
-impl std::fmt::Display for HangmanResult {
-    fn fmt(&self, file: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let max_line_length: usize = file.width().unwrap_or(80);
-        let invalid: String = self.invalid.iter().collect();
-        write!(
-            file,
-            "Found {} words (input: {}, invalid: {})",
-            self.matching_words_count, self.input, invalid,
-        )?;
-        if self.possible_words.is_empty() {
-            return Ok(());
-        }
-        writeln!(file)?;
-        write!(
-            file,
-            " words:   {}",
-            join_with_max_length(
-                self.possible_words.iter().map(|word| String::from(*word)),
-                ", ",
-                max_line_length - " words:   ".len(),
-            )
-        )?;
-
-        if !self.letter_frequency.is_empty() {
-            writeln!(file)?;
-            write!(
-                file,
-                " letters: {}",
-                join_with_max_length(
-                    self.letter_frequency
-                        .iter()
-                        .map(|(ch, f)| format!("{ch}: {f}")),
-                    ", ",
-                    max_line_length - " letters: ".len(),
-                )
-            )?;
-        };
-        Ok(())
-    }
-}
-
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
-#[cfg(feature = "wasm-bindgen")]
-use wasm_bindgen::prelude::*;
-
-#[cfg(feature = "wasm-bindgen")]
-#[wasm_bindgen(getter_with_clone)]
-pub struct WasmHangmanResult {
-    #[wasm_bindgen(readonly)]
-    pub input: JsString,
-    #[wasm_bindgen(readonly)]
-    pub invalid: JsString,
-    #[wasm_bindgen(readonly)]
-    pub matching_words_count: u32,
-    #[wasm_bindgen(readonly)]
-    pub possible_words: Vec<JsString>,
-    #[wasm_bindgen(readonly)]
-    pub letter_frequency: JsString,
-}
 
 #[allow(clippy::struct_field_names)]
 pub struct Pattern<Ch>
@@ -337,48 +224,6 @@ where
         }
     }
 
-    #[cfg(feature = "wasm-bindgen")]
-    #[must_use]
-    #[allow(dead_code)]
-    pub fn solve_with_words<'a, 'b, T: Iterator<Item = &'a JsString>>(
-        &self,
-        all_words: &'b mut T,
-        max_words_to_collect: Option<usize>,
-    ) -> WasmHangmanResult {
-        let (possible_words, letter_frequency, matching_words_count) =
-            self._solve_internal(all_words, max_words_to_collect);
-
-        let mut invalid: Vec<char> = self
-            .invalid_letters
-            .iter()
-            .filter(|ch| !self.pattern.contains(*ch))
-            .copied()
-            .collect();
-
-        let mut letter_frequency_string: String = String::new();
-
-        for (char, count) in letter_frequency {
-            if !letter_frequency_string.is_empty() {
-                letter_frequency_string.push_str(", ");
-            }
-            letter_frequency_string.push(char);
-            letter_frequency_string.push_str(": ");
-            letter_frequency_string.push_str(&count.to_string());
-        }
-
-        invalid.sort_unstable();
-        WasmHangmanResult {
-            input: JsString::from(self.pattern.iter().collect::<String>()),
-            invalid: JsString::from(invalid.iter().collect::<String>()),
-            possible_words: possible_words
-                .into_iter()
-                .map(JsString::to_string)
-                .collect(),
-            letter_frequency: JsString::from(letter_frequency_string),
-            matching_words_count,
-        }
-    }
-
     #[must_use]
     #[inline]
     fn _solve_internal<
@@ -418,5 +263,59 @@ where
             };
 
         (words, letter_frequency.most_common_ordered(), word_count)
+    }
+}
+
+#[cfg(feature = "wasm-bindgen")]
+impl<Ch> Pattern<Ch>
+where
+    JsString: GenericCharCollection<Ch>,
+    str: GenericCharCollection<Ch>,
+    Ch: ControlChars + Copy + Eq + Hash + CharUtils,
+{
+    #[must_use]
+    #[allow(dead_code)]
+    pub fn solve_with_words<'a, 'b, T: Iterator<Item = &'a JsString>>(
+        &self,
+        all_words: &'b mut T,
+        max_words_to_collect: Option<usize>,
+    ) -> WasmHangmanResult {
+        let (possible_words, letter_frequency, matching_words_count) =
+            self._solve_internal(all_words, max_words_to_collect);
+
+        let mut invalid: Vec<char> = self
+            .invalid_letters
+            .iter()
+            .filter(|ch| !self.pattern.contains(*ch))
+            .map(|ch| ch.to_char())
+            .collect();
+
+        let mut letter_frequency_string: String = String::new();
+
+        for (char, count) in letter_frequency {
+            if !letter_frequency_string.is_empty() {
+                letter_frequency_string.push_str(", ");
+            }
+            letter_frequency_string.push(char);
+            letter_frequency_string.push_str(": ");
+            letter_frequency_string.push_str(&count.to_string());
+        }
+
+        invalid.sort_unstable();
+        WasmHangmanResult {
+            input: JsString::from(
+                self.pattern
+                    .iter()
+                    .map(|ch| ch.to_char())
+                    .collect::<String>(),
+            ),
+            invalid: JsString::from(invalid.iter().collect::<String>()),
+            possible_words: possible_words
+                .into_iter()
+                .map(JsString::to_string)
+                .collect(),
+            letter_frequency: JsString::from(letter_frequency_string),
+            matching_words_count,
+        }
     }
 }

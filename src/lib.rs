@@ -13,10 +13,10 @@ mod solver;
 
 pub use crate::language::{Language, StringChunkIter, WordSequence};
 
-pub use crate::solver::{HangmanResult, Pattern};
+pub use crate::solver::{Pattern, hangman_result::HangmanResult};
 
 #[cfg(feature = "wasm-bindgen")]
-pub use crate::solver::WasmHangmanResult;
+pub use crate::solver::hangman_result::WasmHangmanResult;
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
 #[cfg(feature = "wasm-bindgen")]
