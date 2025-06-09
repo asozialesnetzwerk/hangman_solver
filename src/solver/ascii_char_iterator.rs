@@ -18,20 +18,17 @@ impl Iterator for AsciiCharIterator<'_> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let byte = self.utf8_string.get(self.byte_index).copied()?;
-        if byte.is_ascii() {
-            self.byte_index += 1;
-            Some(byte)
-        } else {
-            self.byte_index += if byte >= 0b1111_0000 {
-                4
-            } else if byte >= 0b1110_0000 {
-                3
-            } else {
-                debug_assert!(byte >= 0b1100_0000);
-                2
-            };
-            Some(u8::MAX)
+        while let Some(byte) = self.utf8_string.get(self.byte_index).copied() {
+            let leading_ones = byte.leading_ones();
+            if leading_ones == 0 {
+                self.byte_index += 1;
+                return Some(byte);
+            }
+            self.byte_index += leading_ones as usize;
+            if leading_ones != 1 {
+                return Some(u8::MAX);
+            }
         }
+        None
     }
 }
