@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: EUPL-1.2
 pub mod char_collection;
+pub mod ascii_char_iterator;
 
 use cfg_if::cfg_if;
 use std::char;
