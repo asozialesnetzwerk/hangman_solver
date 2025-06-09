@@ -175,23 +175,22 @@ where
     ) -> (u32, Counter<char, u32>, Vec<&'a CC>) {
         let mut letter_counter: Counter<char, u32> = Counter::new();
 
-        let (words_vec, additional_count): (Vec<&'a CC>, usize) = if self.letters_in_pattern_have_no_other_occurrences {
-            let mut words = words.inspect(|word| letter_counter.update(word.iter_chars().unique()));
+        let update_counter: fn(&mut Counter<char, u32>, &CC) =
+            if self.letters_in_pattern_have_no_other_occurrences {
+                |counter, word| counter.update(word.iter_chars().unique())
+            } else {
+                |counter, word| counter.update(word.iter_chars())
+            };
 
+        let mut words =
+            words.inspect(|word| update_counter(&mut letter_counter, word));
+
+        let (words_vec, additional_count): (Vec<&'a CC>, usize) =
             if let Some(n) = max_words_to_collect {
                 (words.by_ref().take(n).collect(), words.count())
             } else {
                 (words.collect(), 0)
-            }
-        } else {
-            let mut words = words.inspect(|word| letter_counter.update(word.iter_chars()));
-
-            if let Some(n) = max_words_to_collect {
-                (words.by_ref().take(n).collect(), words.count())
-            } else {
-                (words.collect(), 0)
-            }
-        };
+            };
 
         let words_count = u32::try_from(additional_count + words_vec.len())
             .unwrap_or(u32::MAX);
