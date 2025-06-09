@@ -11,9 +11,11 @@
 mod language;
 mod solver;
 
+pub use crate::solver::pattern::Pattern;
+
 pub use crate::language::{Language, StringChunkIter, WordSequence};
 
-pub use crate::solver::{hangman_result::HangmanResult, pattern::Pattern};
+pub use crate::solver::{hangman_result::HangmanResult};
 
 #[cfg(feature = "wasm-bindgen")]
 pub use crate::solver::hangman_result::WasmHangmanResult;

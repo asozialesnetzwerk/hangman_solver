@@ -18,8 +18,11 @@ use itertools::Itertools;
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
 
+pub type Pattern = GenericPattern::<char>;
+pub type AsciiPattern = GenericPattern::<u8>;
+
 #[allow(clippy::struct_field_names)]
-pub struct Pattern<Ch>
+pub struct GenericPattern<Ch>
 where
     str: GenericCharCollection<Ch>,
     Ch: ControlChars + Copy + Eq + Hash + CharUtils,
@@ -32,7 +35,7 @@ where
 }
 
 #[expect(clippy::used_underscore_items)]
-impl<Ch> Pattern<Ch>
+impl<Ch> GenericPattern<Ch>
 where
     str: GenericCharCollection<Ch>,
     Ch: ControlChars + Copy + Eq + Hash + CharUtils,
@@ -261,7 +264,7 @@ where
 
 #[cfg(feature = "wasm-bindgen")]
 #[expect(clippy::used_underscore_items)]
-impl<Ch> Pattern<Ch>
+impl<Ch> GenericPattern<Ch>
 where
     JsString: GenericCharCollection<Ch>,
     str: GenericCharCollection<Ch>,

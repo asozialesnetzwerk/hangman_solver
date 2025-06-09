@@ -4,7 +4,8 @@ use js_sys::JsString;
 use crate::solver::hangman_result::HangmanResult;
 #[cfg(feature = "wasm-bindgen")]
 use crate::solver::hangman_result::WasmHangmanResult;
-use crate::{Language, Pattern, solver::char_collection::CharCollection};
+use crate::{Language, solver::char_collection::CharCollection};
+use crate::solver::pattern::{AsciiPattern, Pattern};
 
 // SPDX-License-Identifier: EUPL-1.2
 pub mod ascii_char_iterator;
@@ -29,7 +30,7 @@ where
     V: CharCollection,
 {
     if pattern.all_chars_are_ascii() && invalid_letters.all_chars_are_ascii() {
-        let pattern = Pattern::<u8>::new(
+        let pattern = AsciiPattern::new(
             pattern,
             invalid_letters,
             letters_in_pattern_have_no_other_occurrences,
@@ -37,7 +38,7 @@ where
 
         pattern.solve(language, max_words_to_collect)
     } else {
-        let pattern = Pattern::<char>::new(
+        let pattern = Pattern::new(
             pattern,
             invalid_letters,
             letters_in_pattern_have_no_other_occurrences,
@@ -60,7 +61,7 @@ pub fn solve_js<'a>(
     if pattern_string.all_chars_are_ascii()
         && invalid_letters.all_chars_are_ascii()
     {
-        let pattern = Pattern::<u8>::new(
+        let pattern = AsciiPattern::new(
             pattern_string,
             invalid_letters,
             !crossword_mode,
@@ -68,7 +69,7 @@ pub fn solve_js<'a>(
 
         pattern.solve_with_words(all_words, max_words_to_collect)
     } else {
-        let pattern = Pattern::<char>::new(
+        let pattern = Pattern::new(
             pattern_string,
             invalid_letters,
             !crossword_mode,

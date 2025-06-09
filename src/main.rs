@@ -22,7 +22,6 @@ use terminal_size::{Width, terminal_size};
 
 use crate::language::Language;
 use crate::solver::char_collection::CharCollection as _;
-use crate::solver::pattern::Pattern;
 use crate::solver::solve;
 
 fn get_terminal_width() -> usize {
