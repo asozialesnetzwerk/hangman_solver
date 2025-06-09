@@ -42,7 +42,7 @@ pub trait PatternTrait {
     #[must_use]
     fn is_allowed_letter(&self, ch: char) -> bool;
     #[must_use]
-    fn into_pattern(self: Box<Self>) -> Box<Pattern>;
+    fn into_pattern(self: Box<Self>) -> Pattern;
     #[must_use]
     fn solve(
         &self,
@@ -72,8 +72,8 @@ impl PatternTrait for Pattern {
         !self.invalid_letters.contains(&ch)
     }
 
-    fn into_pattern(self: Box<Self>) -> Box<Pattern> {
-        self
+    fn into_pattern(self: Box<Self>) -> Pattern {
+        *self
     }
 
     fn solve(
@@ -107,8 +107,8 @@ impl PatternTrait for AsciiPattern {
         ch.is_ascii() && !self.invalid_letters.contains(&(ch as u8))
     }
 
-    fn into_pattern(self: Box<Self>) -> Box<Pattern> {
-        Box::new(Pattern {
+    fn into_pattern(self: Box<Self>) -> Pattern {
+        Pattern {
             invalid_letters: self
                 .invalid_letters
                 .into_iter()
@@ -119,7 +119,7 @@ impl PatternTrait for AsciiPattern {
             letters_in_pattern_have_no_other_occurrences: self
                 .letters_in_pattern_have_no_other_occurrences,
             known_letters_count: self.known_letters_count,
-        })
+        }
     }
 
     fn solve(
@@ -137,7 +137,7 @@ impl PatternTrait for AsciiPattern {
 
 #[cfg(test)]
 mod test {
-    use crate::{solver::pattern_trait::PatternLetter, Language};
+    use crate::{Language, solver::pattern_trait::PatternLetter};
 
     use super::compile_pattern;
 
