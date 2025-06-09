@@ -77,7 +77,7 @@ impl PatternTrait for Pattern {
         language: Language,
         max_words_to_collect: Option<usize>,
     ) -> HangmanResult {
-        self.solve(language, max_words_to_collect)
+        Self::solve(self, language, max_words_to_collect)
     }
 }
 
@@ -118,6 +118,39 @@ impl PatternTrait for AsciiPattern {
         language: Language,
         max_words_to_collect: Option<usize>,
     ) -> HangmanResult {
-        self.solve(language, max_words_to_collect)
+        Self::solve(self, language, max_words_to_collect)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::Language;
+
+    use super::compile_pattern;
+
+    #[test]
+    pub fn test_compile_pattern() {
+        let pattern = compile_pattern("_____r_ü_", &['i'], true);
+
+        let hr = pattern.solve(Language::DeBasicUmlauts, None);
+
+        assert_eq!(hr.language, Language::DeBasicUmlauts);
+        assert_eq!(&hr.input, "_____r_ü_");
+        assert_eq!(hr.invalid, vec!['i']);
+        assert_eq!(hr.matching_words_count, 1);
+        assert_eq!(hr.possible_words, vec!["zuckersüß"]);
+    }
+
+    #[test]
+    pub fn test_compile_pattern_ascii() {
+        let pattern = compile_pattern("______n_s__r_____n", &['e'], true);
+
+        let hr = pattern.solve(Language::DeUmlauts, None);
+
+        assert_eq!(hr.language, Language::DeUmlauts);
+        assert_eq!(&hr.input, "______n_s__r_____n");
+        assert_eq!(hr.invalid, vec!['e']);
+        assert_eq!(hr.matching_words_count, 1);
+        assert_eq!(hr.possible_words, vec!["zwillingsparadoxon"]);
     }
 }
