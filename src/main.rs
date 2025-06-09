@@ -75,7 +75,7 @@ fn main() {
                 let width = get_terminal_width();
 
                 let input: Vec<&str> = buffer.splitn(2, ' ').collect();
-                let pattern = Pattern::new(
+                let pattern = Pattern::<char>::new(
                     input.first().unwrap_or(&""),
                     &(input
                         .get(1)

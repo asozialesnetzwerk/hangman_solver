@@ -1,23 +1,26 @@
 // SPDX-License-Identifier: EUPL-1.2
-pub mod char_collection;
 pub mod ascii_char_iterator;
+pub mod char_collection;
+pub mod char_trait;
+pub mod char_utils;
+pub mod generic_char_collection;
 
 use cfg_if::cfg_if;
 use std::char;
+use std::hash::Hash;
 use std::iter::zip;
 
 use crate::language::Language;
 use crate::solver::char_collection::CharCollection;
+use crate::solver::char_trait::ControlChars;
+use crate::solver::char_utils::CharUtils;
+use crate::solver::generic_char_collection::GenericCharCollection;
 
 use counter::Counter;
 use itertools::Itertools;
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
-
-const WILDCARD_CHAR: char = '_';
-const WILDCARD_ALIASES: [char; 2] = ['#', '?'];
-const RESERVED_CHARS: [char; 5] = ['#', '?', '_', '\0', '\n'];
 
 #[inline]
 fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
@@ -136,51 +139,52 @@ pub struct WasmHangmanResult {
 }
 
 #[allow(clippy::struct_field_names)]
-pub struct Pattern {
-    pub invalid_letters: Vec<char>,
-    pub pattern: Vec<char>,
-    pub first_letter: char,
+pub struct Pattern<Ch>
+where
+    str: GenericCharCollection<Ch>,
+    Ch: ControlChars + Copy + Eq + Hash + CharUtils,
+{
+    pub invalid_letters: Vec<Ch>,
+    pub pattern: Vec<Ch>,
+    pub first_letter: Ch,
     /// true for normal hangman mode
     letters_in_pattern_have_no_other_occurrences: bool,
 }
 
 #[expect(clippy::used_underscore_items)]
-impl Pattern {
+impl<Ch> Pattern<Ch>
+where
+    str: GenericCharCollection<Ch>,
+    Ch: ControlChars + Copy + Eq + Hash + CharUtils,
+{
     #[must_use]
     #[inline]
-    pub fn new<T: CharCollection, V: CharCollection>(
+    pub fn new<T: GenericCharCollection<Ch>, V: GenericCharCollection<Ch>>(
         pattern: &T,
         invalid_letters: &V,
         letters_in_pattern_have_no_other_occurrences: bool,
     ) -> Self {
-        let pattern_as_chars: Vec<char> = pattern
-            .iter_chars()
-            .flat_map(char::to_lowercase)
+        let pattern_as_chars: Vec<Ch> = pattern
+            .iter_lowercased()
             .filter(|ch| !ch.is_whitespace())
-            .map(|ch| {
-                if WILDCARD_ALIASES.contains(&ch) {
-                    WILDCARD_CHAR
-                } else {
-                    ch
-                }
-            })
+            .map(ControlChars::normalise_wildcard)
             .collect();
 
-        let additional_invalid: Vec<char> =
+        let additional_invalid: Vec<Ch> =
             if letters_in_pattern_have_no_other_occurrences {
                 pattern_as_chars.clone()
             } else {
                 vec![]
             };
 
-        let invalid_letters_vec: Vec<char> = additional_invalid
+        let invalid_letters_vec: Vec<Ch> = additional_invalid
             .into_iter()
-            .chain(invalid_letters.iter_chars())
-            .filter(|ch| *ch != WILDCARD_CHAR && !ch.is_whitespace())
+            .chain(invalid_letters.char_iter())
+            .filter(|ch| ch.is_normalised_wildcard() && !ch.is_whitespace())
             .unique()
             .collect();
 
-        let first_letter = *pattern_as_chars.first().unwrap_or(&WILDCARD_CHAR);
+        let first_letter = *pattern_as_chars.first().unwrap_or(&Ch::WILDCARD);
 
         Self {
             invalid_letters: invalid_letters_vec,
@@ -192,36 +196,39 @@ impl Pattern {
 
     #[inline]
     #[must_use]
-    const fn first_letter_is_wildcard(&self) -> bool {
-        self.first_letter == WILDCARD_CHAR
+    fn first_letter_is_wildcard(&self) -> bool {
+        self.first_letter.is_wildcard()
     }
 
     #[must_use]
     #[inline]
-    fn first_letter_matches<CC: CharCollection + ?Sized>(
+    fn first_letter_matches<CC: GenericCharCollection<Ch> + ?Sized>(
         &self,
         word: &&CC,
     ) -> bool {
         // This only makes sense if first_letter_is_wildcard is false
         debug_assert!(!self.first_letter_is_wildcard());
-        word.first_char() == Some(self.first_letter)
+        word.first() == Some(self.first_letter)
     }
 
     #[must_use]
     #[inline]
-    fn matches<CC: CharCollection + ?Sized>(&self, word: &&CC) -> bool {
+    fn matches<CC: GenericCharCollection<Ch> + ?Sized>(
+        &self,
+        word: &&CC,
+    ) -> bool {
         // This only makes sense if word has the same length as the pattern
-        debug_assert_eq!(word.char_count(), self.pattern.len());
+        debug_assert_eq!(word.count(), self.pattern.len());
         // none of the reserved chars shall be in the word
         debug_assert_eq!(
-            RESERVED_CHARS
+            Ch::RESERVED
                 .iter()
-                .filter(|ch| word.iter_chars().contains(ch))
+                .filter(|ch| word.char_iter().contains(ch))
                 .count(),
             0
         );
-        for (p, w) in zip(self.pattern.iter(), word.iter_chars()) {
-            if *p == WILDCARD_CHAR {
+        for (p, w) in zip(self.pattern.iter(), word.char_iter()) {
+            if *p == Ch::WILDCARD {
                 if self.invalid_letters.contains(&w) {
                     return false;
                 }
@@ -237,7 +244,7 @@ impl Pattern {
     fn known_letters_count(&self) -> usize {
         self.pattern
             .iter()
-            .filter(|ch| **ch != WILDCARD_CHAR)
+            .filter(|ch| !ch.is_normalised_wildcard())
             .count()
     }
 
@@ -277,20 +284,22 @@ impl Pattern {
 
         if self.letters_in_pattern_have_no_other_occurrences {
             for letter in &self.pattern {
-                letter_counter.remove(letter);
+                letter_counter.remove(&letter.to_char());
             }
         } else {
-            for letter in
-                self.pattern.iter().filter(|char| **char != WILDCARD_CHAR)
+            for letter in self
+                .pattern
+                .iter()
+                .filter(|char| !char.is_normalised_wildcard())
             {
                 if let Some(new_count) = letter_counter
-                    .get(letter)
+                    .get(&letter.to_char())
                     .and_then(|c| c.checked_sub(words_count))
                     .and_then(|c| if c == 0 { None } else { Some(c) })
                 {
-                    letter_counter.insert(*letter, new_count);
+                    letter_counter.insert(letter.to_char(), new_count);
                 } else {
-                    letter_counter.remove(letter);
+                    letter_counter.remove(&letter.to_char());
                 }
             }
         }
@@ -313,12 +322,12 @@ impl Pattern {
             .invalid_letters
             .iter()
             .filter(|ch| !self.pattern.contains(*ch))
-            .copied()
+            .map(|ch| ch.to_char())
             .collect();
 
         invalid.sort_unstable();
         HangmanResult {
-            input: self.pattern.iter().collect(),
+            input: self.pattern.iter().map(|ch| ch.to_char()).collect(),
             invalid,
             possible_words,
             language,
@@ -374,7 +383,7 @@ impl Pattern {
     fn _solve_internal<
         'a,
         'b,
-        CC: CharCollection + ?Sized + 'a,
+        CC: GenericCharCollection<Ch> + CharCollection + ?Sized + 'a,
         T: Iterator<Item = &'a CC>,
     >(
         &self,

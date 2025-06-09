@@ -37,7 +37,7 @@ pub fn solve(
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
-    let pattern = Pattern::new(&pattern_string, &invalid_letters, true);
+    let pattern = Pattern::<char>::new(&pattern_string, &invalid_letters, true);
     Ok(pattern.solve(language, Some(max_words_to_collect)))
 }
 
@@ -51,7 +51,8 @@ pub fn solve_crossword(
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
-    let pattern = Pattern::new(&pattern_string, &invalid_letters, false);
+    let pattern =
+        Pattern::<char>::new(&pattern_string, &invalid_letters, false);
     Ok(pattern.solve(language, Some(max_words_to_collect)))
 }
 
@@ -92,8 +93,11 @@ pub fn solve_hangman(
     max_words_to_collect: usize,
     crossword_mode: bool,
 ) -> Result<WasmHangmanResult, JsValue> {
-    let pattern =
-        Pattern::new(&pattern_string, &invalid_letters, !crossword_mode);
+    let pattern = Pattern::<char>::new(
+        &pattern_string,
+        &invalid_letters,
+        !crossword_mode,
+    );
 
     let mut all_words_iter = all_words.iter();
 
