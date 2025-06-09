@@ -201,7 +201,10 @@ where
 
         if self.letters_in_pattern_have_no_other_occurrences {
             for letter in &self.pattern {
-                letter_counter.remove(&letter.to_char());
+                if !letter.is_normalised_wildcard() {
+                    let count = letter_counter.remove(&letter.to_char());
+                    debug_assert_eq!(count, Some(words_count));
+                }
             }
         } else {
             for letter in self
