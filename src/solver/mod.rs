@@ -57,8 +57,23 @@ pub fn solve_js<'a>(
     max_words_to_collect: Option<usize>,
     crossword_mode: bool,
 ) -> WasmHangmanResult {
-    let pattern =
-        Pattern::<char>::new(pattern_string, invalid_letters, !crossword_mode);
+    if pattern_string.all_chars_are_ascii()
+        && invalid_letters.all_chars_are_ascii()
+    {
+        let pattern = Pattern::<u8>::new(
+            pattern_string,
+            invalid_letters,
+            !crossword_mode,
+        );
 
-    pattern.solve_with_words(all_words, max_words_to_collect)
+        pattern.solve_with_words(all_words, max_words_to_collect)
+    } else {
+        let pattern = Pattern::<char>::new(
+            pattern_string,
+            invalid_letters,
+            !crossword_mode,
+        );
+
+        pattern.solve_with_words(all_words, max_words_to_collect)
+    }
 }

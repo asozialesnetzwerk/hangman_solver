@@ -94,7 +94,7 @@ pub fn hangman_solver(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[cfg(feature = "wasm-bindgen")]
 #[wasm_bindgen]
-#[expect(clippy::needless_pass_by_value)]
+#[allow(clippy::needless_pass_by_value)]
 pub fn solve_hangman(
     all_words: Vec<JsString>,
     pattern_string: JsString,
