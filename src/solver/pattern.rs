@@ -18,8 +18,8 @@ use itertools::Itertools;
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
 
-pub type Pattern = GenericPattern::<char>;
-pub type AsciiPattern = GenericPattern::<u8>;
+pub type Pattern = GenericPattern<char>;
+pub type AsciiPattern = GenericPattern<u8>;
 
 #[allow(clippy::struct_field_names)]
 pub struct GenericPattern<Ch>
@@ -27,11 +27,22 @@ where
     str: GenericCharCollection<Ch>,
     Ch: ControlChars + Copy + Eq + Hash + CharUtils,
 {
-    pub invalid_letters: Vec<Ch>,
-    pub pattern: Vec<Ch>,
-    pub first_letter: Ch,
+    pub(crate) invalid_letters: Vec<Ch>,
+    pub(crate) pattern: Vec<Ch>,
+    pub(crate) first_letter: Ch,
     /// true for normal hangman mode
-    letters_in_pattern_have_no_other_occurrences: bool,
+    pub(crate) letters_in_pattern_have_no_other_occurrences: bool,
+}
+
+#[allow(dead_code)]
+impl Pattern {
+    pub const fn invalid_letters(&self) -> &[char] {
+        self.invalid_letters.as_slice()
+    }
+
+    pub const fn pattern(&self) -> &[char] {
+        self.pattern.as_slice()
+    }
 }
 
 #[expect(clippy::used_underscore_items)]
@@ -42,7 +53,10 @@ where
 {
     #[must_use]
     #[inline]
-    pub fn new<T: GenericCharCollection<Ch>, V: GenericCharCollection<Ch>>(
+    pub fn new<
+        T: GenericCharCollection<Ch> + ?Sized,
+        V: GenericCharCollection<Ch> + ?Sized,
+    >(
         pattern: &T,
         invalid_letters: &V,
         letters_in_pattern_have_no_other_occurrences: bool,
