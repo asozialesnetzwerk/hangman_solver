@@ -21,7 +21,7 @@ use itertools::Itertools;
 use terminal_size::{Width, terminal_size};
 
 use crate::language::Language;
-use crate::solver::Pattern;
+use crate::solver::pattern::Pattern;
 
 fn get_terminal_width() -> usize {
     #[cfg(feature = "terminal_size")]
