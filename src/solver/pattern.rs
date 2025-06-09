@@ -105,7 +105,11 @@ where
     #[inline]
     #[must_use]
     fn first_letter_is_wildcard(&self) -> bool {
-        self.first_letter.is_wildcard()
+        debug_assert_eq!(
+            self.first_letter.is_wildcard(),
+            self.first_letter.is_normalised_wildcard()
+        );
+        self.first_letter.is_normalised_wildcard()
     }
 
     #[must_use]
