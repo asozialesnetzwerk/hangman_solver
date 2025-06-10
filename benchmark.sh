@@ -33,7 +33,7 @@ run_with_input()
   LINES=$(wc -l "${FILE}"  | cut -d " " -f1)
   echo "$((ELAPSED/1000000))ms (${1}, lines: ${LINES}, per line: $((ELAPSED/LINES/1000000))ms)"
   if [ -n "${3:-}" ] ; then
-    PAGER=cat git diff --no-index --color=auto "${TEST_INPUTS_DIR}/${LANGUAGE}/${1}.output" "${OUTPUT_FILE}" >&2
+    git -c pager.diff=cat diff --no-index --color=auto "${TEST_INPUTS_DIR}/${LANGUAGE}/${1}.output" "${OUTPUT_FILE}" >&2
   fi
 }
 
