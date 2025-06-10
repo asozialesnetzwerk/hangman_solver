@@ -70,6 +70,27 @@ impl CharCollection for &str {
     }
 }
 
+impl<const L: usize> CharCollection for [char; L] {
+    #[inline]
+    fn char_count(&self) -> usize {
+        L
+    }
+
+    #[inline]
+    fn iter_chars(&self) -> impl Iterator<Item = char> + '_ {
+        self.iter().copied()
+    }
+
+    #[inline]
+    fn first_char(&self) -> Option<char> {
+        if L > 0 {
+            self.first().copied()
+        } else {
+            None
+        }
+    }
+}
+
 impl CharCollection for [char] {
     #[inline]
     fn char_count(&self) -> usize {
