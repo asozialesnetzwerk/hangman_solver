@@ -2,7 +2,7 @@
 use std::char;
 use std::hash::Hash;
 use std::iter::zip;
-use std::ops::Range;
+use std::ops::RangeInclusive;
 
 use crate::language::Language;
 use crate::solver::char_collection::CharCollection;
@@ -22,15 +22,15 @@ use js_sys::JsString;
 pub type Pattern = GenericPattern<char>;
 pub type AsciiPattern = GenericPattern<u8>;
 
-const PRINTABLE_ASCII_RANGE_TUPLE_U8: (u8, u8) = (0x20, 128);
+const PRINTABLE_ASCII_RANGE_TUPLE_U8: (u8, u8) = (0, 0x7F);
 const PRINTABLE_ASCII_RANGE_TUPLE: (usize, usize) = (
     PRINTABLE_ASCII_RANGE_TUPLE_U8.0 as usize,
     PRINTABLE_ASCII_RANGE_TUPLE_U8.1 as usize,
 );
 const PRINTABLE_ASCII_COUNT: usize =
-    PRINTABLE_ASCII_RANGE_TUPLE.1 - PRINTABLE_ASCII_RANGE_TUPLE.0;
-const PRINTABLE_ASCII_RANGE: Range<u8> =
-    PRINTABLE_ASCII_RANGE_TUPLE_U8.0..PRINTABLE_ASCII_RANGE_TUPLE_U8.1;
+    PRINTABLE_ASCII_RANGE_TUPLE.1 - PRINTABLE_ASCII_RANGE_TUPLE.0 + 1;
+const PRINTABLE_ASCII_RANGE: RangeInclusive<u8> =
+    PRINTABLE_ASCII_RANGE_TUPLE_U8.0..=PRINTABLE_ASCII_RANGE_TUPLE_U8.1;
 
 #[allow(clippy::struct_field_names)]
 pub struct GenericPattern<Ch>
@@ -113,11 +113,16 @@ where
         let mut invalid_ascii_letters = [false; PRINTABLE_ASCII_COUNT];
 
         for ch in &invalid_letters_vec {
-            if let Some(b) = ch.to_ascii_char().and_then(|ch| {
-                invalid_ascii_letters.get_mut(
-                    usize::from(ch).wrapping_sub(PRINTABLE_ASCII_RANGE_TUPLE.0),
-                )
-            }) {
+            if let Some(b) = ch
+                .to_ascii_char()
+                .filter(|ch| PRINTABLE_ASCII_RANGE.contains(ch))
+                .and_then(|ch| {
+                    invalid_ascii_letters.get_mut(
+                        usize::from(ch)
+                            .wrapping_sub(PRINTABLE_ASCII_RANGE_TUPLE.0),
+                    )
+                })
+            {
                 *b = true;
             }
         }
