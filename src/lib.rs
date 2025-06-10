@@ -32,7 +32,6 @@ use pyo3::prelude::*;
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
-#[expect(clippy::needless_pass_by_value)]
 pub fn solve(
     pattern_string: String,
     invalid_letters: Vec<char>,
@@ -40,8 +39,8 @@ pub fn solve(
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
     Ok(crate::solver::solve(
-        &pattern_string,
-        &invalid_letters,
+        pattern_string,
+        invalid_letters,
         true,
         language,
         Some(max_words_to_collect),
@@ -51,7 +50,6 @@ pub fn solve(
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
-#[expect(clippy::needless_pass_by_value)]
 pub fn solve_crossword(
     pattern_string: String,
     invalid_letters: Vec<char>,
@@ -59,8 +57,8 @@ pub fn solve_crossword(
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
     Ok(crate::solver::solve(
-        &pattern_string,
-        &invalid_letters,
+        pattern_string,
+        invalid_letters,
         false,
         language,
         Some(max_words_to_collect),

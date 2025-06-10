@@ -75,10 +75,11 @@ fn main() {
                 let width = get_terminal_width();
 
                 let input: Vec<&str> = buffer.splitn(2, ' ').collect();
-                let pattern = input.first().unwrap_or(&"");
+                let pattern: &str = input.first().unwrap_or(&"");
+                let invalid: &str = input.get(1).unwrap_or(&"");
                 let hr = solve(
                     pattern,
-                    input.get(1).unwrap_or(&""),
+                    invalid,
                     true,
                     lang,
                     Some(width / pattern.char_count() + 1),

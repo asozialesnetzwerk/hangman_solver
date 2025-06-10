@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: EUPL-1.2
 use std::char;
-use std::hash::Hash;
 use std::iter::zip;
 
 use crate::language::Language;
 use crate::solver::char_collection::CharCollection;
 use crate::solver::char_trait::ControlChars;
 use crate::solver::char_utils::CharUtils;
-use crate::solver::generic_char_collection::GenericCharCollection;
 use crate::solver::hangman_result::HangmanResult;
 #[cfg(feature = "wasm-bindgen")]
 use crate::solver::hangman_result::WasmHangmanResult;
@@ -18,62 +16,48 @@ use itertools::Itertools;
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
 
-pub type Pattern = GenericPattern<char>;
-pub type AsciiPattern = GenericPattern<u8>;
 
 #[allow(clippy::struct_field_names)]
-pub struct GenericPattern<Ch>
-where
-    str: GenericCharCollection<Ch>,
-    Ch: ControlChars + Copy + Eq + Hash + CharUtils + Ord,
-{
-    pub(super) invalid_letters: Vec<Ch>,
-    pub(super) pattern: Vec<Ch>,
-    pub(super) first_letter: Ch,
+pub struct Pattern {
+    invalid_letters: Vec<char>,
+    pattern: Vec<char>,
+    first_letter: char,
     /// true for normal hangman mode
-    pub(super) letters_in_pattern_have_no_other_occurrences: bool,
-    pub(super) known_letters_count: usize,
-    pub(super) invalid_ascii_letters: [bool; 128],
+    letters_in_pattern_have_no_other_occurrences: bool,
+    known_letters_count: usize,
+    invalid_ascii_letters: [bool; 128],
 }
 
 #[allow(dead_code)]
 impl Pattern {
+    #[must_use]
     pub const fn invalid_letters(&self) -> &[char] {
         self.invalid_letters.as_slice()
     }
 
+    #[must_use]
     pub const fn pattern(&self) -> &[char] {
         self.pattern.as_slice()
     }
 }
 
 #[expect(clippy::used_underscore_items)]
-impl<Ch> GenericPattern<Ch>
-where
-    str: GenericCharCollection<Ch>,
-    Ch: ControlChars + Copy + Eq + Hash + CharUtils + Ord,
-{
+impl Pattern {
     #[must_use]
     #[inline]
-    pub fn new<
-        T: GenericCharCollection<Ch> + ?Sized,
-        V: GenericCharCollection<Ch> + ?Sized,
-    >(
-        pattern: &T,
-        invalid_letters: &V,
+    pub fn new<'a, 'b>(
+        pattern: impl CharCollection + 'a,
+        invalid_letters: impl CharCollection + 'b,
         letters_in_pattern_have_no_other_occurrences: bool,
     ) -> Self {
-        if size_of::<Ch>() == 1 {
-            debug_assert!(pattern.char_iter().all(CharUtils::is_ascii));
-            debug_assert!(invalid_letters.char_iter().all(CharUtils::is_ascii));
-        }
         let mut known_letters_count = 0;
-        let pattern_as_chars: Vec<Ch> = pattern
-            .iter_lowercased()
+        let pattern_as_chars: Vec<char> = pattern
+            .iter_chars()
+            .flat_map(char::to_lowercase)
             .filter(|ch| !ch.is_whitespace())
             .map(|ch| {
                 if ch.is_wildcard() {
-                    Ch::WILDCARD
+                    char::WILDCARD
                 } else {
                     known_letters_count += 1;
                     ch
@@ -81,22 +65,22 @@ where
             })
             .collect();
 
-        let additional_invalid: &[Ch] =
+        let additional_invalid: &[char] =
             if letters_in_pattern_have_no_other_occurrences {
                 &pattern_as_chars
             } else {
                 &[]
             };
 
-        let invalid_letters_vec: Vec<Ch> = additional_invalid
+        let invalid_letters_vec: Vec<char> = additional_invalid
             .iter()
             .copied()
-            .chain(invalid_letters.char_iter())
+            .chain(invalid_letters.iter_chars())
             .filter(|ch| !ch.is_normalised_wildcard() && !ch.is_whitespace())
             .unique()
             .collect();
 
-        let first_letter = *pattern_as_chars.first().unwrap_or(&Ch::WILDCARD);
+        let first_letter = *pattern_as_chars.first().unwrap_or(&char::WILDCARD);
 
         let mut invalid_ascii_letters = [false; 128];
 
@@ -132,17 +116,17 @@ where
 
     #[must_use]
     #[inline]
-    fn first_letter_matches<CC: GenericCharCollection<Ch> + ?Sized>(
+    fn first_letter_matches<CC: CharCollection + ?Sized>(
         &self,
         word: &&CC,
     ) -> bool {
         // This only makes sense if first_letter_is_wildcard is false
         debug_assert!(!self.first_letter_is_wildcard());
-        word.first() == Some(self.first_letter)
+        word.first_char() == Some(self.first_letter)
     }
 
     #[inline]
-    pub(super) fn letter_is_valid(&self, letter: Ch) -> bool {
+    pub(super) fn letter_is_valid(&self, letter: char) -> bool {
         self.invalid_letters.is_empty()
             || !letter
                 .to_ascii_char()
@@ -155,22 +139,22 @@ where
 
     #[must_use]
     #[inline]
-    fn matches<CC: GenericCharCollection<Ch> + ?Sized>(
+    fn matches<CC: CharCollection + ?Sized>(
         &self,
         word: &&CC,
     ) -> bool {
         // This only makes sense if word has the same length as the pattern
-        debug_assert_eq!(word.count(), self.pattern.len());
+        debug_assert_eq!(word.char_count(), self.pattern.len());
         // none of the reserved chars shall be in the word
         debug_assert_eq!(
-            Ch::RESERVED
+            char::RESERVED
                 .iter()
-                .filter(|ch| word.char_iter().contains(ch))
+                .filter(|ch| word.iter_chars().contains(ch))
                 .count(),
             0
         );
-        for (p, w) in zip(self.pattern.iter(), word.char_iter()) {
-            if *p == Ch::WILDCARD {
+        for (p, w) in zip(self.pattern.iter(), word.iter_chars()) {
+            if *p == char::WILDCARD {
                 if !self.letter_is_valid(w) {
                     return false;
                 }
@@ -231,7 +215,7 @@ where
 
         if self.letters_in_pattern_have_no_other_occurrences {
             for letter in &self.pattern {
-                if let Some(count) = letter_counter.remove(&letter.to_char()) {
+                if let Some(count) = letter_counter.remove(letter) {
                     debug_assert_eq!(count, words_count);
                 }
             }
@@ -242,13 +226,13 @@ where
                 .filter(|char| !char.is_normalised_wildcard())
             {
                 if let Some(new_count) = letter_counter
-                    .get(&letter.to_char())
+                    .get(letter)
                     .and_then(|c| c.checked_sub(words_count))
                     .and_then(|c| if c == 0 { None } else { Some(c) })
                 {
-                    letter_counter.insert(letter.to_char(), new_count);
+                    letter_counter.insert(*letter, new_count);
                 } else {
-                    letter_counter.remove(&letter.to_char());
+                    letter_counter.remove(letter);
                 }
             }
         }
@@ -271,12 +255,12 @@ where
             .invalid_letters
             .iter()
             .filter(|ch| !self.pattern.contains(*ch))
-            .map(|ch| ch.to_char())
+            .copied()
             .collect();
 
         invalid.sort_unstable();
         HangmanResult {
-            input: self.pattern.iter().map(|ch| ch.to_char()).collect(),
+            input: self.pattern.iter().collect(),
             invalid,
             possible_words,
             language,
@@ -290,7 +274,7 @@ where
     fn _solve_internal<
         'a,
         'b,
-        CC: GenericCharCollection<Ch> + CharCollection + ?Sized + 'a,
+        CC: CharCollection + ?Sized + 'a,
         T: Iterator<Item = &'a CC>,
     >(
         &self,
@@ -329,12 +313,7 @@ where
 
 #[cfg(feature = "wasm-bindgen")]
 #[expect(clippy::used_underscore_items)]
-impl<Ch> GenericPattern<Ch>
-where
-    JsString: GenericCharCollection<Ch>,
-    str: GenericCharCollection<Ch>,
-    Ch: ControlChars + Copy + Eq + Hash + CharUtils + Ord,
-{
+impl Pattern {
     #[must_use]
     #[allow(dead_code)]
     pub fn solve_with_words<'a, 'b, T: Iterator<Item = &'a JsString>>(
@@ -349,7 +328,7 @@ where
             .invalid_letters
             .iter()
             .filter(|ch| !self.pattern.contains(*ch))
-            .map(|ch| ch.to_char())
+            .copied()
             .collect();
 
         let mut letter_frequency_string: String = String::new();
@@ -368,7 +347,6 @@ where
             input: JsString::from(
                 self.pattern
                     .iter()
-                    .map(|ch| ch.to_char())
                     .collect::<String>(),
             ),
             invalid: JsString::from(invalid.iter().collect::<String>()),
