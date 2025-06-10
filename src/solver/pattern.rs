@@ -113,13 +113,12 @@ where
         let mut invalid_ascii_letters = [false; PRINTABLE_ASCII_COUNT];
 
         for ch in &invalid_letters_vec {
-            if let Some(ch) = ch.to_ascii_char() {
-                if PRINTABLE_ASCII_RANGE.contains(&ch) {
-                    if let Some(b) = invalid_ascii_letters
-                        .get_mut(usize::from(ch) - PRINTABLE_ASCII_RANGE_TUPLE.0) {
-                            *b = true;
-                    }
-                }
+            if let Some(b) = ch.to_ascii_char().and_then(|ch| {
+                invalid_ascii_letters.get_mut(
+                    usize::from(ch).wrapping_sub(PRINTABLE_ASCII_RANGE_TUPLE.0),
+                )
+            }) {
+                *b = true;
             }
         }
 
