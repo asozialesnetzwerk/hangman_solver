@@ -15,6 +15,13 @@ include = [
 ]
 build = "build.rs"
 
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-Oz', '--enable-bulk-memory', '--enable-nontrapping-float-to-int']
+[package.metadata.wasm-pack.profile.dev]
+wasm-opt = ['-Oz', '--enable-bulk-memory', '--enable-nontrapping-float-to-int']
+[package.metadata.wasm-pack.profile.profile]
+wasm-opt = ['-Oz', '--enable-bulk-memory', '--enable-nontrapping-float-to-int']
+
 [features]
 # , "pyo3", "wasm-bindgen"
 default = ["terminal_size"]

@@ -20,16 +20,8 @@ jobs:
         run: rustup update stable && rustup default stable
       - name: Install wasm-pack
         run: cargo install wasm-pack
-      - name: Install wasm-opt
-        run: |
-          wget -O binaryen.tar.gz https://github.com/WebAssembly/binaryen/releases/download/version_116/binaryen-version_116-x86_64-linux.tar.gz
-          tar xzf binaryen.tar.gz
-          rm binaryen.tar.gz
-          mv binaryen* binaryen
       - name: Build wasm
-        run: wasm-pack build --target web --no-default-features --features=wasm-bindgen
-      - name: Optimize wasm
-        run: ./binaryen/bin/wasm-opt -Oz pkg/hangman_solver_lib_bg.wasm  -o pkg/hangman_solver_lib_bg.wasm
+        run: RUSTFLAGS='-C target-feature=+bulk-memory' wasm-pack build --target web --no-default-features --features=wasm-bindgen
       - name: Copy HTML
         run: cp web/index.html pkg/
       - name: Copy run.js
