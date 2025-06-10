@@ -2,7 +2,6 @@
 use std::char;
 use std::hash::Hash;
 use std::iter::zip;
-use std::ops::RangeInclusive;
 
 use crate::language::Language;
 use crate::solver::char_collection::CharCollection;
@@ -22,16 +21,6 @@ use js_sys::JsString;
 pub type Pattern = GenericPattern<char>;
 pub type AsciiPattern = GenericPattern<u8>;
 
-const PRINTABLE_ASCII_RANGE_TUPLE_U8: (u8, u8) = (0, 0x7F);
-const PRINTABLE_ASCII_RANGE_TUPLE: (usize, usize) = (
-    PRINTABLE_ASCII_RANGE_TUPLE_U8.0 as usize,
-    PRINTABLE_ASCII_RANGE_TUPLE_U8.1 as usize,
-);
-const PRINTABLE_ASCII_COUNT: usize =
-    PRINTABLE_ASCII_RANGE_TUPLE.1 - PRINTABLE_ASCII_RANGE_TUPLE.0 + 1;
-const PRINTABLE_ASCII_RANGE: RangeInclusive<u8> =
-    PRINTABLE_ASCII_RANGE_TUPLE_U8.0..=PRINTABLE_ASCII_RANGE_TUPLE_U8.1;
-
 #[allow(clippy::struct_field_names)]
 pub struct GenericPattern<Ch>
 where
@@ -44,7 +33,7 @@ where
     /// true for normal hangman mode
     pub(super) letters_in_pattern_have_no_other_occurrences: bool,
     pub(super) known_letters_count: usize,
-    pub(super) invalid_ascii_letters: [bool; PRINTABLE_ASCII_COUNT],
+    pub(super) invalid_ascii_letters: [bool; 128],
 }
 
 #[allow(dead_code)]
@@ -104,24 +93,18 @@ where
             .copied()
             .chain(invalid_letters.char_iter())
             .filter(|ch| !ch.is_normalised_wildcard() && !ch.is_whitespace())
-            .sorted()
-            .dedup()
+            .unique()
             .collect();
 
         let first_letter = *pattern_as_chars.first().unwrap_or(&Ch::WILDCARD);
 
-        let mut invalid_ascii_letters = [false; PRINTABLE_ASCII_COUNT];
+        let mut invalid_ascii_letters = [false; 128];
 
         for ch in &invalid_letters_vec {
             if let Some(b) = ch
                 .to_ascii_char()
-                .filter(|ch| PRINTABLE_ASCII_RANGE.contains(ch))
-                .and_then(|ch| {
-                    invalid_ascii_letters.get_mut(
-                        usize::from(ch)
-                            .wrapping_sub(PRINTABLE_ASCII_RANGE_TUPLE.0),
-                    )
-                })
+                .map(usize::from)
+                .and_then(|ch| invalid_ascii_letters.get_mut(ch))
             {
                 *b = true;
             }
@@ -160,16 +143,14 @@ where
 
     #[inline]
     pub(super) fn letter_is_valid(&self, letter: Ch) -> bool {
-        !letter
-            .to_ascii_char()
-            .filter(|ch| PRINTABLE_ASCII_RANGE.contains(ch))
-            .and_then(|ch| {
-                self.invalid_ascii_letters
-                    .get(usize::from(ch) - PRINTABLE_ASCII_RANGE_TUPLE.0)
-                    .copied()
-            })
-            .unwrap_or(false)
-            && !self.invalid_letters.contains(&letter)
+        self.invalid_letters.is_empty()
+            || !letter
+                .to_ascii_char()
+                .map(usize::from)
+                .and_then(|ch| self.invalid_ascii_letters.get(ch))
+                .copied()
+                .unwrap_or(false)
+                && !self.invalid_letters.contains(&letter)
     }
 
     #[must_use]
