@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: EUPL-1.2
+
 pub trait ControlChars: PartialEq + Sized {
     const WILDCARD: Self;
     const WILDCARD_ALIASES: [Self; 2];

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: EUPL-1.2
+
 pub trait CharUtils {
     fn to_ascii_char(self) -> Option<u8>;
 }

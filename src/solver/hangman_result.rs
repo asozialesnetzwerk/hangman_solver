@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: EUPL-1.2
+
 use cfg_if::cfg_if;
 use std::fmt::Display;
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: EUPL-1.2
+
 pub trait CharCollection {
     #[must_use]
     #[inline]
@@ -130,7 +132,10 @@ mod test {
             assert!(string.first_char().is_some());
             assert_eq!(string.chars().count(), string.char_count());
             assert_eq!(string.chars().next(), string.first_char());
-            assert_eq!(string.chars().collect_vec(), string.iter_chars().collect_vec());
+            assert_eq!(
+                string.chars().collect_vec(),
+                string.iter_chars().collect_vec()
+            );
         }
 
         for string in strings {
@@ -138,7 +143,10 @@ mod test {
             assert!(string.first_char().is_some());
             assert_eq!(string.chars().count(), string.char_count());
             assert_eq!(string.chars().next(), string.first_char());
-            assert_eq!(string.chars().collect_vec(), string.iter_chars().collect_vec());
+            assert_eq!(
+                string.chars().collect_vec(),
+                string.iter_chars().collect_vec()
+            );
         }
     }
 }

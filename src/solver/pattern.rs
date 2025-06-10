@@ -16,7 +16,6 @@ use itertools::Itertools;
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
 
-
 #[allow(clippy::struct_field_names)]
 pub struct Pattern {
     invalid_letters: Vec<char>,
@@ -139,10 +138,7 @@ impl Pattern {
 
     #[must_use]
     #[inline]
-    fn matches<CC: CharCollection + ?Sized>(
-        &self,
-        word: &&CC,
-    ) -> bool {
+    fn matches<CC: CharCollection + ?Sized>(&self, word: &&CC) -> bool {
         // This only makes sense if word has the same length as the pattern
         debug_assert_eq!(word.char_count(), self.pattern.len());
         // none of the reserved chars shall be in the word
@@ -344,11 +340,7 @@ impl Pattern {
 
         invalid.sort_unstable();
         WasmHangmanResult {
-            input: JsString::from(
-                self.pattern
-                    .iter()
-                    .collect::<String>(),
-            ),
+            input: JsString::from(self.pattern.iter().collect::<String>()),
             invalid: JsString::from(invalid.iter().collect::<String>()),
             possible_words: possible_words
                 .into_iter()

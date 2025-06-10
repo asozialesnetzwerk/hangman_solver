@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: EUPL-1.2
+
 pub mod word_sequence;
 
-// SPDX-License-Identifier: EUPL-1.2
 use std::num::NonZeroUsize;
 
 #[cfg(feature = "pyo3")]
