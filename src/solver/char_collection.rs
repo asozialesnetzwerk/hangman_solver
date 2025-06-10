@@ -83,11 +83,7 @@ impl<const L: usize> CharCollection for [char; L] {
 
     #[inline]
     fn first_char(&self) -> Option<char> {
-        if L > 0 {
-            self.first().copied()
-        } else {
-            None
-        }
+        if L > 0 { self.first().copied() } else { None }
     }
 }
 

@@ -53,23 +53,62 @@ pub fn solve_js<'a>(
 mod test {
     #[test]
     pub fn test_solve_no_max_words() {
-        let hr = super::solve("__r_el_ier", ['i', 'r', 'x', 'ä'], true, crate::Language::DeUmlauts, None);
+        let hr = super::solve(
+            "__r_el_ier",
+            ['i', 'r', 'x', 'ä'],
+            true,
+            crate::Language::DeUmlauts,
+            None,
+        );
 
         assert_eq!(hr.input, "__r_el_ier");
         assert_eq!(hr.invalid, vec!['x', 'ä']);
-        assert_eq!(hr.letter_frequency, vec![('t', 2), ('u', 2), ('b', 1), ('g', 1), ('m', 1), ('w', 1), ('z', 1), ('ü', 1)]);
+        assert_eq!(
+            hr.letter_frequency,
+            vec![
+                ('t', 2),
+                ('u', 2),
+                ('b', 1),
+                ('g', 1),
+                ('m', 1),
+                ('w', 1),
+                ('z', 1),
+                ('ü', 1)
+            ]
+        );
         assert_eq!(hr.matching_words_count, 3);
-        assert_eq!(hr.possible_words, vec!["gürteltier", "murmeltier", "wurzelbier"]);
+        assert_eq!(
+            hr.possible_words,
+            vec!["gürteltier", "murmeltier", "wurzelbier"]
+        );
         assert_eq!(hr.language, crate::Language::DeUmlauts);
     }
 
     #[test]
     pub fn test_solve_max_1() {
-        let hr = super::solve("__r_el_ier", ['i', 'r', 'x', 'ä'], true, crate::Language::DeUmlauts, Some(1));
+        let hr = super::solve(
+            "__r_el_ier",
+            ['i', 'r', 'x', 'ä'],
+            true,
+            crate::Language::DeUmlauts,
+            Some(1),
+        );
 
         assert_eq!(hr.input, "__r_el_ier");
         assert_eq!(hr.invalid, vec!['x', 'ä']);
-        assert_eq!(hr.letter_frequency, vec![('t', 2), ('u', 2), ('b', 1), ('g', 1), ('m', 1), ('w', 1), ('z', 1), ('ü', 1)]);
+        assert_eq!(
+            hr.letter_frequency,
+            vec![
+                ('t', 2),
+                ('u', 2),
+                ('b', 1),
+                ('g', 1),
+                ('m', 1),
+                ('w', 1),
+                ('z', 1),
+                ('ü', 1)
+            ]
+        );
         assert_eq!(hr.matching_words_count, 3);
         assert_eq!(hr.possible_words, vec!["gürteltier"]);
         assert_eq!(hr.language, crate::Language::DeUmlauts);
