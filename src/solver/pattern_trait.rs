@@ -119,6 +119,7 @@ impl PatternTrait for AsciiPattern {
             letters_in_pattern_have_no_other_occurrences: self
                 .letters_in_pattern_have_no_other_occurrences,
             known_letters_count: self.known_letters_count,
+            invalid_ascii_letters: self.invalid_ascii_letters,
         }
     }
 

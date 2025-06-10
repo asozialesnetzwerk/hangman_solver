@@ -2,6 +2,7 @@
 use std::char;
 use std::hash::Hash;
 use std::iter::zip;
+use std::ops::Range;
 
 use crate::language::Language;
 use crate::solver::char_collection::CharCollection;
@@ -21,18 +22,29 @@ use js_sys::JsString;
 pub type Pattern = GenericPattern<char>;
 pub type AsciiPattern = GenericPattern<u8>;
 
+const PRINTABLE_ASCII_RANGE_TUPLE_U8: (u8, u8) = (0x20, 128);
+const PRINTABLE_ASCII_RANGE_TUPLE: (usize, usize) = (
+    PRINTABLE_ASCII_RANGE_TUPLE_U8.0 as usize,
+    PRINTABLE_ASCII_RANGE_TUPLE_U8.1 as usize,
+);
+const PRINTABLE_ASCII_COUNT: usize =
+    PRINTABLE_ASCII_RANGE_TUPLE.1 - PRINTABLE_ASCII_RANGE_TUPLE.0;
+const PRINTABLE_ASCII_RANGE: Range<u8> =
+    PRINTABLE_ASCII_RANGE_TUPLE_U8.0..PRINTABLE_ASCII_RANGE_TUPLE_U8.1;
+
 #[allow(clippy::struct_field_names)]
 pub struct GenericPattern<Ch>
 where
     str: GenericCharCollection<Ch>,
-    Ch: ControlChars + Copy + Eq + Hash + CharUtils,
+    Ch: ControlChars + Copy + Eq + Hash + CharUtils + Ord,
 {
-    pub(crate) invalid_letters: Vec<Ch>,
-    pub(crate) pattern: Vec<Ch>,
-    pub(crate) first_letter: Ch,
+    pub(super) invalid_letters: Vec<Ch>,
+    pub(super) pattern: Vec<Ch>,
+    pub(super) first_letter: Ch,
     /// true for normal hangman mode
-    pub(crate) letters_in_pattern_have_no_other_occurrences: bool,
-    pub(crate) known_letters_count: usize,
+    pub(super) letters_in_pattern_have_no_other_occurrences: bool,
+    pub(super) known_letters_count: usize,
+    pub(super) invalid_ascii_letters: [bool; PRINTABLE_ASCII_COUNT],
 }
 
 #[allow(dead_code)]
@@ -50,7 +62,7 @@ impl Pattern {
 impl<Ch> GenericPattern<Ch>
 where
     str: GenericCharCollection<Ch>,
-    Ch: ControlChars + Copy + Eq + Hash + CharUtils,
+    Ch: ControlChars + Copy + Eq + Hash + CharUtils + Ord,
 {
     #[must_use]
     #[inline]
@@ -62,6 +74,10 @@ where
         invalid_letters: &V,
         letters_in_pattern_have_no_other_occurrences: bool,
     ) -> Self {
+        if size_of::<Ch>() == 1 {
+            debug_assert!(pattern.char_iter().all(CharUtils::is_ascii));
+            debug_assert!(invalid_letters.char_iter().all(CharUtils::is_ascii));
+        }
         let mut known_letters_count = 0;
         let pattern_as_chars: Vec<Ch> = pattern
             .iter_lowercased()
@@ -88,10 +104,24 @@ where
             .copied()
             .chain(invalid_letters.char_iter())
             .filter(|ch| !ch.is_normalised_wildcard() && !ch.is_whitespace())
-            .unique()
+            .sorted()
+            .dedup()
             .collect();
 
         let first_letter = *pattern_as_chars.first().unwrap_or(&Ch::WILDCARD);
+
+        let mut invalid_ascii_letters = [false; PRINTABLE_ASCII_COUNT];
+
+        for ch in &invalid_letters_vec {
+            if let Some(ch) = ch.to_ascii_char() {
+                if PRINTABLE_ASCII_RANGE.contains(&ch) {
+                    if let Some(b) = invalid_ascii_letters
+                        .get_mut(usize::from(ch) - PRINTABLE_ASCII_RANGE_TUPLE.0) {
+                            *b = true;
+                    }
+                }
+            }
+        }
 
         Self {
             invalid_letters: invalid_letters_vec,
@@ -99,6 +129,7 @@ where
             first_letter,
             letters_in_pattern_have_no_other_occurrences,
             known_letters_count,
+            invalid_ascii_letters,
         }
     }
 
@@ -123,6 +154,20 @@ where
         word.first() == Some(self.first_letter)
     }
 
+    #[inline]
+    pub(super) fn letter_is_valid(&self, letter: Ch) -> bool {
+        !letter
+            .to_ascii_char()
+            .filter(|ch| PRINTABLE_ASCII_RANGE.contains(ch))
+            .and_then(|ch| {
+                self.invalid_ascii_letters
+                    .get(usize::from(ch) - PRINTABLE_ASCII_RANGE_TUPLE.0)
+                    .copied()
+            })
+            .unwrap_or(false)
+            && !self.invalid_letters.contains(&letter)
+    }
+
     #[must_use]
     #[inline]
     fn matches<CC: GenericCharCollection<Ch> + ?Sized>(
@@ -141,7 +186,7 @@ where
         );
         for (p, w) in zip(self.pattern.iter(), word.char_iter()) {
             if *p == Ch::WILDCARD {
-                if self.invalid_letters.contains(&w) {
+                if !self.letter_is_valid(w) {
                     return false;
                 }
             } else if *p != w {
@@ -201,9 +246,8 @@ where
 
         if self.letters_in_pattern_have_no_other_occurrences {
             for letter in &self.pattern {
-                if !letter.is_normalised_wildcard() {
-                    let count = letter_counter.remove(&letter.to_char());
-                    debug_assert_eq!(count, Some(words_count));
+                if let Some(count) = letter_counter.remove(&letter.to_char()) {
+                    debug_assert_eq!(count, words_count);
                 }
             }
         } else {
@@ -304,7 +348,7 @@ impl<Ch> GenericPattern<Ch>
 where
     JsString: GenericCharCollection<Ch>,
     str: GenericCharCollection<Ch>,
-    Ch: ControlChars + Copy + Eq + Hash + CharUtils,
+    Ch: ControlChars + Copy + Eq + Hash + CharUtils + Ord,
 {
     #[must_use]
     #[allow(dead_code)]
