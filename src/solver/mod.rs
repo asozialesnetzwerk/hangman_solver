@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: EUPL-1.2
 
+use std::convert::Infallible;
+
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
+use unwrap_infallible::UnwrapInfallible;
 
 use crate::solver::hangman_result::HangmanResult;
 #[cfg(feature = "wasm-bindgen")]
@@ -31,6 +34,25 @@ pub fn solve<'a, 'b, E1, E2, Err: From<E1> + From<E2>>(
     )?;
 
     Ok(pattern.solve(language, max_words_to_collect))
+}
+
+#[inline]
+#[allow(dead_code)]
+pub fn solve_infallible<'a, 'b>(
+    pattern: impl CharCollection<Error = Infallible> + 'a,
+    invalid_letters: impl CharCollection<Error = Infallible> + 'b,
+    letters_in_pattern_have_no_other_occurrences: bool,
+    language: Language,
+    max_words_to_collect: Option<usize>,
+) -> HangmanResult {
+    solve(
+        pattern,
+        invalid_letters,
+        letters_in_pattern_have_no_other_occurrences,
+        language,
+        max_words_to_collect,
+    )
+    .unwrap_infallible()
 }
 
 #[cfg(feature = "wasm-bindgen")]
