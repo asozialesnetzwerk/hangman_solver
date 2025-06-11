@@ -37,7 +37,7 @@ use pyo3::prelude::*;
 #[allow(clippy::needless_pass_by_value)]
 pub fn solve(
     pattern_string: Bound<'_, PyString>,
-    invalid_letters: Vec<char>,
+    invalid_letters: Bound<'_, PyString>,
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
@@ -56,7 +56,7 @@ pub fn solve(
 #[allow(clippy::needless_pass_by_value)]
 pub fn solve_crossword(
     pattern_string: Bound<'_, PyString>,
-    invalid_letters: Vec<char>,
+    invalid_letters: Bound<'_, PyString>,
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {

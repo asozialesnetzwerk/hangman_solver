@@ -17,7 +17,7 @@ def read_words_with_length(language: Language, word_length: int, /) -> Collectio
 
 def solve(
     pattern_string: str,
-    invalid_letters: list[str],
+    invalid_letters: str,
     language: Language,
     max_words_to_collect: int
 ) -> HangmanResult:
@@ -25,7 +25,7 @@ def solve(
 
 def solve_crossword(
     pattern_string: str,
-    invalid_letters: list[str],
+    invalid_letters: str,
     language: Language,
     max_words_to_collect: int
 ) -> HangmanResult:
