@@ -32,22 +32,38 @@ pub use crate::language::UnknownLanguageError;
 use pyo3::prelude::*;
 
 #[cfg(feature = "pyo3")]
+#[derive(FromPyObject)]
+pub enum InvalidLetters<'py> {
+    String(Bound<'py, PyString>),
+    Chars(Vec<char>),
+}
+
+#[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
 #[allow(clippy::needless_pass_by_value)]
 pub fn solve(
     pattern_string: Bound<'_, PyString>,
-    invalid_letters: Bound<'_, PyString>,
+    invalid_letters: InvalidLetters<'_>,
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
-    crate::solver::solve(
-        &pattern_string,
-        &invalid_letters,
-        true,
-        language,
-        Some(max_words_to_collect),
-    )
+    match invalid_letters {
+        InvalidLetters::String(invalid_letters) => crate::solver::solve(
+            &pattern_string,
+            &invalid_letters,
+            true,
+            language,
+            Some(max_words_to_collect),
+        ),
+        InvalidLetters::Chars(invalid_letters) => crate::solver::solve(
+            &pattern_string,
+            &invalid_letters,
+            true,
+            language,
+            Some(max_words_to_collect),
+        ),
+    }
 }
 
 #[cfg(feature = "pyo3")]
@@ -56,17 +72,26 @@ pub fn solve(
 #[allow(clippy::needless_pass_by_value)]
 pub fn solve_crossword(
     pattern_string: Bound<'_, PyString>,
-    invalid_letters: Bound<'_, PyString>,
+    invalid_letters: InvalidLetters<'_>,
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
-    crate::solver::solve(
-        &pattern_string,
-        &invalid_letters,
-        false,
-        language,
-        Some(max_words_to_collect),
-    )
+    match invalid_letters {
+        InvalidLetters::String(invalid_letters) => crate::solver::solve(
+            &pattern_string,
+            &invalid_letters,
+            false,
+            language,
+            Some(max_words_to_collect),
+        ),
+        InvalidLetters::Chars(invalid_letters) => crate::solver::solve(
+            &pattern_string,
+            &invalid_letters,
+            false,
+            language,
+            Some(max_words_to_collect),
+        ),
+    }
 }
 
 #[must_use]

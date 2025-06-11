@@ -67,19 +67,21 @@ impl Pattern {
             pattern_as_chars.extend(ch.to_lowercase());
         }
 
-
         let mut invalid_letters_vec: Vec<char> = invalid_letters
             .try_iter_chars()?
-            .filter(|ch| !ch.as_ref().is_ok_and(|ch| ch.is_whitespace() || ch.is_wildcard()))
+            .filter(|ch| {
+                !ch.as_ref()
+                    .is_ok_and(|ch| ch.is_whitespace() || ch.is_wildcard())
+            })
             .collect::<Result<_, _>>()?;
 
         if letters_in_pattern_have_no_other_occurrences {
             for ch in &pattern_as_chars {
                 if ch.is_normalised_wildcard() {
-                    continue
+                    continue;
                 }
                 if invalid_letters_vec.contains(ch) {
-                    continue
+                    continue;
                 }
                 invalid_letters_vec.push(*ch);
             }
