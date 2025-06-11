@@ -15,7 +15,7 @@ pub trait InfallibleCharCollection {
     fn iter_chars(&self) -> impl Iterator<Item = char> + '_;
 }
 
-impl<CC: InfallibleCharCollection> InfallibleCharCollection for &CC {
+impl<CC: InfallibleCharCollection + ?Sized> InfallibleCharCollection for &CC {
     #[inline]
     fn iter_chars(&self) -> impl Iterator<Item = char> + '_ {
         CC::iter_chars(self)
@@ -45,18 +45,6 @@ impl InfallibleCharCollection for String {
 }
 
 impl InfallibleCharCollection for str {
-    #[inline]
-    fn char_count(&self) -> usize {
-        self.chars().count()
-    }
-
-    #[inline]
-    fn iter_chars(&self) -> impl Iterator<Item = char> + '_ {
-        self.chars()
-    }
-}
-
-impl InfallibleCharCollection for &str {
     #[inline]
     fn char_count(&self) -> usize {
         self.chars().count()
@@ -98,6 +86,18 @@ impl InfallibleCharCollection for [char] {
 }
 
 impl InfallibleCharCollection for Vec<char> {
+    #[inline]
+    fn char_count(&self) -> usize {
+        self.len()
+    }
+
+    #[inline]
+    fn iter_chars(&self) -> impl Iterator<Item = char> + '_ {
+        self.iter().copied()
+    }
+}
+
+impl InfallibleCharCollection for Box<[char]> {
     #[inline]
     fn char_count(&self) -> usize {
         self.len()

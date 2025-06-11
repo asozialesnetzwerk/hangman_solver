@@ -11,14 +11,12 @@
 mod language;
 mod solver;
 
-pub use crate::solver::pattern::Pattern;
+pub use crate::solver::{Pattern, CharCollection, InfallibleCharCollection, HangmanResult};
 
 pub use crate::language::{Language, StringChunkIter, WordSequence};
 
-pub use crate::solver::hangman_result::HangmanResult;
-
 #[cfg(feature = "wasm-bindgen")]
-pub use crate::solver::hangman_result::WasmHangmanResult;
+pub use crate::solver::WasmHangmanResult;
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
 #[cfg(feature = "pyo3")]
@@ -34,6 +32,7 @@ use pyo3::prelude::*;
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
+#[allow(clippy::needless_pass_by_value)]
 pub fn solve(
     pattern_string: Bound<'_, PyString>,
     invalid_letters: Vec<char>,
@@ -41,8 +40,8 @@ pub fn solve(
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
     crate::solver::solve(
-        pattern_string,
-        invalid_letters,
+        &pattern_string,
+        &invalid_letters,
         true,
         language,
         Some(max_words_to_collect),
@@ -52,6 +51,7 @@ pub fn solve(
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
+#[allow(clippy::needless_pass_by_value)]
 pub fn solve_crossword(
     pattern_string: Bound<'_, PyString>,
     invalid_letters: Vec<char>,
@@ -59,8 +59,8 @@ pub fn solve_crossword(
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
     crate::solver::solve(
-        pattern_string,
-        invalid_letters,
+        &pattern_string,
+        &invalid_letters,
         false,
         language,
         Some(max_words_to_collect),

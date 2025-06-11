@@ -9,20 +9,21 @@ use pyo3::prelude::*;
 pub trait CharCollection {
     type Error;
 
-    fn char_count(&self) -> Result<usize, Self::Error>;
+    fn try_count_chars(&self) -> Result<usize, Self::Error>;
 
-    fn first_char(&self) -> Result<Option<char>, Self::Error>;
+    #[allow(dead_code)]
+    fn try_get_first_char(&self) -> Result<Option<char>, Self::Error>;
 
-    fn iter_chars(
+    fn try_iter_chars(
         &self,
     ) -> Result<impl Iterator<Item = Result<char, Self::Error>> + '_, Self::Error>;
 }
 
-impl<CC: InfallibleCharCollection> CharCollection for CC {
+impl<CC: InfallibleCharCollection + ?Sized> CharCollection for CC {
     type Error = Infallible;
 
     #[inline]
-    fn iter_chars(
+    fn try_iter_chars(
         &self,
     ) -> Result<impl Iterator<Item = Result<char, Self::Error>> + '_, Self::Error>
     {
@@ -30,12 +31,12 @@ impl<CC: InfallibleCharCollection> CharCollection for CC {
     }
 
     #[inline]
-    fn char_count(&self) -> Result<usize, Self::Error> {
+    fn try_count_chars(&self) -> Result<usize, Self::Error> {
         Ok(CC::char_count(self))
     }
 
     #[inline]
-    fn first_char(&self) -> Result<Option<char>, Self::Error> {
+    fn try_get_first_char(&self) -> Result<Option<char>, Self::Error> {
         Ok(CC::first_char(self))
     }
 }
@@ -45,13 +46,13 @@ impl CharCollection for pyo3::Bound<'_, pyo3::types::PyString> {
     type Error = PyErr;
 
     #[inline]
-    fn char_count(&self) -> PyResult<usize> {
+    fn try_count_chars(&self) -> PyResult<usize> {
         self.len()
     }
 
     #[inline]
-    fn first_char(&self) -> PyResult<Option<char>> {
-        if self.char_count()? == 0 {
+    fn try_get_first_char(&self) -> PyResult<Option<char>> {
+        if self.try_count_chars()? == 0 {
             Ok(None)
         } else {
             Ok(Some(self.get_item(0)?.extract()?))
@@ -59,7 +60,7 @@ impl CharCollection for pyo3::Bound<'_, pyo3::types::PyString> {
     }
 
     #[inline]
-    fn iter_chars(
+    fn try_iter_chars(
         &self,
     ) -> PyResult<impl Iterator<Item = Result<char, Self::Error>> + '_> {
         Ok(self.try_iter()?.map(|ch| ch?.extract::<char>()))
@@ -79,7 +80,7 @@ mod test {
 
         for string in ascii_strings {
             assert!(string.is_ascii());
-            assert_eq!(string.char_count().unwrap_infallible(), string.len());
+            assert_eq!(string.try_count_chars().unwrap_infallible(), string.len());
         }
     }
 
@@ -89,19 +90,19 @@ mod test {
 
         for string in strings.map(String::from) {
             assert!(!string.is_ascii());
-            assert!(string.first_char().unwrap_infallible().is_some());
+            assert!(string.try_get_first_char().unwrap_infallible().is_some());
             assert_eq!(
                 string.chars().count(),
-                string.char_count().unwrap_infallible()
+                string.try_count_chars().unwrap_infallible()
             );
             assert_eq!(
                 string.chars().next(),
-                string.first_char().unwrap_infallible()
+                string.try_get_first_char().unwrap_infallible()
             );
             assert_eq!(
                 string.chars().collect_vec(),
                 string
-                    .iter_chars()
+                    .try_iter_chars()
                     .unwrap_infallible()
                     .collect::<Result<Vec<_>, _>>()
                     .unwrap_infallible()
@@ -110,19 +111,19 @@ mod test {
 
         for string in strings {
             assert!(!string.is_ascii());
-            assert!(string.first_char().unwrap_infallible().is_some());
+            assert!(string.try_get_first_char().unwrap_infallible().is_some());
             assert_eq!(
                 string.chars().count(),
-                string.char_count().unwrap_infallible()
+                string.try_count_chars().unwrap_infallible()
             );
             assert_eq!(
                 string.chars().next(),
-                string.first_char().unwrap_infallible()
+                string.try_get_first_char().unwrap_infallible()
             );
             assert_eq!(
                 string.chars().collect_vec(),
                 string
-                    .iter_chars()
+                    .try_iter_chars()
                     .unwrap_infallible()
                     .collect::<Result<Vec<_>, _>>()
                     .unwrap_infallible()

@@ -21,7 +21,7 @@ use terminal_size::{Width, terminal_size};
 use unwrap_infallible::UnwrapInfallible;
 
 use crate::language::Language;
-use crate::solver::infallible_char_collection::InfallibleCharCollection as _;
+use crate::solver::InfallibleCharCollection as _;
 use crate::solver::solve;
 
 fn get_terminal_width() -> usize {

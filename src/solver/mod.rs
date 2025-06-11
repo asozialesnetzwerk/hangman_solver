@@ -6,29 +6,33 @@ use std::convert::Infallible;
 use js_sys::JsString;
 use unwrap_infallible::UnwrapInfallible;
 
-use crate::solver::hangman_result::HangmanResult;
 #[cfg(feature = "wasm-bindgen")]
-use crate::solver::hangman_result::WasmHangmanResult;
-use crate::solver::pattern::Pattern;
-use crate::{Language, solver::char_collection::CharCollection};
+pub use crate::solver::hangman_result::WasmHangmanResult;
+use crate::Language;
 
-pub mod char_collection;
-pub mod char_trait;
-pub mod char_utils;
-pub mod hangman_result;
-pub mod infallible_char_collection;
-pub mod pattern;
+pub use crate::solver::pattern::Pattern;
+pub use crate::solver::hangman_result::HangmanResult;
+pub use crate::solver::infallible_char_collection::InfallibleCharCollection;
+pub use crate::solver::char_collection::CharCollection;
+
+mod char_collection;
+mod char_trait;
+mod char_utils;
+mod hangman_result;
+mod infallible_char_collection;
+mod pattern;
+
 
 #[inline]
 #[allow(dead_code)]
-pub fn solve<'a, 'b, E1, E2, Err: From<E1> + From<E2>>(
-    pattern: impl CharCollection<Error = E1> + 'a,
-    invalid_letters: impl CharCollection<Error = E2> + 'b,
+pub fn solve<E1, E2, Err: From<E1> + From<E2>>(
+    pattern: &(impl CharCollection<Error = E1> + ?Sized),
+    invalid_letters: &(impl CharCollection<Error = E2> + ?Sized),
     letters_in_pattern_have_no_other_occurrences: bool,
     language: Language,
     max_words_to_collect: Option<usize>,
 ) -> Result<HangmanResult, Err> {
-    let pattern = Pattern::new::<'a, 'b, E1, E2, Err>(
+    let pattern = Pattern::new::< E1, E2, Err>(
         pattern,
         invalid_letters,
         letters_in_pattern_have_no_other_occurrences,
@@ -39,9 +43,9 @@ pub fn solve<'a, 'b, E1, E2, Err: From<E1> + From<E2>>(
 
 #[inline]
 #[allow(dead_code)]
-pub fn solve_infallible<'a, 'b>(
-    pattern: impl CharCollection<Error = Infallible> + 'a,
-    invalid_letters: impl CharCollection<Error = Infallible> + 'b,
+pub fn solve_infallible(
+    pattern: &(impl CharCollection<Error = Infallible> + ?Sized),
+    invalid_letters: &(impl CharCollection<Error = Infallible> + ?Sized),
     letters_in_pattern_have_no_other_occurrences: bool,
     language: Language,
     max_words_to_collect: Option<usize>,
@@ -83,7 +87,7 @@ mod test {
     pub fn test_solve_no_max_words() {
         let hr = super::solve(
             "__r_el_ier",
-            ['i', 'r', 'x', 'ä'],
+            &['i', 'r', 'x', 'ä'],
             true,
             crate::Language::DeUmlauts,
             None,
@@ -117,7 +121,7 @@ mod test {
     pub fn test_solve_max_1() {
         let hr = super::solve(
             "__r_el_ier",
-            ['i', 'r', 'x', 'ä'],
+            &['i', 'r', 'x', 'ä'],
             true,
             crate::Language::DeUmlauts,
             Some(1),

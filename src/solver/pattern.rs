@@ -47,15 +47,15 @@ impl Pattern {
 #[expect(clippy::used_underscore_items)]
 impl Pattern {
     #[inline]
-    pub fn new<'a, 'b, E1, E2, Err: From<E1> + From<E2>>(
-        pattern: impl CharCollection<Error = E1> + 'a,
-        invalid_letters: impl CharCollection<Error = E2> + 'b,
+    pub fn new<E1, E2, Err: From<E1> + From<E2>>(
+        pattern: &(impl CharCollection<Error = E1> + ?Sized),
+        invalid_letters: &(impl CharCollection<Error = E2> + ?Sized),
         letters_in_pattern_have_no_other_occurrences: bool,
     ) -> Result<Self, Err> {
         let mut known_letters_count = 0;
         let mut pattern_as_chars: Vec<char> =
-            Vec::with_capacity(pattern.char_count()?);
-        for ch in pattern.iter_chars()? {
+            Vec::with_capacity(pattern.try_count_chars()?);
+        for ch in pattern.try_iter_chars()? {
             let ch = ch?;
             if ch.is_whitespace() {
                 continue;
@@ -76,7 +76,7 @@ impl Pattern {
             };
 
         let mut invalid_letters_vec: Vec<char> =
-            invalid_letters.iter_chars()?.collect::<Result<_, _>>()?;
+            invalid_letters.try_iter_chars()?.collect::<Result<_, _>>()?;
 
         invalid_letters_vec.extend(
             additional_invalid
