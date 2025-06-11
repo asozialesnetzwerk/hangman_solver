@@ -75,9 +75,9 @@ fn main() {
 
                 let width = get_terminal_width();
 
-                let input: Vec<&str> = buffer.splitn(2, ' ').collect();
-                let pattern: &str = input.first().unwrap_or(&"");
-                let invalid: &str = input.get(1).unwrap_or(&"");
+                let mut input = buffer.splitn(2, ' ').collect::< Vec<&str>>().into_iter();
+                let pattern: &str = input.next().unwrap_or("");
+                let invalid: &str = input.next().unwrap_or("");
                 let hr = solve(
                     pattern,
                     invalid,
