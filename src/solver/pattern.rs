@@ -53,6 +53,7 @@ impl Pattern {
         let mut known_letters_count = 0;
         let mut pattern_as_chars: Vec<char> =
             Vec::with_capacity(pattern.try_count_chars()?);
+
         for ch in pattern.try_iter_chars()? {
             let ch = ch?;
             if ch.is_whitespace() {
@@ -66,26 +67,23 @@ impl Pattern {
             pattern_as_chars.extend(ch.to_lowercase());
         }
 
-        let additional_invalid: &[char] =
-            if letters_in_pattern_have_no_other_occurrences {
-                &pattern_as_chars
-            } else {
-                &[]
-            };
 
         let mut invalid_letters_vec: Vec<char> = invalid_letters
             .try_iter_chars()?
+            .filter(|ch| !ch.as_ref().is_ok_and(|ch| ch.is_whitespace() || ch.is_wildcard()))
             .collect::<Result<_, _>>()?;
 
-        invalid_letters_vec.extend(
-            additional_invalid
-                .iter()
-                .copied()
-                .filter(|ch| {
-                    !ch.is_normalised_wildcard() && !ch.is_whitespace()
-                })
-                .unique(),
-        );
+        if letters_in_pattern_have_no_other_occurrences {
+            for ch in &pattern_as_chars {
+                if ch.is_normalised_wildcard() {
+                    continue
+                }
+                if invalid_letters_vec.contains(ch) {
+                    continue
+                }
+                invalid_letters_vec.push(*ch);
+            }
+        }
 
         let first_letter = *pattern_as_chars.first().unwrap_or(&char::WILDCARD);
 
