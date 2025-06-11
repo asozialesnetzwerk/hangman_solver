@@ -11,26 +11,6 @@ __all__ = (
     "Language",
 )
 
-
-def read_words_with_length(language: Language, word_length: int, /) -> Collection[str]:
-    pass
-
-def solve(
-    pattern_string: str,
-    invalid_letters: Sequence[str],
-    language: Language,
-    max_words_to_collect: int
-) -> HangmanResult:
-    pass
-
-def solve_crossword(
-    pattern_string: str,
-    invalid_letters: Sequence[str],
-    language: Language,
-    max_words_to_collect: int
-) -> HangmanResult:
-    pass
-
 class HangmanResult:
     @property
     def input(self, /) -> str: ...
@@ -74,4 +54,24 @@ class Language:
 
 
 class UnknownLanguageError(ValueError):
+    pass
+
+
+def read_words_with_length(language: Language, word_length: int, /) -> Collection[str]:
+    pass
+
+def solve(
+    pattern_string: str,
+    invalid_letters: Sequence[str],
+    language: Language,
+    max_words_to_collect: int
+) -> HangmanResult:
+    pass
+
+def solve_crossword(
+    pattern_string: str,
+    invalid_letters: Sequence[str],
+    language: Language,
+    max_words_to_collect: int
+) -> HangmanResult:
     pass
