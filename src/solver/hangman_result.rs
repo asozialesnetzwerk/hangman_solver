@@ -4,7 +4,7 @@ use cfg_if::cfg_if;
 use std::fmt::Display;
 
 use crate::Language;
-use crate::solver::char_collection::InfallibleCharCollection as _;
+use crate::solver::infallible_char_collection::InfallibleCharCollection as _;
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;

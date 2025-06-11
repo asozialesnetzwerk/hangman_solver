@@ -4,13 +4,14 @@ use std::iter::zip;
 
 use crate::language::Language;
 use crate::solver::char_collection::{
-    CharCollection, InfallibleCharCollection,
+    CharCollection,
 };
 use crate::solver::char_trait::ControlChars;
 use crate::solver::char_utils::CharUtils;
 use crate::solver::hangman_result::HangmanResult;
 #[cfg(feature = "wasm-bindgen")]
 use crate::solver::hangman_result::WasmHangmanResult;
+use crate::solver::infallible_char_collection::InfallibleCharCollection;
 
 use counter::Counter;
 use itertools::Itertools;

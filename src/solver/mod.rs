@@ -16,6 +16,7 @@ pub mod char_collection;
 pub mod char_trait;
 pub mod char_utils;
 pub mod hangman_result;
+pub mod infallible_char_collection;
 pub mod pattern;
 
 #[inline]
