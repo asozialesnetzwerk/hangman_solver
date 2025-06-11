@@ -57,6 +57,28 @@ cfg_if! {
             #[pyo3(get)]
             pub letter_frequency: Vec<(char, u32)>,
         }
+
+        #[pymethods]
+        impl HangmanResult {
+            fn __repr__(&self) -> String {
+                let id = self as *const Self;
+                let count = self.matching_words_count;
+                let lang = self.language.name();
+                let pattern = &self.input;
+                let invalid = &self.invalid;
+
+                if let Some(word) = (count == 1).then_some(()).and_then(|()| self.possible_words.first()) {
+                    format!("<HangmanResult lang={lang} pattern={pattern} invalid={invalid:?} count={count} word={word} at {id:?}>")
+                } else if count == 1 {
+                    let letters: Box<[char]> = self.letter_frequency.iter().map(|(ch, _)| *ch).collect();
+                    format!("<HangmanResult lang={lang} pattern={pattern} invalid={invalid:?} count={count} letters={letters:?} at {id:?}>")
+                } else if let Some(mcl) = self.letter_frequency.first().map(|(ch, _)| ch) {
+                    format!("<HangmanResult lang={lang} pattern={pattern} invalid={invalid:?} count={count} guess={mcl} at {id:?}>")
+                } else {
+                    format!("<HangmanResult lang={lang} pattern={pattern} invalid={invalid:?} count={count} at {id:?}>")
+                }
+            }
+        }
     } else {
         pub struct HangmanResult {
             pub input: String,
