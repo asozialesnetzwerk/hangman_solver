@@ -24,6 +24,7 @@ pub struct Pattern {
     /// true for normal hangman mode
     letters_in_pattern_have_no_other_occurrences: bool,
     known_letters_count: usize,
+    invalid_letters_all_ascii: bool,
     invalid_ascii_letters: [bool; 128],
 }
 
@@ -82,6 +83,7 @@ impl Pattern {
         let first_letter = *pattern_as_chars.first().unwrap_or(&char::WILDCARD);
 
         let mut invalid_ascii_letters = [false; 128];
+        let mut invalid_letters_all_ascii: bool = true;
 
         for ch in &invalid_letters_vec {
             if let Some(b) = ch
@@ -90,6 +92,8 @@ impl Pattern {
                 .and_then(|ch| invalid_ascii_letters.get_mut(ch))
             {
                 *b = true;
+            } else {
+                invalid_letters_all_ascii = false;
             }
         }
 
@@ -100,6 +104,7 @@ impl Pattern {
             letters_in_pattern_have_no_other_occurrences,
             known_letters_count,
             invalid_ascii_letters,
+            invalid_letters_all_ascii,
         }
     }
 
@@ -126,14 +131,14 @@ impl Pattern {
 
     #[inline]
     pub(super) fn letter_is_valid(&self, letter: char) -> bool {
-        self.invalid_letters.is_empty()
-            || !letter
-                .to_ascii_char()
-                .map(usize::from)
-                .and_then(|ch| self.invalid_ascii_letters.get(ch))
-                .copied()
-                .unwrap_or(false)
-                && !self.invalid_letters.contains(&letter)
+        !letter
+            .to_ascii_char()
+            .map(usize::from)
+            .and_then(|ch| self.invalid_ascii_letters.get(ch))
+            .copied()
+            .unwrap_or(false)
+            && (self.invalid_letters_all_ascii
+                || !self.invalid_letters.contains(&letter))
     }
 
     #[must_use]
