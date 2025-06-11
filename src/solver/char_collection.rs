@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: EUPL-1.2
-use std::convert::Infallible;
 use crate::solver::infallible_char_collection::InfallibleCharCollection;
+use std::convert::Infallible;
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
-
 
 pub trait CharCollection {
     type Error;
@@ -80,7 +79,10 @@ mod test {
 
         for string in ascii_strings {
             assert!(string.is_ascii());
-            assert_eq!(string.try_count_chars().unwrap_infallible(), string.len());
+            assert_eq!(
+                string.try_count_chars().unwrap_infallible(),
+                string.len()
+            );
         }
     }
 

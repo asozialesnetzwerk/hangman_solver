@@ -6,14 +6,14 @@ use std::convert::Infallible;
 use js_sys::JsString;
 use unwrap_infallible::UnwrapInfallible;
 
+use crate::Language;
 #[cfg(feature = "wasm-bindgen")]
 pub use crate::solver::hangman_result::WasmHangmanResult;
-use crate::Language;
 
-pub use crate::solver::pattern::Pattern;
+pub use crate::solver::char_collection::CharCollection;
 pub use crate::solver::hangman_result::HangmanResult;
 pub use crate::solver::infallible_char_collection::InfallibleCharCollection;
-pub use crate::solver::char_collection::CharCollection;
+pub use crate::solver::pattern::Pattern;
 
 mod char_collection;
 mod char_trait;
@@ -21,7 +21,6 @@ mod char_utils;
 mod hangman_result;
 mod infallible_char_collection;
 mod pattern;
-
 
 #[inline]
 #[allow(dead_code)]
@@ -32,7 +31,7 @@ pub fn solve<E1, E2, Err: From<E1> + From<E2>>(
     language: Language,
     max_words_to_collect: Option<usize>,
 ) -> Result<HangmanResult, Err> {
-    let pattern = Pattern::new::< E1, E2, Err>(
+    let pattern = Pattern::new::<E1, E2, Err>(
         pattern,
         invalid_letters,
         letters_in_pattern_have_no_other_occurrences,

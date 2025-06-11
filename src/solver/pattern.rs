@@ -3,9 +3,7 @@ use std::char;
 use std::iter::zip;
 
 use crate::language::Language;
-use crate::solver::char_collection::{
-    CharCollection,
-};
+use crate::solver::char_collection::CharCollection;
 use crate::solver::char_trait::ControlChars;
 use crate::solver::char_utils::CharUtils;
 use crate::solver::hangman_result::HangmanResult;
@@ -75,8 +73,9 @@ impl Pattern {
                 &[]
             };
 
-        let mut invalid_letters_vec: Vec<char> =
-            invalid_letters.try_iter_chars()?.collect::<Result<_, _>>()?;
+        let mut invalid_letters_vec: Vec<char> = invalid_letters
+            .try_iter_chars()?
+            .collect::<Result<_, _>>()?;
 
         invalid_letters_vec.extend(
             additional_invalid

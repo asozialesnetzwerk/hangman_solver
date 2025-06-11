@@ -11,7 +11,9 @@
 mod language;
 mod solver;
 
-pub use crate::solver::{Pattern, CharCollection, InfallibleCharCollection, HangmanResult};
+pub use crate::solver::{
+    CharCollection, HangmanResult, InfallibleCharCollection, Pattern,
+};
 
 pub use crate::language::{Language, StringChunkIter, WordSequence};
 
