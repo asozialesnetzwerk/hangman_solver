@@ -89,6 +89,7 @@ dependencies = [
  "pyo3",
  "terminal_size",
  "unicode-segmentation",
+ "unwrap-infallible",
  "wasm-bindgen",
 ]
 
@@ -355,6 +356,12 @@ name = "unindent"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7264e107f553ccae879d21fbea1d6724ac785e8c3bfc762137959b5802826ef3"
+
+[[package]]
+name = "unwrap-infallible"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "151ac09978d3c2862c4e39b557f4eceee2cc72150bc4cb4f16abf061b6e381fb"
 
 [[package]]
 name = "wasm-bindgen"

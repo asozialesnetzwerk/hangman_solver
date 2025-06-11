@@ -18,9 +18,10 @@ use std::process::exit;
 use itertools::Itertools;
 #[cfg(feature = "terminal_size")]
 use terminal_size::{Width, terminal_size};
+use unwrap_infallible::UnwrapInfallible;
 
 use crate::language::Language;
-use crate::solver::char_collection::CharCollection as _;
+use crate::solver::char_collection::InfallibleCharCollection as _;
 use crate::solver::solve;
 
 fn get_terminal_width() -> usize {
@@ -83,7 +84,8 @@ fn main() {
                     true,
                     lang,
                     Some(width / pattern.char_count() + 1),
-                );
+                )
+                .unwrap_infallible();
                 assert!(hr.language == lang);
 
                 println!("{hr:─^width$}");
@@ -99,7 +101,6 @@ fn main() {
 
 #[test]
 fn test_itering_words() -> Result<(), String> {
-    use crate::solver::char_collection::CharCollection;
     for lang in Language::all() {
         let mut total_words = 0usize;
         for i in 0..100usize {

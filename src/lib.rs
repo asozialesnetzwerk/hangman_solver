@@ -21,6 +21,8 @@ pub use crate::solver::hangman_result::HangmanResult;
 pub use crate::solver::hangman_result::WasmHangmanResult;
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
+#[cfg(feature = "pyo3")]
+use pyo3::types::PyString;
 #[cfg(feature = "wasm-bindgen")]
 use wasm_bindgen::prelude::*;
 
@@ -33,36 +35,36 @@ use pyo3::prelude::*;
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
 pub fn solve(
-    pattern_string: String,
+    pattern_string: Bound<'_, PyString>,
     invalid_letters: Vec<char>,
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
-    Ok(crate::solver::solve(
+    crate::solver::solve(
         pattern_string,
         invalid_letters,
         true,
         language,
         Some(max_words_to_collect),
-    ))
+    )
 }
 
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
 pub fn solve_crossword(
-    pattern_string: String,
+    pattern_string: Bound<'_, PyString>,
     invalid_letters: Vec<char>,
     language: Language,
     max_words_to_collect: usize,
 ) -> PyResult<HangmanResult> {
-    Ok(crate::solver::solve(
+    crate::solver::solve(
         pattern_string,
         invalid_letters,
         false,
         language,
         Some(max_words_to_collect),
-    ))
+    )
 }
 
 #[must_use]

@@ -3,7 +3,9 @@ use std::char;
 use std::iter::zip;
 
 use crate::language::Language;
-use crate::solver::char_collection::CharCollection;
+use crate::solver::char_collection::{
+    CharCollection, InfallibleCharCollection,
+};
 use crate::solver::char_trait::ControlChars;
 use crate::solver::char_utils::CharUtils;
 use crate::solver::hangman_result::HangmanResult;
@@ -43,27 +45,27 @@ impl Pattern {
 
 #[expect(clippy::used_underscore_items)]
 impl Pattern {
-    #[must_use]
     #[inline]
-    pub fn new<'a, 'b>(
-        pattern: impl CharCollection + 'a,
-        invalid_letters: impl CharCollection + 'b,
+    pub fn new<'a, 'b, E1, E2, Err: From<E1> + From<E2>>(
+        pattern: impl CharCollection<Error = E1> + 'a,
+        invalid_letters: impl CharCollection<Error = E2> + 'b,
         letters_in_pattern_have_no_other_occurrences: bool,
-    ) -> Self {
+    ) -> Result<Self, Err> {
         let mut known_letters_count = 0;
-        let pattern_as_chars: Vec<char> = pattern
-            .iter_chars()
-            .flat_map(char::to_lowercase)
-            .filter(|ch| !ch.is_whitespace())
-            .map(|ch| {
-                if ch.is_wildcard() {
-                    char::WILDCARD
-                } else {
-                    known_letters_count += 1;
-                    ch
-                }
-            })
-            .collect();
+        let mut pattern_as_chars: Vec<char> =
+            Vec::with_capacity(pattern.char_count()?);
+        for ch in pattern.iter_chars()? {
+            let ch = ch?;
+            if ch.is_whitespace() {
+                continue;
+            }
+            if ch.is_wildcard() {
+                pattern_as_chars.push(char::WILDCARD);
+                continue;
+            }
+            known_letters_count += 1;
+            pattern_as_chars.extend(ch.to_lowercase());
+        }
 
         let additional_invalid: &[char] =
             if letters_in_pattern_have_no_other_occurrences {
@@ -72,13 +74,18 @@ impl Pattern {
                 &[]
             };
 
-        let invalid_letters_vec: Vec<char> = additional_invalid
-            .iter()
-            .copied()
-            .chain(invalid_letters.iter_chars())
-            .filter(|ch| !ch.is_normalised_wildcard() && !ch.is_whitespace())
-            .unique()
-            .collect();
+        let mut invalid_letters_vec: Vec<char> =
+            invalid_letters.iter_chars()?.collect::<Result<_, _>>()?;
+
+        invalid_letters_vec.extend(
+            additional_invalid
+                .iter()
+                .copied()
+                .filter(|ch| {
+                    !ch.is_normalised_wildcard() && !ch.is_whitespace()
+                })
+                .unique(),
+        );
 
         let first_letter = *pattern_as_chars.first().unwrap_or(&char::WILDCARD);
 
@@ -97,7 +104,7 @@ impl Pattern {
             }
         }
 
-        Self {
+        Ok(Self {
             invalid_letters: invalid_letters_vec,
             pattern: pattern_as_chars,
             first_letter,
@@ -105,7 +112,7 @@ impl Pattern {
             known_letters_count,
             invalid_ascii_letters,
             invalid_letters_all_ascii,
-        }
+        })
     }
 
     #[inline]
@@ -120,7 +127,7 @@ impl Pattern {
 
     #[must_use]
     #[inline]
-    fn first_letter_matches<CC: CharCollection + ?Sized>(
+    fn first_letter_matches<CC: InfallibleCharCollection + ?Sized>(
         &self,
         word: &&CC,
     ) -> bool {
@@ -143,7 +150,10 @@ impl Pattern {
 
     #[must_use]
     #[inline]
-    fn matches<CC: CharCollection + ?Sized>(&self, word: &&CC) -> bool {
+    fn matches<CC: InfallibleCharCollection + ?Sized>(
+        &self,
+        word: &&CC,
+    ) -> bool {
         // This only makes sense if word has the same length as the pattern
         debug_assert_eq!(word.char_count(), self.pattern.len());
         // none of the reserved chars shall be in the word
@@ -185,7 +195,7 @@ impl Pattern {
     fn _collect_count_and_create_letter_frequency<
         'a,
         'b,
-        CC: CharCollection + ?Sized + 'a,
+        CC: InfallibleCharCollection + ?Sized + 'a,
         T: Iterator<Item = &'a CC>,
     >(
         &self,
@@ -275,7 +285,7 @@ impl Pattern {
     fn _solve_internal<
         'a,
         'b,
-        CC: CharCollection + ?Sized + 'a,
+        CC: InfallibleCharCollection + ?Sized + 'a,
         T: Iterator<Item = &'a CC>,
     >(
         &self,

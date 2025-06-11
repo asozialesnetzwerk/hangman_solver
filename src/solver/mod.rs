@@ -17,20 +17,20 @@ pub mod pattern;
 
 #[inline]
 #[allow(dead_code)]
-pub fn solve<'a, 'b>(
-    pattern: impl CharCollection + 'a,
-    invalid_letters: impl CharCollection + 'b,
+pub fn solve<'a, 'b, E1, E2, Err: From<E1> + From<E2>>(
+    pattern: impl CharCollection<Error = E1> + 'a,
+    invalid_letters: impl CharCollection<Error = E2> + 'b,
     letters_in_pattern_have_no_other_occurrences: bool,
     language: Language,
     max_words_to_collect: Option<usize>,
-) -> HangmanResult {
-    let pattern = Pattern::new(
+) -> Result<HangmanResult, Err> {
+    let pattern = Pattern::new::<'a, 'b, E1, E2, Err>(
         pattern,
         invalid_letters,
         letters_in_pattern_have_no_other_occurrences,
-    );
+    )?;
 
-    pattern.solve(language, max_words_to_collect)
+    Ok(pattern.solve(language, max_words_to_collect))
 }
 
 #[cfg(feature = "wasm-bindgen")]
@@ -43,14 +43,19 @@ pub fn solve_js<'a>(
     max_words_to_collect: Option<usize>,
     crossword_mode: bool,
 ) -> WasmHangmanResult {
+    use unwrap_infallible::UnwrapInfallible as _;
+
     let pattern =
-        Pattern::new(pattern_string, invalid_letters, !crossword_mode);
+        Pattern::new(pattern_string, invalid_letters, !crossword_mode)
+            .unwrap_infallible();
 
     pattern.solve_with_words(all_words, max_words_to_collect)
 }
 
 #[cfg(test)]
 mod test {
+    use unwrap_infallible::UnwrapInfallible;
+
     #[test]
     pub fn test_solve_no_max_words() {
         let hr = super::solve(
@@ -59,7 +64,8 @@ mod test {
             true,
             crate::Language::DeUmlauts,
             None,
-        );
+        )
+        .unwrap_infallible();
 
         assert_eq!(hr.input, "__r_el_ier");
         assert_eq!(hr.invalid, vec!['x', 'ä']);
@@ -92,7 +98,8 @@ mod test {
             true,
             crate::Language::DeUmlauts,
             Some(1),
-        );
+        )
+        .unwrap_infallible();
 
         assert_eq!(hr.input, "__r_el_ier");
         assert_eq!(hr.invalid, vec!['x', 'ä']);
