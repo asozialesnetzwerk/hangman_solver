@@ -13,12 +13,14 @@ from pathlib import Path
 from zopfli import ZipFile
 
 def compress_zip_file(path: Path) -> str | None:
-    data = io.BytesIO(path.read_bytes())
+    data = io.BytesIO(bytes_ := path.read_bytes())
 
-    with ZipFile(data, "r", zipfile.ZIP_DEFLATED) as source:
+    with ZipFile(data, "r") as source:
         with ZipFile(path, "w", zipfile.ZIP_DEFLATED) as out:
             for zip_info in source.infolist():
                 out.writestr(zip_info, source.read(zip_info.filename))
+
+    print(f"{path.as_posix()}:", path.stat().st_size / len(bytes_))
 
     return None
 
