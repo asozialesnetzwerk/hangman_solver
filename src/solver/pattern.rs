@@ -21,7 +21,7 @@ use js_sys::JsString;
 pub struct Pattern {
     invalid_letters: Vec<char>,
     pattern: Vec<char>,
-    first_letter: char,
+    prefix: Box<str>,
     /// true for normal hangman mode
     letters_in_pattern_have_no_other_occurrences: bool,
     known_letters_count: usize,
@@ -87,7 +87,10 @@ impl Pattern {
             }
         }
 
-        let first_letter = *pattern_as_chars.first().unwrap_or(&char::WILDCARD);
+        let prefix = pattern_as_chars
+            .iter()
+            .take_while(|ch| !ch.is_wildcard())
+            .collect::<Box<str>>();
 
         let mut invalid_ascii_letters = [false; 128];
         let mut invalid_letters_all_ascii: bool = true;
@@ -107,7 +110,7 @@ impl Pattern {
         Ok(Self {
             invalid_letters: invalid_letters_vec,
             pattern: pattern_as_chars,
-            first_letter,
+            prefix,
             letters_in_pattern_have_no_other_occurrences,
             known_letters_count,
             invalid_ascii_letters,
@@ -117,23 +120,19 @@ impl Pattern {
 
     #[inline]
     #[must_use]
-    fn first_letter_is_wildcard(&self) -> bool {
-        debug_assert_eq!(
-            self.first_letter.is_wildcard(),
-            self.first_letter.is_normalised_wildcard()
-        );
-        self.first_letter.is_normalised_wildcard()
+    const fn first_letter_is_wildcard(&self) -> bool {
+        self.prefix.is_empty()
     }
 
     #[must_use]
     #[inline]
-    fn first_letter_matches<CC: InfallibleCharCollection + ?Sized>(
+    fn prefix_matches<CC: InfallibleCharCollection + ?Sized>(
         &self,
         word: &&CC,
     ) -> bool {
         // This only makes sense if first_letter_is_wildcard is false
         debug_assert!(!self.first_letter_is_wildcard());
-        word.first_char() == Some(self.first_letter)
+        word.starts_with(&self.prefix)
     }
 
     #[inline]
@@ -309,8 +308,8 @@ impl Pattern {
                 )
             } else {
                 let mut filtered_words = all_words
-                    .skip_while(|word| !self.first_letter_matches(word))
-                    .take_while(|word| self.first_letter_matches(word))
+                    .skip_while(|word| !self.prefix_matches(word))
+                    .take_while(|word| self.prefix_matches(word))
                     .filter(|word| self.matches(word));
                 self._collect_count_and_create_letter_frequency(
                     &mut filtered_words,

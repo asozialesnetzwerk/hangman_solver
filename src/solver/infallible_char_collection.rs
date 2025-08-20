@@ -7,6 +7,20 @@ pub trait InfallibleCharCollection {
 
     #[must_use]
     #[inline]
+    fn starts_with(&self, prefix: &str) -> bool {
+        let mut own_chars = self.iter_chars();
+        for ch in prefix.iter_chars() {
+            if own_chars.next() != Some(ch) {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    #[must_use]
+    #[inline]
+    #[allow(dead_code)]
     fn first_char(&self) -> Option<char> {
         self.iter_chars().next()
     }
@@ -42,6 +56,11 @@ impl InfallibleCharCollection for String {
     fn iter_chars(&self) -> impl Iterator<Item = char> + '_ {
         self.chars()
     }
+
+    #[inline]
+    fn starts_with(&self, prefix: &str) -> bool {
+        str::starts_with::<&str>(self, prefix)
+    }
 }
 
 impl InfallibleCharCollection for str {
@@ -53,6 +72,12 @@ impl InfallibleCharCollection for str {
     #[inline]
     fn iter_chars(&self) -> impl Iterator<Item = char> + '_ {
         self.chars()
+    }
+
+
+    #[inline]
+    fn starts_with(&self, prefix: &str) -> bool {
+        Self::starts_with::<&Self>(self, prefix)
     }
 }
 

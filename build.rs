@@ -26,7 +26,7 @@ fn read_lines_of_file(
     Ok(reader.lines().map_while(Result::ok))
 }
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 struct WordsData {
     pub path: String,
     pub lang: String,
