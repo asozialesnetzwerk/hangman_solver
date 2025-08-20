@@ -74,7 +74,6 @@ impl InfallibleCharCollection for str {
         self.chars()
     }
 
-
     #[inline]
     fn starts_with(&self, prefix: &str) -> bool {
         Self::starts_with::<&Self>(self, prefix)
