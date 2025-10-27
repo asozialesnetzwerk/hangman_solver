@@ -250,7 +250,6 @@ impl Pattern {
         (words_count, letter_counter, words_vec)
     }
 
-    #[must_use]
     #[inline]
     pub fn solve(
         &self,

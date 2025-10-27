@@ -60,8 +60,8 @@ pub fn solve(
     invalid_letters: InvalidLetters<'_>,
     language: Language,
     max_words_to_collect: usize,
-) -> PyResult<HangmanResult> {
-    match invalid_letters {
+) -> HangmanResult {
+    let Result::<_, std::convert::Infallible>::Ok(result) = match invalid_letters {
         InvalidLetters::String(invalid_letters) => crate::solver::solve(
             &pattern_string,
             &invalid_letters,
@@ -76,7 +76,9 @@ pub fn solve(
             language,
             Some(max_words_to_collect),
         ),
-    }
+    };
+
+    result
 }
 
 #[cfg(feature = "pyo3")]
@@ -88,8 +90,8 @@ pub fn solve_crossword(
     invalid_letters: InvalidLetters<'_>,
     language: Language,
     max_words_to_collect: usize,
-) -> PyResult<HangmanResult> {
-    match invalid_letters {
+) -> HangmanResult {
+    let Result::<_, std::convert::Infallible>::Ok(result) = match invalid_letters {
         InvalidLetters::String(invalid_letters) => crate::solver::solve(
             &pattern_string,
             &invalid_letters,
@@ -104,7 +106,9 @@ pub fn solve_crossword(
             language,
             Some(max_words_to_collect),
         ),
-    }
+    };
+
+    result
 }
 
 #[must_use]

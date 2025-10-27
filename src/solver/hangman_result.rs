@@ -43,6 +43,7 @@ fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
 cfg_if! {
     if #[cfg(feature = "pyo3")] {
         #[pyclass]
+        #[must_use]
         pub struct HangmanResult {
             #[pyo3(get)]
             pub input: String,
