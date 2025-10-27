@@ -21,7 +21,6 @@ pub use crate::language::{Language, StringChunkIter, WordSequence};
 pub use crate::solver::WasmHangmanResult;
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
-use pyo3::exceptions::PyBaseExceptionGroup;
 #[cfg(feature = "wasm-bindgen")]
 use wasm_bindgen::prelude::*;
 
@@ -29,6 +28,9 @@ use wasm_bindgen::prelude::*;
 pub use crate::language::UnknownLanguageError;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
+#[cfg(feature = "pyo3")]
+use pyo3::exceptions::PyBaseExceptionGroup;
+
 
 #[cfg(feature = "pyo3")]
 pub enum InvalidLetters<'a> {

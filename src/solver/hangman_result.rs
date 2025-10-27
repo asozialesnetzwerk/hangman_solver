@@ -81,6 +81,7 @@ cfg_if! {
             }
         }
     } else {
+        #[must_use]
         pub struct HangmanResult {
             pub input: String,
             pub invalid: Vec<char>,
