@@ -21,8 +21,7 @@ pub use crate::language::{Language, StringChunkIter, WordSequence};
 pub use crate::solver::WasmHangmanResult;
 #[cfg(feature = "wasm-bindgen")]
 use js_sys::JsString;
-#[cfg(feature = "pyo3")]
-use pyo3::types::PyString;
+use pyo3::exceptions::PyBaseExceptionGroup;
 #[cfg(feature = "wasm-bindgen")]
 use wasm_bindgen::prelude::*;
 
@@ -32,10 +31,24 @@ pub use crate::language::UnknownLanguageError;
 use pyo3::prelude::*;
 
 #[cfg(feature = "pyo3")]
-#[derive(FromPyObject)]
-pub enum InvalidLetters<'py> {
-    String(Bound<'py, PyString>),
+pub enum InvalidLetters<'a> {
+    String(std::borrow::Cow<'a, str>),
     Chars(Vec<char>),
+}
+
+#[cfg(feature = "pyo3")]
+impl<'a, 'py> FromPyObject<'a, 'py> for InvalidLetters<'a> {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+        match obj.extract() {
+            Ok(value) => Ok(InvalidLetters::String(value)),
+            Err(err1) => match obj.extract() {
+                Ok(value) => Ok(InvalidLetters::Chars(value)),
+                Err(err2) => Err(PyBaseExceptionGroup::new_err(("Could not convert to list of chars", [err1, err2])))
+            }
+        }
+    }
 }
 
 #[cfg(feature = "pyo3")]
@@ -43,7 +56,7 @@ pub enum InvalidLetters<'py> {
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
 #[allow(clippy::needless_pass_by_value)]
 pub fn solve(
-    pattern_string: Bound<'_, PyString>,
+    pattern_string: std::borrow::Cow<'_, str>,
     invalid_letters: InvalidLetters<'_>,
     language: Language,
     max_words_to_collect: usize,
@@ -71,7 +84,7 @@ pub fn solve(
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
 #[allow(clippy::needless_pass_by_value)]
 pub fn solve_crossword(
-    pattern_string: Bound<'_, PyString>,
+    pattern_string: std::borrow::Cow<'_, str>,
     invalid_letters: InvalidLetters<'_>,
     language: Language,
     max_words_to_collect: usize,

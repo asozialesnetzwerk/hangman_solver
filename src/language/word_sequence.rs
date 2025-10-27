@@ -112,7 +112,7 @@ impl IntoIterator for &WordSequence {
 #[derive(FromPyObject)]
 pub enum ContainsArg {
     StringArg(String),
-    Other(PyObject),
+    Other(Py<PyAny>),
 }
 
 #[cfg(feature = "pyo3")]

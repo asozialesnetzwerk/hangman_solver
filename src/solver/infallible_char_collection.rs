@@ -80,6 +80,23 @@ impl InfallibleCharCollection for str {
     }
 }
 
+impl InfallibleCharCollection for std::borrow::Cow<'_, str> {
+    #[inline]
+    fn char_count(&self) -> usize {
+        self.chars().count()
+    }
+
+    #[inline]
+    fn iter_chars(&self) -> impl Iterator<Item = char> + '_ {
+        self.chars()
+    }
+
+    #[inline]
+    fn starts_with(&self, prefix: &str) -> bool {
+        self.as_ref().starts_with(prefix)
+    }
+}
+
 impl<const L: usize> InfallibleCharCollection for [char; L] {
     #[inline]
     fn char_count(&self) -> usize {
