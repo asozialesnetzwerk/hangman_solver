@@ -27,10 +27,9 @@ use wasm_bindgen::prelude::*;
 #[cfg(feature = "pyo3")]
 pub use crate::language::UnknownLanguageError;
 #[cfg(feature = "pyo3")]
-use pyo3::prelude::*;
-#[cfg(feature = "pyo3")]
 use pyo3::exceptions::PyBaseExceptionGroup;
-
+#[cfg(feature = "pyo3")]
+use pyo3::prelude::*;
 
 #[cfg(feature = "pyo3")]
 pub enum InvalidLetters<'a> {
@@ -47,8 +46,11 @@ impl<'a, 'py> FromPyObject<'a, 'py> for InvalidLetters<'a> {
             Ok(value) => Ok(InvalidLetters::String(value)),
             Err(err1) => match obj.extract() {
                 Ok(value) => Ok(InvalidLetters::Chars(value)),
-                Err(err2) => Err(PyBaseExceptionGroup::new_err(("Could not convert to list of chars", [err1, err2])))
-            }
+                Err(err2) => Err(PyBaseExceptionGroup::new_err((
+                    "Could not convert to list of chars",
+                    [err1, err2],
+                ))),
+            },
         }
     }
 }
@@ -63,22 +65,23 @@ pub fn solve(
     language: Language,
     max_words_to_collect: usize,
 ) -> HangmanResult {
-    let Result::<_, std::convert::Infallible>::Ok(result) = match invalid_letters {
-        InvalidLetters::String(invalid_letters) => crate::solver::solve(
-            &pattern_string,
-            &invalid_letters,
-            true,
-            language,
-            Some(max_words_to_collect),
-        ),
-        InvalidLetters::Chars(invalid_letters) => crate::solver::solve(
-            &pattern_string,
-            &invalid_letters,
-            true,
-            language,
-            Some(max_words_to_collect),
-        ),
-    };
+    let Result::<_, std::convert::Infallible>::Ok(result) =
+        match invalid_letters {
+            InvalidLetters::String(invalid_letters) => crate::solver::solve(
+                &pattern_string,
+                &invalid_letters,
+                true,
+                language,
+                Some(max_words_to_collect),
+            ),
+            InvalidLetters::Chars(invalid_letters) => crate::solver::solve(
+                &pattern_string,
+                &invalid_letters,
+                true,
+                language,
+                Some(max_words_to_collect),
+            ),
+        };
 
     result
 }
@@ -93,22 +96,23 @@ pub fn solve_crossword(
     language: Language,
     max_words_to_collect: usize,
 ) -> HangmanResult {
-    let Result::<_, std::convert::Infallible>::Ok(result) = match invalid_letters {
-        InvalidLetters::String(invalid_letters) => crate::solver::solve(
-            &pattern_string,
-            &invalid_letters,
-            false,
-            language,
-            Some(max_words_to_collect),
-        ),
-        InvalidLetters::Chars(invalid_letters) => crate::solver::solve(
-            &pattern_string,
-            &invalid_letters,
-            false,
-            language,
-            Some(max_words_to_collect),
-        ),
-    };
+    let Result::<_, std::convert::Infallible>::Ok(result) =
+        match invalid_letters {
+            InvalidLetters::String(invalid_letters) => crate::solver::solve(
+                &pattern_string,
+                &invalid_letters,
+                false,
+                language,
+                Some(max_words_to_collect),
+            ),
+            InvalidLetters::Chars(invalid_letters) => crate::solver::solve(
+                &pattern_string,
+                &invalid_letters,
+                false,
+                language,
+                Some(max_words_to_collect),
+            ),
+        };
 
     result
 }
