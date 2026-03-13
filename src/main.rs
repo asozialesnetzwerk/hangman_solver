@@ -54,13 +54,10 @@ fn main() {
     let lang = args
         .first()
         .and_then(|lang| Language::from_string(lang))
-        .map_or_else(
-            || {
-                eprintln!("Invalid language");
-                exit(1);
-            },
-            |x| x,
-        );
+        .unwrap_or_else(|| {
+            eprintln!("Invalid language");
+            exit(1);
+        });
 
     let mut buffer = String::new();
     let stdin = io::stdin();
