@@ -4,6 +4,7 @@
 #   "zopflipy",
 # ]
 # ///
+from bz2 import compress
 import gzip
 import io
 import sys
@@ -37,36 +38,42 @@ def main(args: Sequence[str]) -> str | int:
 
     [directory] = args
 
-    tmp_dir = Path(tempfile.mkdtemp()).absolute()
+    tmp_dir = Path(tempfile.mkdtemp(prefix=f"dist-{Path(directory).absolute().name}-")).absolute()
 
     run("pyproject-build", "-s", "-o", tmp_dir.as_posix())
 
     [sdist] = list(tmp_dir.glob("*"));
 
+    for arch in ["aarch64", "x86_64"]:  # TODO; "riscv64"
+        for manylinux in ["manylinux_2_17", "musllinux_1_1"]:
+            run(
+                "podman",
+                "run",
+                f"--arch={arch}",
+                "--rm",
+                "--pull=newer",
+                f"--volume={directory}:/io",
+                f"--volume={tmp_dir.as_posix()}:/dist",
+                "ghcr.io/pyo3/maturin",
+                "build",
+                "--compression-level=1",  # gets recompressed anyway
+                "--future-incompat-report",
+                "--out=/dist",
+                "--release",
+                f"--compatibility={manylinux}",
+            )
+
     targz = sdist.read_bytes()
     tar = gzip.decompress(targz)
     compressor = ZopfliCompressor(ZOPFLI_FORMAT_GZIP)
     zopflitar = compressor.compress(tar) + compressor.flush()
-    compression_result = f"{sdist.as_posix()}: {len(zopflitar) / len(targz)}"
     sdist.write_bytes(zopflitar)
+    print(f"{sdist.as_posix()}: {len(zopflitar) / len(targz)}", file=sys.stderr)
 
-    for arch in ["x86_64", "aarch64"]:  # , "riscv64"
-        run(
-            "podman",
-            "run",
-            f"--arch={arch}",
-            "--rm",
-            f"--volume={directory}:/io",
-            f"--volume={tmp_dir.as_posix()}:/dist",
-            "ghcr.io/pyo3/maturin",
-            "build",
-            "--out=/dist",
-            "--release",
-        )
-
-    print(compression_result)
     for wheel in tmp_dir.glob("*.whl"):
-        print(compress_zip_file(wheel))
+        print(compress_zip_file(wheel), file=sys.stderr, flush=True)
+
+    print(tmp_dir)
 
     return 0
 
