@@ -62,7 +62,7 @@ cfg_if! {
         #[pymethods]
         impl HangmanResult {
             fn __repr__(&self) -> String {
-                let id = self as *const Self;
+                let id: *const Self = std::ptr::from_ref::<Self>(self);
                 let count = self.matching_words_count;
                 let lang = self.language.name();
                 let pattern = &self.input;

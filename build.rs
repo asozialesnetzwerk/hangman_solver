@@ -228,7 +228,8 @@ fn main() {
     fs::write(
         get_out_dir_joined(String::from("language.rs")),
         format!(
-            r###"#[cfg_attr(feature = "pyo3", pyclass(eq))]
+            r###"
+#[cfg_attr(feature = "pyo3", pyclass(from_py_object, eq))]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Language {{
     {}
