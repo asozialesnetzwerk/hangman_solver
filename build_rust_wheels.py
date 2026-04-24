@@ -46,6 +46,9 @@ def main(args: Sequence[str]) -> str | int:
 
     for arch in ["aarch64", "x86_64"]:  # TODO; "riscv64"
         for manylinux in ["manylinux_2_17", "musllinux_1_1"]:
+            image = "ghcr.io/joshix-1/pyo3-maturin:main"
+            if "musllinux" in manylinux:
+                image += "-musllinux"
             run(
                 "podman",
                 "run",
@@ -54,10 +57,11 @@ def main(args: Sequence[str]) -> str | int:
                 "--pull=newer",
                 f"--volume={directory}:/io",
                 f"--volume={tmp_dir.as_posix()}:/dist",
-                "ghcr.io/pyo3/maturin",
+                image,
                 "build",
                 "--compression-level=1",  # gets recompressed anyway
                 "--future-incompat-report",
+                "--auditwheel=repair",
                 "--out=/dist",
                 "--release",
                 f"--compatibility={manylinux}",
