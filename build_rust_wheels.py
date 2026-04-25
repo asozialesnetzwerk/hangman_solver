@@ -46,7 +46,7 @@ def main(args: Sequence[str]) -> str | int:
 
     for arch in ["aarch64", "x86_64"]:  # TODO; "riscv64"
         for manylinux in ["manylinux_2_17", "musllinux_1_1"]:
-            image = "ghcr.io/joshix-1/pyo3-maturin:main"
+            image = "ghcr.io/pyo3/maturin:main"  # TODO: latest
             if "musllinux" in manylinux:
                 image += "-musllinux"
             run(
