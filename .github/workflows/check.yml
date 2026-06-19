@@ -16,7 +16,10 @@ jobs:
           - "--release"
           - "--all-features"
           - "--all-features --release"
-    runs-on: ubuntu-26.04
+        os:
+          - ubuntu-26.04
+          - ubuntu-26.04-arm
+    runs-on: ${{ matrix.os }}
     permissions: {}
     steps:
       - name: Checkout repository
@@ -56,8 +59,11 @@ jobs:
           - '3.12'
           - '3.13'
           - '3.14'
-          - '3.15-dev'
-    runs-on: ubuntu-26.04
+          - '3.15'
+        os:
+          - ubuntu-26.04
+          - ubuntu-26.04-arm
+    runs-on: ${{ matrix.os }}
     permissions: {}
     steps:
       - name: Checkout repository
