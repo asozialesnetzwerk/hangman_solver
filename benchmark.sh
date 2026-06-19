@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -eu
+set -euo pipefail
 
 TEST_INPUTS_DIR="test_inputs"
 if [ -z "${CARGO_ARGS:-}" ] ; then
@@ -8,6 +8,15 @@ if [ -z "${CARGO_ARGS:-}" ] ; then
 fi
 CARGO_ARGS="${CARGO_ARGS} --package hangman_solver --bin hangman_solver"
 cargo build ${CARGO_ARGS}
+
+run_with_args()
+{
+    if [ "${PYTHON:-}" = "1" ] ; then
+        ./cli.py "$@"
+        return 0
+    fi
+    cargo run -q ${CARGO_ARGS} "$@"
+}
 
 run_with_input()
 {
@@ -17,16 +26,17 @@ run_with_input()
     LANGUAGE="de"
   fi
   FILE="${TEST_INPUTS_DIR}/${LANGUAGE}/${1}.txt"
+
   if [ -n "${HYPERFINE:-}" ] ; then
-    cargo run -q ${CARGO_ARGS} "${LANGUAGE}" < "${FILE}"
+    run_with_args "${LANGUAGE}" < "${FILE}"
     return 0
   fi
   START=$(date +%s%N)
   if [ -z "${3:-}" ] ; then
-    cargo run -q ${CARGO_ARGS} "${LANGUAGE}" < "${FILE}"
+    run_with_args "${LANGUAGE}" < "${FILE}"
   else
     OUTPUT_FILE="${3}/${1}.output"
-    cargo run -q ${CARGO_ARGS} "${LANGUAGE}" < "${FILE}" 2>&1 | tee "${OUTPUT_FILE}" > /dev/null
+    run_with_args "${LANGUAGE}" < "${FILE}" 2>&1 | tee "${OUTPUT_FILE}" > /dev/null
   fi
   END=$(date +%s%N)
   ELAPSED=$((END-START))
