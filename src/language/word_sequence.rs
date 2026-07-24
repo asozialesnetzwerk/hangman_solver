@@ -252,8 +252,13 @@ mod tests {
     fn test_word_sequence_get() {
         for lang in Language::all() {
             assert_eq!(
-                lang.read_words(10).get(0).expect("we have more than 1 ten letter word"),
-                lang.read_words(10).into_iter().next().expect("we have more than 1 ten letter word"),
+                lang.read_words(10)
+                    .get(0)
+                    .expect("we have more than 1 ten letter word"),
+                lang.read_words(10)
+                    .into_iter()
+                    .next()
+                    .expect("we have more than 1 ten letter word"),
             );
 
             for i in 0..100 {
