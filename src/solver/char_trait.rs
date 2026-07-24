@@ -42,7 +42,7 @@ const WILDCARD_CHAR: char = '_';
 const WILDCARD_ALIASES: [char; 2] = ['#', '?'];
 const RESERVED_CHARS: [char; 5] = ['#', '?', WILDCARD_CHAR, '\0', '\n'];
 const WILDCARD_U8: u8 = WILDCARD_CHAR as u8;
-const WILDCARD_ALIASES_U8: [u8; 2] = [b'#', b'?'];
+const WILDCARD_ALIASES_U8: [u8; 2] = *b"#?";
 const RESERVED_U8S: [u8; 5] = [b'#', b'?', WILDCARD_U8, b'\0', b'\n'];
 
 impl ControlChars for char {

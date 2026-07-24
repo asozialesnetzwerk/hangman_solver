@@ -84,7 +84,7 @@ fn main() {
                     Some(width / pattern.char_count() + 1),
                 )
                 .unwrap_infallible();
-                assert!(hr.language == lang);
+                assert_eq!(hr.language, lang);
 
                 println!("{hr:─^width$}");
             }
