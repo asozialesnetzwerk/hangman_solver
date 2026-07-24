@@ -61,12 +61,41 @@ impl WordSequence {
 
     #[inline]
     #[must_use]
+    pub fn get(&self, index: usize) -> Option<&str> {
+        self.into_iter().nth(index)
+    }
+
+    #[inline]
+    #[must_use]
+    #[allow(clippy::missing_panics_doc)]
     pub fn contains(&self, word: &str) -> bool {
-        if word.chars().count() == self.word_length {
-            self.iter().any(|w| w == word)
-        } else {
-            false
+        if word.chars().count() != self.word_char_count() {
+            return false;
         }
+
+        let length = self.len();
+
+        if length == 0 {
+            return false;
+        }
+
+        let mut low = 0usize;
+        let mut high = length - 1;
+
+        while low <= high {
+            let mid = low + (high - low) / 2;
+
+            let mid_value = self
+                .get(mid)
+                .expect("this can't fail if binary search is correct");
+            match mid_value.cmp(word) {
+                std::cmp::Ordering::Less => low = mid + 1,
+                std::cmp::Ordering::Equal => return true,
+                std::cmp::Ordering::Greater => high = mid - 1,
+            }
+        }
+
+        false
     }
 
     #[inline]
@@ -168,11 +197,104 @@ impl WordSequence {
             if iter.__len__() > 0 {
                 data.push_str(SEPARATOR);
             }
+
+#[cfg(test)]
+mod tests {
+    use super::WordSequence;
+    use crate::Language;
+
+    #[test]
+    fn test_word_sequence_words_len() {
+        for lang in Language::all() {
+            assert!(lang.read_words(4).len() > 100);
+            assert!(lang.read_words(5).len() > 100);
+            assert!(lang.read_words(6).len() > 100);
+
+            for i in 0..100 {
+                assert_eq!(
+                    lang.read_words(i).len(),
+                    lang.read_words(i).into_iter().count()
+                );
+            }
         }
+    }
 
-        data.push_str(END);
+    #[test]
+    fn test_word_sequence_words_have_same_length() {
+        for lang in Language::all() {
+            for i in 0..100 {
+                assert_eq!(lang.read_words(i).word_char_count(), i);
 
-        data.shrink_to_fit();
-        data
+                for word in lang.read_words(i) {
+                    assert_eq!(word.chars().count(), i);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_word_sequence_is_sorted() {
+        for lang in Language::all() {
+            for i in 0..100 {
+                assert!(lang.read_words(i).into_iter().is_sorted());
+            }
+        }
+    }
+
+    #[test]
+    fn test_word_sequence_get() {
+        for lang in Language::all() {
+            assert_eq!(
+                lang.read_words(10).get(0).expect("we have more than 1 ten letter word"),
+                lang.read_words(10).into_iter().next().expect("we have more than 1 ten letter word"),
+            );
+
+            for i in 0..100 {
+                let words: WordSequence = lang.read_words(i);
+
+                assert!(
+                    words
+                        .iter()
+                        .zip(
+                            (0..words.len())
+                                .map(|i| words.get(i).expect("i is in bounds"))
+                        )
+                        .all(|(a, b)| a == b)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_word_sequence_contains_with_real_words() {
+        assert!(Language::De.read_words(4).contains("test"));
+
+        for lang in Language::all() {
+            for i in 0..100 {
+                let words: WordSequence = lang.read_words(i);
+
+                for word in &words {
+                    assert!(words.contains(word));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_word_sequence_contains_with_broken_words() {
+        assert!(!Language::De.read_words(4).contains("xxx"));
+        assert!(!Language::De.read_words(4).contains("xxxx"));
+        assert!(!Language::De.read_words(4).contains("xxxxx"));
+
+        for lang in Language::all() {
+            for i in 2..100 {
+                let words: WordSequence = lang.read_words(i);
+
+                assert!(!words.contains("x"));
+                assert!(!words.contains("abcde"));
+                assert!(!words.contains("mmmmmmmm"));
+                assert!(!words.contains(&"x".repeat(i)));
+            }
+        }
     }
 }

@@ -5,9 +5,6 @@ pub mod word_sequence;
 use std::num::NonZeroUsize;
 
 #[cfg(feature = "pyo3")]
-use std::ops::Div;
-
-#[cfg(feature = "pyo3")]
 use pyo3::create_exception;
 #[cfg(feature = "pyo3")]
 use pyo3::exceptions::PyValueError;
@@ -25,16 +22,57 @@ pub struct StringChunkIter {
     string: &'static str,
 }
 
+impl StringChunkIter {
+    #[inline]
+    fn remaining_words(&self) -> usize {
+        self.string
+            .len()
+            .checked_sub(self.index)
+            .map_or(0, |rest| rest / self.padded_word_byte_count.get())
+    }
+}
+
+impl ExactSizeIterator for StringChunkIter {}
+
 impl Iterator for StringChunkIter {
     type Item = &'static str;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let end_index =
-            self.index.checked_add(self.padded_word_byte_count.get())?;
+        self.nth(0)
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let length = self.remaining_words();
+
+        (length, Some(length))
+    }
+
+    #[inline]
+    fn count(self) -> usize {
+        self.remaining_words()
+    }
+
+    #[inline]
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        if self.index == self.string.len() {
+            return None;
+        }
+
+        let end_index = self.index.checked_add(
+            self.padded_word_byte_count.get().checked_mul(1 + n)?,
+        )?;
+        if end_index > self.string.len() {
+            debug_assert!(n > 0);
+            self.index = self.string.len();
+            return None;
+        }
         debug_assert_ne!(self.index, end_index);
 
-        let result = self.string.get(self.index..end_index)?;
+        let result = self
+            .string
+            .get((end_index - self.padded_word_byte_count.get())..end_index)?;
 
         let result = if self.is_ascii {
             result
@@ -64,10 +102,7 @@ impl StringChunkIter {
 
     #[must_use]
     pub fn __len__(&self) -> usize {
-        self.string
-            .len()
-            .checked_sub(self.index)
-            .map_or(0, |rest| rest.div(self.padded_word_byte_count))
+        self.remaining_words()
     }
 }
 
