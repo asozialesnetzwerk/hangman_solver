@@ -60,13 +60,14 @@ impl<'a, 'py> FromPyObject<'a, 'py> for InvalidLetters<'a> {
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
 #[allow(clippy::needless_pass_by_value)]
 pub fn solve(
+    py: Python<'_>,
     pattern_string: std::borrow::Cow<'_, str>,
     invalid_letters: InvalidLetters<'_>,
     language: Language,
     max_words_to_collect: usize,
 ) -> HangmanResult {
     let Result::<_, std::convert::Infallible>::Ok(result) =
-        match invalid_letters {
+        py.detach(|| match invalid_letters {
             InvalidLetters::String(invalid_letters) => crate::solver::solve(
                 &pattern_string,
                 &invalid_letters,
@@ -81,7 +82,7 @@ pub fn solve(
                 language,
                 Some(max_words_to_collect),
             ),
-        };
+        });
 
     result
 }
@@ -91,13 +92,14 @@ pub fn solve(
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
 #[allow(clippy::needless_pass_by_value)]
 pub fn solve_crossword(
+    py: Python<'_>,
     pattern_string: std::borrow::Cow<'_, str>,
     invalid_letters: InvalidLetters<'_>,
     language: Language,
     max_words_to_collect: usize,
 ) -> HangmanResult {
     let Result::<_, std::convert::Infallible>::Ok(result) =
-        match invalid_letters {
+        py.detach(|| match invalid_letters {
             InvalidLetters::String(invalid_letters) => crate::solver::solve(
                 &pattern_string,
                 &invalid_letters,
@@ -112,7 +114,7 @@ pub fn solve_crossword(
                 language,
                 Some(max_words_to_collect),
             ),
-        };
+        });
 
     result
 }
