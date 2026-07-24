@@ -174,24 +174,36 @@ impl WordSequence {
     }
 
     #[must_use]
-    pub fn __repr__(&self) -> String {
+    pub fn __repr__(&self, py: Python<'_>) -> String {
         const START: &str = "['";
         const SEPARATOR: &str = "', '";
         const END: &str = "']";
 
         const _: () = assert!(SEPARATOR.len() == START.len() + END.len());
 
-        let mut data = String::with_capacity(
-            self.data.len() + SEPARATOR.len() * self.len(),
-        );
-        data.push_str(START);
+        py.detach(|| {
+            let mut data = String::with_capacity(
+                self.data.len()
+                    + SEPARATOR.len() * self.len()
+                    + const { END.len() + START.len() },
+            );
+            data.push_str(START);
 
-        let mut iter = self.iter();
-        while let Some(word) = iter.next() {
-            data.push_str(word);
-            if iter.__len__() > 0 {
-                data.push_str(SEPARATOR);
+            let mut iter = self.iter();
+            while let Some(word) = iter.next() {
+                data.push_str(word);
+                if iter.__len__() > 0 {
+                    data.push_str(SEPARATOR);
+                }
             }
+
+            data.push_str(END);
+
+            data.shrink_to_fit();
+            data
+        })
+    }
+}
 
 #[cfg(test)]
 mod tests {
