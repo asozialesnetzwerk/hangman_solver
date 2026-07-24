@@ -138,13 +138,6 @@ impl IntoIterator for &WordSequence {
 }
 
 #[cfg(feature = "pyo3")]
-#[derive(FromPyObject)]
-pub enum ContainsArg {
-    StringArg(String),
-    Other(Py<PyAny>),
-}
-
-#[cfg(feature = "pyo3")]
 #[pymethods]
 impl WordSequence {
     #[must_use]
@@ -172,12 +165,12 @@ impl WordSequence {
     }
 
     #[must_use]
-    pub fn __contains__(&self, arg: ContainsArg) -> bool {
-        if let ContainsArg::StringArg(string) = arg {
-            self.contains(&string)
-        } else {
-            false
-        }
+    pub fn __contains__(&self, arg: &Bound<'_, PyAny>) -> bool {
+        let Ok(string) = arg.extract::<std::borrow::Cow<'_, str>>() else {
+            return false;
+        };
+
+        self.contains(&string)
     }
 
     #[must_use]
