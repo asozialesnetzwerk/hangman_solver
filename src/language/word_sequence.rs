@@ -160,6 +160,8 @@ impl WordSequence {
     #[must_use]
     pub fn __hash__(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
+        hasher.write_usize(self.word_length);
+        hasher.write_usize(self.padded_word_byte_count.get());
         hasher.write(self.data.as_bytes());
         hasher.finish()
     }
