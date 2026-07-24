@@ -26,6 +26,7 @@ wasm-opt = ['-Oz', '--enable-bulk-memory', '--enable-nontrapping-float-to-int']
 # , "pyo3", "wasm-bindgen"
 default = ["terminal_size"]
 wasm-bindgen = ["dep:wasm-bindgen", "dep:js-sys"]
+pyo3 = ["dep:pyo3"]
 
 [profile.release]
 codegen-units = 1
