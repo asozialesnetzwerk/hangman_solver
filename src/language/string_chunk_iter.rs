@@ -19,7 +19,11 @@ impl StringChunkIter {
     }
 }
 
-impl ExactSizeIterator for StringChunkIter {}
+impl ExactSizeIterator for StringChunkIter {
+    fn len(&self) -> usize {
+        self.remaining_words()
+    }
+}
 
 impl Iterator for StringChunkIter {
     type Item = &'static str;
