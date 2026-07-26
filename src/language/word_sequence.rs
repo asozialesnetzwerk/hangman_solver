@@ -180,6 +180,10 @@ impl WordSequence {
 
         const _: () = assert!(SEPARATOR.len() == START.len() + END.len());
 
+        if self.is_empty() {
+            return "[]".into();
+        }
+
         py.detach(|| {
             let mut data = String::with_capacity(
                 self.data.len()
