@@ -50,12 +50,18 @@ impl Iterator for StringChunkIter {
 
     #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        let Some(advance_by) = self.padded_word_byte_count.get().checked_mul(n.saturating_add(1)) else {
+        let Some(advance_by) = self
+            .padded_word_byte_count
+            .get()
+            .checked_mul(n.saturating_add(1))
+        else {
             // we tried to advance more than possible
             self.string = "";
             return None;
         };
-        let Some((value, new_string)) = self.string.split_at_checked(advance_by) else {
+        let Some((value, new_string)) =
+            self.string.split_at_checked(advance_by)
+        else {
             debug_assert!(advance_by > self.string.len());
             self.string = "";
             return None;
@@ -68,6 +74,29 @@ impl Iterator for StringChunkIter {
         } else {
             &value[value.len() - self.padded_word_byte_count.get()..value.len()]
         };
+
+        debug_assert_eq!(result.len(), self.padded_word_byte_count.get());
+
+        let result = if self.is_ascii {
+            result
+        } else {
+            result.trim_start_matches('\0')
+        };
+
+        debug_assert!(!result.contains('\0'));
+        Some(result)
+    }
+}
+
+impl DoubleEndedIterator for StringChunkIter {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        let pivot = self
+            .string
+            .len()
+            .checked_sub(self.padded_word_byte_count.get())?;
+
+        let result = self.string.get(pivot..self.string.len())?;
+        self.string = &self.string[..pivot];
 
         debug_assert_eq!(result.len(), self.padded_word_byte_count.get());
 
@@ -103,9 +132,9 @@ impl StringChunkIter {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Language};
+    use crate::Language;
 
-use super::StringChunkIter;
+    use super::StringChunkIter;
 
     #[test]
     fn test_string_chunk_iter() {
@@ -129,7 +158,6 @@ use super::StringChunkIter;
             is_ascii: false,
             string: STRING,
         };
-
 
         assert_eq!(string_chunk_iter.next(), Some("ab"));
         assert_eq!(string_chunk_iter.nth(1), Some("ef"));
@@ -161,19 +189,55 @@ use super::StringChunkIter;
 
     #[test]
     fn test_string_chunk_iter_being_fused() {
-        let mut iterator: StringChunkIter = Language::DeUmlauts.read_words(6).iter();
+        let mut iterator: StringChunkIter =
+            Language::DeUmlauts.read_words(6).iter();
 
         let start_length = iterator.len();
         assert!(start_length > 100);
 
-        for _ in 0..50 {
+        for _ in 0..25 {
             assert!(iterator.next().is_some());
+        }
+        for _ in 0..25 {
+            assert!(iterator.next_back().is_some());
         }
         assert_eq!(iterator.len() + 50, start_length);
         assert!(iterator.nth(iterator.len() - 1).is_some());
 
         for _ in 0..100 {
             assert_eq!(iterator.next(), None);
+            assert_eq!(iterator.next_back(), None);
         }
+    }
+
+    #[test]
+    fn test_string_chunk_iter_being_double_ended() {
+        let mut iterator: StringChunkIter =
+            Language::DeUmlauts.read_words(10).iter();
+
+        let mut last_hundred_words = vec![];
+
+        let mut cloned_iterator = iterator.clone();
+        while last_hundred_words.len() < 100
+            && let Some(word) = cloned_iterator.next_back()
+        {
+            last_hundred_words.push(word);
+        }
+
+        assert!(iterator.nth(iterator.remaining_words() - 100 - 1).is_some());
+
+        assert_eq!(iterator.len(), 100);
+
+        let reversed_words = iterator.clone().rev().collect::<Vec<_>>();
+        assert_eq!(reversed_words.len(), 100);
+
+        assert_eq!(last_hundred_words, reversed_words);
+
+        let mut words = iterator.collect::<Vec<_>>();
+        assert_eq!(words.len(), 100);
+
+        words.reverse();
+
+        assert_eq!(last_hundred_words, words);
     }
 }

@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: EUPL-1.2
 
-pub mod word_sequence;
 mod string_chunk_iter;
+pub mod word_sequence;
 
-pub use word_sequence::WordSequence;
 pub use string_chunk_iter::StringChunkIter;
+pub use word_sequence::WordSequence;
 
 include!(concat!(env!("OUT_DIR"), "/language.rs"));
 
 #[cfg(feature = "pyo3")]
-pyo3::create_exception!(hangman_solver, UnknownLanguageError,  pyo3::exceptions::PyValueError);
-
+pyo3::create_exception!(
+    hangman_solver,
+    UnknownLanguageError,
+    pyo3::exceptions::PyValueError
+);
 
 #[cfg(feature = "pyo3")]
 #[pyo3::pymethods]
@@ -31,7 +34,10 @@ impl Language {
 
     #[staticmethod]
     #[pyo3(signature = (name, default = None))]
-    pub fn parse_string(name: &str, default: Option<Self>) -> pyo3::prelude::PyResult<Self> {
+    pub fn parse_string(
+        name: &str,
+        default: Option<Self>,
+    ) -> pyo3::prelude::PyResult<Self> {
         Self::from_string(name)
             .or(default)
             .ok_or_else(|| UnknownLanguageError::new_err(name.to_owned()))
