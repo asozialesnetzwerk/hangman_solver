@@ -109,7 +109,7 @@ fn write_words_data(words_data: &WordsData) {
             max_string_lit_len.max(max_word_byte_count * chunk.len());
 
         let start_of_case = format!(
-            "{char_count} => (NonZeroUsize::MIN.saturating_add({max_word_byte_count} - 1), \""
+            "{char_count} => (std::num::NonZeroUsize::MIN.saturating_add({max_word_byte_count} - 1), \""
         );
         const END_OF_CASE: &str = "\"),\n";
         output.reserve(
@@ -143,7 +143,7 @@ fn write_words_data(words_data: &WordsData) {
         }
         output += END_OF_CASE;
     }
-    output.push_str("_ => (NonZeroUsize::MIN, \"\")}");
+    output.push_str("_ => (std::num::NonZeroUsize::MIN, \"\")}");
     fs::write(words_data.dest_path(), output).unwrap();
 
     println!("cargo:warning={max_string_lit_len}");
@@ -229,7 +229,7 @@ fn main() {
         get_out_dir_joined(String::from("language.rs")),
         format!(
             r###"
-#[cfg_attr(feature = "pyo3", pyclass(from_py_object, eq))]
+#[cfg_attr(feature = "pyo3", pyo3::pyclass(from_py_object, eq))]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Language {{
     {}
@@ -238,7 +238,7 @@ pub enum Language {{
 impl Language {{
     #[must_use]
     pub const fn read_words(self, length: usize) -> WordSequence {{
-        let (padded_length, words): (NonZeroUsize, &'static str) = match self {{
+        let (padded_length, words): (std::num::NonZeroUsize, &'static str) = match self {{
             {}
         }};
         WordSequence::new(length, words, padded_length)
@@ -269,31 +269,6 @@ impl Language {{
         match self {{
             {}
         }}
-    }}
-}}
-
-#[cfg(feature = "pyo3")]
-#[pymethods]
-impl Language {{
-    #[staticmethod]
-    #[must_use]
-    const fn values() -> [Self; {language_count}] {{
-        Self::all()
-    }}
-
-    #[allow(clippy::trivially_copy_pass_by_ref)]
-    #[getter]
-    #[must_use]
-    const fn value(&self) -> &'static str {{
-        self.name()
-    }}
-
-    #[staticmethod]
-    #[pyo3(signature = (name, default = None))]
-    pub fn parse_string(name: &str, default: Option<Self>) -> PyResult<Self> {{
-        Self::from_string(name)
-            .or(default)
-            .ok_or_else(|| UnknownLanguageError::new_err(name.to_owned()))
     }}
 }}
 "###,
