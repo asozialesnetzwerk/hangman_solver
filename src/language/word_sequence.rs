@@ -101,6 +101,7 @@ impl WordSequence {
         None
     }
 
+    #[cfg(feature = "pyo3")]
     const fn convert_index(&self, index: isize) -> Option<usize> {
         if index < 0 {
             self.len().checked_add_signed(index)
