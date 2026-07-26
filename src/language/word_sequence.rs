@@ -4,7 +4,7 @@ use std::num::NonZeroUsize;
 #[cfg(feature = "pyo3")]
 use pyo3::{
     IntoPyObjectExt,
-    exceptions::{PyIndexError, PyTypeError},
+    exceptions::{PyIndexError, PyTypeError, PyValueError},
     prelude::*,
     types::PySlice,
 };
@@ -71,15 +71,15 @@ impl WordSequence {
     #[inline]
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
-    pub fn contains(&self, word: &str) -> bool {
+    fn index_of(&self, word: &str) -> Option<usize> {
         if word.chars().count() != self.word_char_count() {
-            return false;
+            return None;
         }
 
         let length = self.len();
 
         if length == 0 {
-            return false;
+            return None;
         }
 
         let mut low = 0usize;
@@ -93,12 +93,26 @@ impl WordSequence {
                 .expect("this can't fail if binary search is correct");
             match mid_value.cmp(word) {
                 std::cmp::Ordering::Less => low = mid + 1,
-                std::cmp::Ordering::Equal => return true,
+                std::cmp::Ordering::Equal => return Some(mid),
                 std::cmp::Ordering::Greater => high = mid - 1,
             }
         }
 
-        false
+        None
+    }
+
+    const fn convert_index(&self, index: isize) -> Option<usize> {
+        if index < 0 {
+            self.len().checked_add_signed(index)
+        } else {
+            0usize.checked_add_signed(index)
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn contains(&self, word: &str) -> bool {
+        self.index_of(word).is_some()
     }
 
     #[inline]
@@ -177,15 +191,54 @@ impl WordSequence {
         self.contains(&string)
     }
 
+    #[pyo3(signature=(value, start = 0, stop = None))]
+    pub fn index(
+        &self,
+        value: &Bound<'_, PyAny>,
+        start: isize,
+        stop: Option<isize>,
+    ) -> PyResult<usize> {
+        let Ok(string) = value.extract::<std::borrow::Cow<'_, str>>() else {
+            return Err(PyValueError::new_err(()));
+        };
+        let get_index = move || -> Option<usize> {
+            let index = self.index_of(&string)?;
+
+            if start != 0 {
+                let start = self.convert_index(start)?;
+                if start > index {
+                    return None;
+                }
+            }
+            if let Some(stop) = stop {
+                let stop = self.convert_index(stop)?;
+                if stop <= index {
+                    return None;
+                }
+            }
+
+            Some(index)
+        };
+
+        get_index()
+            .ok_or_else(|| PyValueError::new_err("value not in sequence"))
+    }
+
+    #[must_use]
+    pub fn count(&self, arg: &Bound<'_, PyAny>) -> u8 {
+        let Ok(string) = arg.extract::<std::borrow::Cow<'_, str>>() else {
+            return 0;
+        };
+
+        self.contains(&string).into()
+    }
+
     #[allow(clippy::missing_panics_doc)]
     pub fn __getitem__(&self, arg: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
         if let Ok(index) = arg.extract::<isize>() {
-            let index: usize = if index < 0 {
-                self.len().checked_add_signed(index)
-            } else {
-                0usize.checked_add_signed(index)
-            }
-            .ok_or_else(|| PyIndexError::new_err("index out of range"))?;
+            let index: usize = self
+                .convert_index(index)
+                .ok_or_else(|| PyIndexError::new_err("index out of range"))?;
 
             let value = self
                 .get(index)
