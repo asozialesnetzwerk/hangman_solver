@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
+#[cfg(feature = "pyo3")]
+mod reversed_string_chunk_iter;
 mod string_chunk_iter;
 mod word_sequence;
 

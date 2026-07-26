@@ -337,6 +337,15 @@ impl WordSequence {
     }
 
     #[must_use]
+    fn __reversed__(
+        &self,
+    ) -> super::reversed_string_chunk_iter::ReversedStringChunkIter {
+        super::reversed_string_chunk_iter::ReversedStringChunkIter::from(
+            self.iter(),
+        )
+    }
+
+    #[must_use]
     pub fn __repr__(&self, py: Python<'_>) -> String {
         const START: &str = "['";
         const SEPARATOR: &str = "', '";

@@ -1,4 +1,4 @@
-from collections.abc import Collection, Sequence, Mapping
+from collections.abc import Sequence, Mapping
 from typing import Final, Never
 
 
@@ -57,7 +57,7 @@ class UnknownLanguageError(ValueError):
     pass
 
 
-def read_words_with_length(language: Language, word_length: int, /) -> Collection[str]:
+def read_words_with_length(language: Language, word_length: int, /) -> Sequence[str]:
     pass
 
 def solve(
@@ -75,3 +75,6 @@ def solve_crossword(
     max_words_to_collect: int
 ) -> HangmanResult:
     pass
+
+
+del Sequence, Mapping, Final, Never

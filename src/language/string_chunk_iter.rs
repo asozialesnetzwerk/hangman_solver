@@ -128,6 +128,16 @@ impl StringChunkIter {
     pub const fn __len__(&self) -> usize {
         self.remaining_words()
     }
+
+    #[must_use]
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn __reversed__(
+        slf: PyRef<'_, Self>,
+    ) -> super::reversed_string_chunk_iter::ReversedStringChunkIter {
+        super::reversed_string_chunk_iter::ReversedStringChunkIter::from(
+            slf.clone(),
+        )
+    }
 }
 
 #[cfg(test)]

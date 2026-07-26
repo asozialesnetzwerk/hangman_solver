@@ -15,3 +15,11 @@ __all__ = (
     "HangmanResult",
     "Language",
 )
+
+from collections.abc import Sequence
+try:
+    Sequence.register(type(read_words_with_length(Language.De, 67)))
+except Exception:
+    pass
+finally:
+    del Sequence
