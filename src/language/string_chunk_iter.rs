@@ -1,3 +1,4 @@
+use std::iter::FusedIterator;
 // SPDX-License-Identifier: EUPL-1.2
 use std::num::NonZeroUsize;
 
@@ -18,6 +19,8 @@ impl StringChunkIter {
         self.string.len() / self.padded_word_byte_count.get()
     }
 }
+
+impl FusedIterator for StringChunkIter {}
 
 impl ExactSizeIterator for StringChunkIter {
     fn len(&self) -> usize {
