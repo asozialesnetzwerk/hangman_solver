@@ -107,7 +107,6 @@ impl WordSequence {
     #[inline]
     const fn const_convert_to_iter(&self) -> StringChunkIter {
         StringChunkIter {
-            index: 0,
             is_ascii: self.word_length == self.padded_word_byte_count.get(),
             padded_word_byte_count: self.padded_word_byte_count,
             string: self.data,

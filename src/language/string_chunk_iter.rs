@@ -4,21 +4,18 @@ use std::num::NonZeroUsize;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
-#[cfg_attr(feature = "pyo3", pyclass)]
+#[cfg_attr(feature = "pyo3", pyclass(skip_from_py_object))]
+#[derive(Clone)]
 pub struct StringChunkIter {
     pub(super) padded_word_byte_count: NonZeroUsize,
     pub(super) is_ascii: bool,
-    pub(super) index: usize,
     pub(super) string: &'static str,
 }
 
 impl StringChunkIter {
     #[inline]
-    fn remaining_words(&self) -> usize {
-        self.string
-            .len()
-            .checked_sub(self.index)
-            .map_or(0, |rest| rest / self.padded_word_byte_count.get())
+    const fn remaining_words(&self) -> usize {
+        self.string.len() / self.padded_word_byte_count.get()
     }
 }
 
@@ -46,23 +43,26 @@ impl Iterator for StringChunkIter {
 
     #[inline]
     fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        if self.index == self.string.len() {
+        let Some(advance_by) = self.padded_word_byte_count.get().checked_mul(n.saturating_add(1)) else {
+            // we tried to advance more than possible
+            self.string = "";
             return None;
-        }
-
-        let end_index = self.index.checked_add(
-            self.padded_word_byte_count.get().checked_mul(1 + n)?,
-        )?;
-        if end_index > self.string.len() {
-            debug_assert!(n > 0);
-            self.index = self.string.len();
+        };
+        let Some((value, new_string)) = self.string.split_at_checked(advance_by) else {
+            debug_assert!(advance_by > self.string.len());
+            self.string = "";
             return None;
-        }
-        debug_assert_ne!(self.index, end_index);
+        };
+        self.string = new_string;
+        debug_assert!(value.len() >= self.padded_word_byte_count.get());
 
-        let result = self
-            .string
-            .get((end_index - self.padded_word_byte_count.get())..end_index)?;
+        let result = if n == 0 {
+            value
+        } else {
+            &value[value.len() - self.padded_word_byte_count.get()..value.len()]
+        };
+
+        debug_assert_eq!(result.len(), self.padded_word_byte_count.get());
 
         let result = if self.is_ascii {
             result
@@ -70,8 +70,6 @@ impl Iterator for StringChunkIter {
             result.trim_start_matches('\0')
         };
 
-        debug_assert!(end_index <= self.string.len());
-        self.index = end_index;
         debug_assert!(!result.contains('\0'));
         Some(result)
     }
@@ -91,7 +89,42 @@ impl StringChunkIter {
     }
 
     #[must_use]
-    pub fn __len__(&self) -> usize {
+    pub const fn __len__(&self) -> usize {
         self.remaining_words()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::StringChunkIter;
+
+    #[test]
+    fn test_string_chunk_iter() {
+        const STRING: &str = "abcdefgh";
+
+        let mut string_chunk_iter = StringChunkIter {
+            padded_word_byte_count: 1.try_into().expect("1 is not 0"),
+            is_ascii: true,
+            string: STRING,
+        };
+
+        assert_eq!(STRING.len(), string_chunk_iter.clone().count());
+
+        assert_eq!(string_chunk_iter.next(), Some("a"));
+        assert_eq!(string_chunk_iter.nth(1), Some("c"));
+        assert_eq!(string_chunk_iter.nth(usize::MAX), None);
+        assert_eq!(string_chunk_iter.next(), None);
+
+        let mut string_chunk_iter = StringChunkIter {
+            padded_word_byte_count: 2.try_into().expect("2 is not 0"),
+            is_ascii: false,
+            string: STRING,
+        };
+
+
+        assert_eq!(string_chunk_iter.next(), Some("ab"));
+        assert_eq!(string_chunk_iter.nth(1), Some("ef"));
+        assert_eq!(string_chunk_iter.nth(usize::MAX - 100), None);
+        assert_eq!(string_chunk_iter.next(), None);
     }
 }
