@@ -103,7 +103,9 @@ impl StringChunkIter {
 
 #[cfg(test)]
 mod tests {
-    use super::StringChunkIter;
+    use crate::{Language};
+
+use super::StringChunkIter;
 
     #[test]
     fn test_string_chunk_iter() {
@@ -133,5 +135,45 @@ mod tests {
         assert_eq!(string_chunk_iter.nth(1), Some("ef"));
         assert_eq!(string_chunk_iter.nth(usize::MAX - 100), None);
         assert_eq!(string_chunk_iter.next(), None);
+    }
+
+    #[test]
+    fn test_string_chunk_iter_being_exact_sized() {
+        let sequence = Language::En.read_words(5);
+        let length = sequence.len();
+
+        assert!(length > 100);
+
+        let iterator: StringChunkIter = sequence.into_iter();
+
+        assert_eq!(iterator.len(), length);
+        assert_eq!(iterator.size_hint(), (length, Some(length)));
+        assert_eq!(iterator.clone().count(), length);
+
+        let mut c = 0;
+
+        for _ in iterator {
+            c += 1;
+        }
+
+        assert_eq!(c, length);
+    }
+
+    #[test]
+    fn test_string_chunk_iter_being_fused() {
+        let mut iterator: StringChunkIter = Language::DeUmlauts.read_words(6).iter();
+
+        let start_length = iterator.len();
+        assert!(start_length > 100);
+
+        for _ in 0..50 {
+            assert!(iterator.next().is_some());
+        }
+        assert_eq!(iterator.len() + 50, start_length);
+        assert!(iterator.nth(iterator.len() - 1).is_some());
+
+        for _ in 0..100 {
+            assert_eq!(iterator.next(), None);
+        }
     }
 }
