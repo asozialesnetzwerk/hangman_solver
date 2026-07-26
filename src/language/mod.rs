@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 
 mod string_chunk_iter;
-pub mod word_sequence;
+mod word_sequence;
 
 pub use string_chunk_iter::StringChunkIter;
 pub use word_sequence::WordSequence;
