@@ -2,9 +2,12 @@
 use std::num::NonZeroUsize;
 
 #[cfg(feature = "pyo3")]
-use pyo3::prelude::*;
-#[cfg(feature = "pyo3")]
-use std::hash::{DefaultHasher, Hasher};
+use pyo3::{
+    IntoPyObjectExt,
+    exceptions::{PyIndexError, PyTypeError},
+    prelude::*,
+    types::PySlice,
+};
 
 use super::StringChunkIter;
 
@@ -151,6 +154,8 @@ impl WordSequence {
 
     #[must_use]
     pub fn __hash__(&self) -> u64 {
+        use std::hash::{DefaultHasher, Hasher};
+
         let mut hasher = DefaultHasher::new();
         hasher.write_usize(self.word_length);
         hasher.write_usize(self.padded_word_byte_count.get());
@@ -170,6 +175,112 @@ impl WordSequence {
         };
 
         self.contains(&string)
+    }
+
+    #[allow(clippy::missing_panics_doc)]
+    pub fn __getitem__(&self, arg: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
+        if let Ok(index) = arg.extract::<isize>() {
+            let index: usize = if index < 0 {
+                self.len().checked_add_signed(index)
+            } else {
+                0usize.checked_add_signed(index)
+            }
+            .ok_or_else(|| PyIndexError::new_err("index out of range"))?;
+
+            let value = self
+                .get(index)
+                .ok_or_else(|| PyIndexError::new_err("index out of range"))?;
+
+            return value.into_py_any(arg.py());
+        }
+        if let Ok(slice) = arg.cast::<PySlice>() {
+            if self.is_empty() {
+                let value = Self {
+                    word_length: self.word_length,
+                    padded_word_byte_count: self.padded_word_byte_count,
+                    data: "",
+                };
+
+                return value.into_py_any(arg.py());
+            }
+
+            let indices = slice.indices(self.len().try_into()?)?;
+
+            if indices.slicelength == 0 {
+                let value = Self {
+                    word_length: self.word_length,
+                    padded_word_byte_count: self.padded_word_byte_count,
+                    data: "",
+                };
+
+                return value.into_py_any(arg.py());
+            }
+
+            if indices.step == 1 {
+                let start: usize = indices
+                    .start
+                    .try_into()
+                    .expect("start has to be positive if step is 1");
+                let stop: usize = indices
+                    .stop
+                    .try_into()
+                    .expect("stop has to be positive if step is 1");
+
+                let range = start * self.padded_word_byte_count.get()
+                    ..stop * self.padded_word_byte_count.get();
+
+                let value = Self {
+                    word_length: self.word_length,
+                    padded_word_byte_count: self.padded_word_byte_count,
+                    data: self.data.get(range).unwrap_or(""),
+                };
+
+                return value.into_py_any(arg.py());
+            }
+
+            let value: Vec<&str> = arg.py().detach(|| {
+                PyResult::Ok(if indices.step > 0 {
+                    let step: usize =
+                        indices.step.try_into().expect("step is positive");
+                    let start: usize = indices
+                        .start
+                        .try_into()
+                        .expect("start has to be positive if step is positive");
+
+                    self.iter()
+                        .skip(start)
+                        .step_by(step)
+                        .take(indices.slicelength)
+                        .collect()
+                } else {
+                    let start_from_end: usize = if indices.start < 0 {
+                        indices.start.unsigned_abs()
+                    } else {
+                        // len can't be zero here
+                        (self.len() - 1)
+                            .checked_sub_signed(indices.start)
+                            .ok_or_else(|| {
+                                PyIndexError::new_err("index out of range")
+                            })?
+                    };
+
+                    self.iter()
+                        .rev()
+                        .skip(start_from_end)
+                        .step_by(indices.step.unsigned_abs())
+                        .take(indices.slicelength)
+                        .collect()
+                })
+            })?;
+
+            return value.into_py_any(arg.py());
+        }
+
+        let name = arg.get_type().fully_qualified_name()?;
+        let type_name = name.extract::<std::borrow::Cow<'_, str>>()?;
+        Err(PyTypeError::new_err(format!(
+            "indices must be integers or slices, not {type_name}"
+        )))
     }
 
     #[must_use]
