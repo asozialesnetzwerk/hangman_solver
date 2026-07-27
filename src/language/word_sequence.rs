@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: EUPL-1.2
+use std::hash::{Hash, Hasher};
 use std::num::NonZeroUsize;
+#[cfg(feature = "pyo3")]
+use std::sync::LazyLock;
 
+#[cfg(feature = "pyo3")]
+use itertools::Itertools;
 #[cfg(feature = "pyo3")]
 use pyo3::{
     IntoPyObjectExt,
@@ -27,6 +32,16 @@ pub struct WordSequence {
     word_length: usize,
     data: &'static str,
     padded_word_byte_count: NonZeroUsize,
+}
+
+impl Hash for WordSequence {
+    fn hash<H: Hasher>(&self, hasher: &mut H) {
+        hasher.write_usize(self.len());
+
+        for word in self {
+            word.hash(hasher);
+        }
+    }
 }
 
 impl WordSequence {
@@ -168,14 +183,20 @@ impl WordSequence {
     }
 
     #[must_use]
-    pub fn __hash__(&self) -> u64 {
-        use std::hash::{DefaultHasher, Hasher};
+    pub fn __hash__(&self, py: Python<'_>) -> u64 {
+        use std::hash::{BuildHasher as _, RandomState};
 
-        let mut hasher = DefaultHasher::new();
-        hasher.write_usize(self.word_length);
-        hasher.write_usize(self.padded_word_byte_count.get());
-        hasher.write(self.data.as_bytes());
-        hasher.finish()
+        static RANDOM: LazyLock<RandomState> = LazyLock::new(RandomState::new);
+
+        py.detach(|| RANDOM.hash_one(self))
+    }
+
+    #[must_use]
+    pub fn __eq__(&self, py: Python<'_>, other: &Self) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
+        py.detach(|| self.iter().zip_eq(other.iter()).all(|(a, b)| a == b))
     }
 
     #[must_use]
@@ -384,6 +405,10 @@ impl WordSequence {
 
 #[cfg(test)]
 mod tests {
+    use std::hash::{
+        BuildHasher as _, BuildHasherDefault, DefaultHasher, RandomState,
+    };
+
     use super::WordSequence;
     use crate::Language;
 
@@ -483,6 +508,33 @@ mod tests {
                 assert!(!words.contains("abcde"));
                 assert!(!words.contains("mmmmmmmm"));
                 assert!(!words.contains(&"x".repeat(i)));
+            }
+        }
+    }
+
+    #[test]
+    fn test_word_sequence_hash() {
+        let random_state = RandomState::new();
+
+        let empty_hash = random_state.hash_one(Language::De.read_words(0));
+
+        for lang in Language::all() {
+            for i in 0..100 {
+                let words: WordSequence = lang.read_words(i);
+
+                if words.is_empty() {
+                    assert_eq!(random_state.hash_one(&words), empty_hash);
+                }
+
+                assert_eq!(
+                    random_state.hash_one(&words),
+                    random_state.hash_one(&words)
+                );
+                let random_state = BuildHasherDefault::<DefaultHasher>::new();
+                assert_eq!(
+                    random_state.hash_one(&words),
+                    random_state.hash_one(words)
+                );
             }
         }
     }
