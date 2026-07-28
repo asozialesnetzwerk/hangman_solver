@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from itertools import permutations
 from concurrent.futures import wait
 from collections.abc import Sequence
 
@@ -44,6 +45,8 @@ for _ in (1, 2):
     for lang in Language.values():
         for i in range(200 * _):
             words = read_words_with_length(lang, i)
+            sequences.add(words)
+
             for w, word in enumerate(words):
                 assert "" not in words
                 assert words.count("") == 0
@@ -61,8 +64,30 @@ for _ in (1, 2):
                 assert words[0] == next(iter(words))
                 assert words[-1] == next(reversed(words)) == words[len(words) - 1]
 
-            sequences.add(words)
             assert_hashable_sequences_equal(words, read_words_with_length(lang, i))
             assert_hashable_sequences_equal(empty_sequence, words and words[:0])
 
     assert len(sequences) == 206
+
+counter = 0
+for words in sequences:
+    if len(words) > 1000:
+        continue
+    counter += 1
+    for s in [slice(0, 100), slice(-100, None)]:
+        words_slice = words[s]
+        assert type(words_slice) is type(words)
+        word_list = list(words_slice)
+
+        if len(words) >= 100:
+            assert len(word_list) == 100
+
+        for (start, stop, step) in permutations(range(-55, 55), 3):
+            if step == 0:
+                continue
+            if step == 1:
+                assert type(words_slice[start:stop:step]) is type(words_slice)
+            assert word_list[start:stop:step] == list(words_slice[start:stop:step]), f"{word_list[start:stop:step]} != {words_slice[start:stop:step]}; [{start}:{stop}:{step}]"
+
+
+assert counter == 96, f"{counter} != 96"
