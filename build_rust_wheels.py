@@ -16,6 +16,9 @@ from pathlib import Path
 from zopfli import ZipFile, ZopfliCompressor, ZOPFLI_FORMAT_GZIP
 
 
+INTERPRETER_NAME = Path(sys.executable).resolve().name
+
+
 def run(*args: str) -> None:
     print("+", *args, file=sys.stderr, flush=True);
     subprocess.run(args, check=True, shell=False, stdout=sys.stderr.buffer)
@@ -36,6 +39,8 @@ def main(args: Sequence[str]) -> str | int:
     if len(args) != 1:
         return f"USAGE: {sys.argv[0]} <DIR>"
 
+    print(f"{INTERPRETER_NAME=}", file=sys.stderr)
+
     [directory] = args
 
     tmp_dir = Path(tempfile.mkdtemp(prefix=f"dist-{Path(directory).absolute().name}-")).absolute()
@@ -44,28 +49,42 @@ def main(args: Sequence[str]) -> str | int:
 
     [sdist] = list(tmp_dir.glob("*"));
 
-    for arch in ["aarch64", "x86_64"]:  # TODO; "riscv64"
-        for manylinux in ["manylinux_2_17", "musllinux_1_1"]:
-            image = "ghcr.io/pyo3/maturin:main"  # TODO: latest
+    for arch in ("aarch64", "x86_64"):  # TODO; "riscv64"
+        for manylinux in ("manylinux_2_17", "musllinux_1_2"): # update to manylinux_2_28 before eol in 2027
+            image = "ghcr.io/joshix-1/pyo3-maturin:main"  # TODO: "ghcr.io/pyo3/maturin:latest"
             if "musllinux" in manylinux:
                 image += "-musllinux"
-            run(
-                "podman",
-                "run",
-                f"--arch={arch}",
-                "--rm",
-                "--pull=newer",
-                f"--volume={directory}:/io",
-                f"--volume={tmp_dir.as_posix()}:/dist",
-                image,
-                "build",
-                "--compression-level=1",  # gets recompressed anyway
-                "--future-incompat-report",
-                "--auditwheel=repair",
-                "--out=/dist",
-                "--release",
-                f"--compatibility={manylinux}",
-            )
+
+            for features in ("", "abi3", "abi3t"):
+                interpreters: list[str]
+                if features == "abi3t":
+                    interpreters = ["/opt/python/cp315-cp315t/bin/python3.15t"]
+                elif features:
+                    interpreters = []
+                else:
+                    interpreters = [INTERPRETER_NAME]
+                    if "manylinux" in manylinux:  # SEE: https://github.com/pypa/manylinux/issues/1974
+                        interpreters.append("pypy3.11")
+
+                run(
+                    "podman",
+                    "run",
+                    f"--arch={arch}",
+                    "--rm",
+                    "--pull=newer",
+                    f"--volume={directory}:/io",
+                    f"--volume={tmp_dir.as_posix()}:/dist",
+                    image,
+                    "build",
+                    "--compression-level=1",  # gets recompressed anyway
+                    "--future-incompat-report",
+                    "--auditwheel=repair",
+                    "--out=/dist",
+                    "--release",
+                    *[f"--interpreter={py}" for py in interpreters],
+                    *(["--features", features] if features else []),
+                    f"--compatibility={manylinux}",
+                )
 
     targz = sdist.read_bytes()
     tar = gzip.decompress(targz)

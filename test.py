@@ -77,6 +77,7 @@ for words in sequences:
     for s in [slice(0, 100), slice(-100, None)]:
         words_slice = words[s]
         assert type(words_slice) is type(words)
+        assert isinstance(words_slice, Sequence)
         word_list = list(words_slice)
 
         if len(words) >= 100:
@@ -85,9 +86,12 @@ for words in sequences:
         for (start, stop, step) in permutations(range(-55, 55), 3):
             if step == 0:
                 continue
+            _slice = words_slice[start:stop:step]
+            assert isinstance(_slice, Sequence)
             if step == 1:
-                assert type(words_slice[start:stop:step]) is type(words_slice)
-            assert word_list[start:stop:step] == list(words_slice[start:stop:step]), f"{word_list[start:stop:step]} != {words_slice[start:stop:step]}; [{start}:{stop}:{step}]"
+                assert type(_slice) is type(words_slice)
+                assert _slice == words_slice[start:stop:step]
+            assert word_list[start:stop:step] == list(_slice), f"{word_list[start:stop:step]} != {_slice}; [{start}:{stop}:{step}]"
 
 
 assert counter == 96, f"{counter} != 96"
