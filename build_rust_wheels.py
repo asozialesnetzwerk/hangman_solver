@@ -4,6 +4,13 @@
 #   "zopflipy",
 # ]
 # ///
+"""
+Builds wheels for pyo3 projects.
+
+The rust project needs:
+   - abi3 feature which activates pyo3/abi3 and pyo3/abi3-pyXY
+   - abi3t feature which activates pyo3/abi3t and pyo3/abi3t-pyXY
+"""
 from bz2 import compress
 import gzip
 import io
@@ -51,7 +58,7 @@ def main(args: Sequence[str]) -> str | int:
 
     for arch in ("aarch64", "x86_64"):  # TODO; "riscv64"
         for manylinux in ("manylinux_2_17", "musllinux_1_2"): # update to manylinux_2_28 before eol in 2027
-            image = "ghcr.io/joshix-1/pyo3-maturin:main"  # TODO: "ghcr.io/pyo3/maturin:latest"
+            image = "ghcr.io/pyo3/maturin:main"  # TODO: "latest"
             if "musllinux" in manylinux:
                 image += "-musllinux"
 
