@@ -88,7 +88,6 @@ pub fn solve(
     result
 }
 
-
 /// Solve a pattern.
 ///
 /// Crossword mode means that letters in the pattern can appear in other positions.
