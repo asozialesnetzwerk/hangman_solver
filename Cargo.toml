@@ -32,7 +32,7 @@ abi3t = ["pyo3", "pyo3/abi3t", "pyo3/abi3t-py315"]
 
 [profile.release]
 codegen-units = 1
-panic = "abort"
+panic = "unwind"
 strip = true
 lto = true
 opt-level = 3
