@@ -56,7 +56,7 @@ cfg_select! {
             pub invalid: Vec<char>,
             /// Some possible words.
             ///
-            /// Compare to matching_words_count to see if these are all.
+            /// Compare to `matching_words_count` to see if these are all.
             #[pyo3(get, name = "words")]
             pub possible_words: Vec<&'static str>,
             /// The language used.
