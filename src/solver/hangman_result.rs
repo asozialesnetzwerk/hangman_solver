@@ -42,19 +42,28 @@ fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
 
 cfg_if! {
     if #[cfg(feature = "pyo3")] {
+        /// The result of a hangman solve.
         #[pyclass]
         #[must_use]
         pub struct HangmanResult {
+            /// The input string
             #[pyo3(get)]
             pub input: String,
+            /// The total count of matching words.
             #[pyo3(get)]
             pub matching_words_count: u32,
+            /// The invalid letters provided as input.
             #[pyo3(get)]
             pub invalid: Vec<char>,
+            /// Some possible words.
+            ///
+            /// Compare to matching_words_count to see if these are all.
             #[pyo3(get, name = "words")]
             pub possible_words: Vec<&'static str>,
+            /// The language used.
             #[pyo3(get)]
             pub language: Language,
+            /// Letter frequence of all possible words in unsolved positions.
             #[pyo3(get)]
             pub letter_frequency: Vec<(char, u32)>,
         }

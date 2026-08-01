@@ -55,6 +55,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for InvalidLetters<'a> {
     }
 }
 
+/// Solve a pattern.
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
@@ -87,6 +88,10 @@ pub fn solve(
     result
 }
 
+
+/// Solve a pattern.
+///
+/// Crossword mode means that letters in the pattern can appear in other positions.
 #[cfg(feature = "pyo3")]
 #[pyfunction]
 #[pyo3(signature = (pattern_string, invalid_letters, language, max_words_to_collect))]
@@ -119,6 +124,7 @@ pub fn solve_crossword(
     result
 }
 
+/// Get all the words of a language with the given length.
 #[must_use]
 #[cfg(feature = "pyo3")]
 #[pyfunction]

@@ -229,6 +229,7 @@ fn main() {
         get_out_dir_joined(String::from("language.rs")),
         format!(
             r###"
+/// Enum representing a language
 #[cfg_attr(feature = "pyo3", pyo3::pyclass(from_py_object, eq))]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Language {{

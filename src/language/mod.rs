@@ -20,6 +20,7 @@ pyo3::create_exception!(
 #[cfg(feature = "pyo3")]
 #[pyo3::pymethods]
 impl Language {
+    /// Return all languages.
     #[staticmethod]
     #[must_use]
     #[allow(clippy::use_self)]
@@ -27,6 +28,7 @@ impl Language {
         Self::all()
     }
 
+    /// The string value of the language.
     #[allow(clippy::trivially_copy_pass_by_ref)]
     #[getter]
     #[must_use]
@@ -34,6 +36,7 @@ impl Language {
         self.name()
     }
 
+    /// Parse a string into a language.
     #[staticmethod]
     #[pyo3(signature = (name, default = None))]
     pub fn parse_string(
