@@ -51,7 +51,6 @@ name = "hangman_solver_lib"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-cfg-if = { version = "1.0.0", features = [] }
 counter = "0.7.0"
 itertools = { version = "0.15.0", features = [] }
 pyo3 = { version = "0.29.0", features = [], optional = true }

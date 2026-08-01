@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: EUPL-1.2
 
-use cfg_if::cfg_if;
 use std::fmt::Display;
 
 use crate::Language;
@@ -40,8 +39,8 @@ fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
     string
 }
 
-cfg_if! {
-    if #[cfg(feature = "pyo3")] {
+cfg_select! {
+    feature = "pyo3" => {
         /// The result of a hangman solve.
         #[pyclass]
         #[must_use]
@@ -89,7 +88,8 @@ cfg_if! {
                 }
             }
         }
-    } else {
+    }
+    _ => {
         #[must_use]
         pub struct HangmanResult {
             pub input: String,
