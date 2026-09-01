@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --script
+#!/usr/bin/env -S SOURCE_DATE_EPOCH=628318531 uv run --script
 # /// script
 # dependencies = [
 #   "zopflipy",
@@ -58,7 +58,7 @@ def main(args: Sequence[str]) -> str | int:
 
     for arch in ("aarch64", "x86_64"):  # TODO; "riscv64"
         for manylinux in ("manylinux_2_17", "musllinux_1_2"): # update to manylinux_2_28 before eol in 2027
-            image = "ghcr.io/pyo3/maturin:main"  # TODO: "latest"
+            image = "ghcr.io/pyo3/maturin:latest"
             if "musllinux" in manylinux:
                 image += "-musllinux"
 
@@ -79,6 +79,7 @@ def main(args: Sequence[str]) -> str | int:
                     f"--arch={arch}",
                     "--rm",
                     "--pull=newer",
+                    "--env=SOURCE_DATE_EPOCH",
                     f"--volume={directory}:/io",
                     f"--volume={tmp_dir.as_posix()}:/dist",
                     image,
