@@ -230,7 +230,7 @@ fn main() {
         format!(
             r###"
 /// Enum representing a language
-#[cfg_attr(feature = "pyo3", pyo3::pyclass(from_py_object, eq))]
+#[cfg_attr(feature = "pyo3", pyo3::pyclass(frozen, immutable_type, from_py_object, eq))]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Language {{
     {}

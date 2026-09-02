@@ -4,7 +4,7 @@ use pyo3::{PyRef, pyclass, pymethods};
 
 use super::StringChunkIter;
 
-#[pyclass(skip_from_py_object)]
+#[pyclass(immutable_type, skip_from_py_object)]
 pub struct ReversedStringChunkIter {
     iter: StringChunkIter,
 }

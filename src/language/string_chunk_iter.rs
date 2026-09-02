@@ -5,7 +5,7 @@ use std::num::NonZeroUsize;
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
 
-#[cfg_attr(feature = "pyo3", pyclass(skip_from_py_object))]
+#[cfg_attr(feature = "pyo3", pyclass(immutable_type, skip_from_py_object))]
 #[derive(Clone)]
 pub struct StringChunkIter {
     pub(super) padded_word_byte_count: NonZeroUsize,

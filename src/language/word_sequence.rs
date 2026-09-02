@@ -27,7 +27,10 @@ const _: () = assert!(EMPTY_WORD_SEQUENCE.is_empty());
 const _: () = assert!(EMPTY_WORD_SEQUENCE.word_char_count() == 0);
 const _: () = assert!(EMPTY_WORD_SEQUENCE.is_empty());
 
-#[cfg_attr(feature = "pyo3", pyclass(frozen))]
+#[cfg_attr(
+    feature = "pyo3",
+    pyclass(immutable_type, frozen, skip_from_py_object)
+)]
 pub struct WordSequence {
     word_length: usize,
     data: &'static str,
