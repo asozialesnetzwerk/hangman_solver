@@ -14,8 +14,8 @@ jobs:
         cargo_args:
           - ""
           - "--release"
-          - "--all-features"
-          - "--all-features --release"
+          - "--no-default-features"
+          - "--features=pyo3,wasm-bindgen"
         os:
           - ubuntu-26.04
           - ubuntu-26.04-arm
@@ -95,7 +95,11 @@ jobs:
           - stable
         cargo_args:
           - ""
-          - "--all-features"
+          - "--no-default-features"
+          - "--features=pyo3,wasm-bindgen"
+          - "--features=abi3"
+          - "--features=abi3t"
+          - "--features=abi3-immutable-types"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -175,7 +179,7 @@ jobs:
         shell: bash
         run: rustup update stable && rustup default stable
       - name: Improve the code
-        run: cargo clippy --fix || cargo clippy --fix --all-features
+        run: cargo clippy --fix || cargo clippy --fix --features=pyo3,wasm-bindgen || cargo clippy --fix --features=abi3t
       - name: Format the code
         run: cargo fmt
       - name: Update env
