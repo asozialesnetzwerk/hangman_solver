@@ -61,7 +61,8 @@ unwrap-infallible = "1"
 
 
 [build-dependencies]
-itertools = { version = "0.15.0", features = [] }
-Inflector = "0.11.4"
-unicode-segmentation = "1.12.0"
 easy-parallel = "3.3.1"
+Inflector = "0.11.4"
+itertools = { version = "0.15.0", features = [] }
+pyo3-build-config = "0.29.2"
+unicode-segmentation = "1.12.0"

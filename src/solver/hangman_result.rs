@@ -42,7 +42,8 @@ fn join_with_max_length<T: ExactSizeIterator<Item = String>>(
 cfg_select! {
     feature = "pyo3" => {
         /// The result of a hangman solve.
-        #[pyclass(frozen, immutable_type, skip_from_py_object)]
+        #[pyclass(frozen, skip_from_py_object)]
+        #[cfg_attr(any(Py_3_14, all(Py_3_10, not(Py_LIMITED_API))), pyo3(immutable_type))]
         #[must_use]
         pub struct HangmanResult {
             /// The input string

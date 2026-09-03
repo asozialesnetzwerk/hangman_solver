@@ -191,6 +191,8 @@ fn replace_umlauts(mut string: String) -> String {
 const WORDS_DIR: &str = "./words/";
 
 fn main() {
+    pyo3_build_config::use_pyo3_cfgs();
+
     let now = Instant::now();
     println!("cargo:warning=start main {:?}", now.elapsed());
     println!("cargo:rerun-if-changed={WORDS_DIR}");
@@ -230,7 +232,8 @@ fn main() {
         format!(
             r###"
 /// Enum representing a language
-#[cfg_attr(feature = "pyo3", pyo3::pyclass(frozen, immutable_type, from_py_object, eq))]
+#[cfg_attr(feature = "pyo3", pyo3::pyclass(frozen, from_py_object, eq))]
+#[cfg_attr(all(feature = "pyo3", any(Py_3_14, all(Py_3_10, not(Py_LIMITED_API)))), pyo3(immutable_type))]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Language {{
     {}
