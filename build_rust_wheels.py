@@ -10,6 +10,7 @@ Builds wheels for pyo3 projects.
 The rust project needs:
    - abi3 feature which activates pyo3/abi3 and pyo3/abi3-pyXY
    - abi3t feature which activates pyo3/abi3t and pyo3/abi3t-pyXY
+   - abi3-immutable-types feature which activates pyo3/abi3 and pyo3/abi3-pyXY with XY >= 314
 """
 from bz2 import compress
 import gzip
@@ -62,16 +63,16 @@ def main(args: Sequence[str]) -> str | int:
             if "musllinux" in manylinux:
                 image += "-musllinux"
 
-            for features in ("", "abi3", "abi3t"):
+            for features in ("", "abi3", "abi3t", "abi3-immutable-types"):
                 interpreters: list[str]
                 if features == "abi3t":
                     interpreters = ["/opt/python/cp315-cp315t/bin/python3.15t"]
-                elif features:
-                    interpreters = []
-                else:
+                elif not features:
                     interpreters = [INTERPRETER_NAME]
                     if "manylinux" in manylinux:  # SEE: https://github.com/pypa/manylinux/issues/1974
                         interpreters.append("pypy3.11")
+                else:
+                    interpreters = []
 
                 run(
                     "podman",
