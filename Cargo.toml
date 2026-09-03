@@ -46,6 +46,7 @@ debug = 1
 
 [[bin]]
 name = "hangman-solver"
+path = "src/main.rs"
 
 [lib]
 name = "hangman_solver_lib"
