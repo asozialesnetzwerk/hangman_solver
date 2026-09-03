@@ -6,7 +6,12 @@ use super::StringChunkIter;
 
 #[pyclass(skip_from_py_object)]
 #[cfg_attr(
-    any(feature = "abi3-immutable-types", feature = "abi3t", Py_3_14, all(Py_3_10, not(Py_LIMITED_API))),
+    any(
+        feature = "abi3-immutable-types",
+        feature = "abi3t",
+        Py_3_14,
+        all(Py_3_10, not(Py_LIMITED_API))
+    ),
     pyo3(immutable_type)
 )]
 pub struct ReversedStringChunkIter {
