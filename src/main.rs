@@ -24,7 +24,10 @@ use crate::language::Language;
 use crate::solver::InfallibleCharCollection as _;
 use crate::solver::solve;
 
-#[cfg_attr(not(feature = "terminal_size"), expect(clippy::missing_const_for_fn))]
+#[cfg_attr(
+    not(feature = "terminal_size"),
+    expect(clippy::missing_const_for_fn)
+)]
 fn get_terminal_width() -> usize {
     #[cfg(feature = "terminal_size")]
     if let Some((Width(w), _)) = terminal_size() {
