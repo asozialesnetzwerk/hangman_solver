@@ -43,7 +43,7 @@ cfg_select! {
     feature = "pyo3" => {
         /// The result of a hangman solve.
         #[pyclass(frozen, skip_from_py_object)]
-        #[cfg_attr(any(Py_3_14, all(Py_3_10, not(Py_LIMITED_API))), pyo3(immutable_type))]
+        #[cfg_attr(any(feature = "abi3-immutable-types", feature = "abi3t", Py_3_14, all(Py_3_10, not(Py_LIMITED_API))), pyo3(immutable_type))]
         #[must_use]
         pub struct HangmanResult {
             /// The input string
